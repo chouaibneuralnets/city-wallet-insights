@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useStuttgartWeather } from "@/hooks/useStuttgartWeather";
 import { useSignals } from "@/context/SignalsContext";
+import { isRuleActive } from "@/lib/ruleActiveStore";
 
 type OpportunityStatus = "scanning" | "sending" | "converted";
 type Segment = "loyals" | "newcomers" | "commuters";
