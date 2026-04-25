@@ -1,8 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { Brain, Coffee, GraduationCap, Briefcase, Radar, Zap, CheckCircle2, Sparkles } from "lucide-react";
+import {
+  Brain,
+  Coffee,
+  GraduationCap,
+  Briefcase,
+  Radar,
+  Zap,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useStuttgartWeather } from "@/hooks/useStuttgartWeather";
@@ -11,24 +20,50 @@ import { useSignals } from "@/context/SignalsContext";
 type OpportunityStatus = "scanning" | "sending" | "converted";
 type Segment = "loyals" | "newcomers" | "commuters";
 
+type ActivityLogRow = {
+  id: string;
+  occurred_at: string;
+  profile: string;
+  action: string;
+  segment: string;
+  status: string;
+  is_mia: boolean;
+  redemption_id: string | null;
+  source: string | null;
+};
+
 type Opportunity = {
   id: string;
+  occurredAt: Date;
   time: string;
   profile: string;
   action: string;
   status: OpportunityStatus;
   segment: Segment;
-  icon: React.ReactNode;
-  highlight?: boolean;
+  redemptionId: string | null;
+  highlight: boolean;
 };
 
-const fmtTime = (d = new Date()) =>
-  d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" });
+const fmtTime = (d: Date) =>
+  d.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone: "Europe/Berlin",
+  });
 
 const SEGMENT_META: Record<Segment, { label: string; color: string; icon: React.ReactNode }> = {
-  loyals: { label: "Loyals", color: "hsl(var(--chart-1))", icon: <Sparkles className="size-3" /> },
-  newcomers: { label: "Newcomers", color: "hsl(var(--chart-3))", icon: <GraduationCap className="size-3" /> },
-  commuters: { label: "Commuters", color: "hsl(var(--chart-4))", icon: <Briefcase className="size-3" /> },
+  loyals: { label: "Loyals", color: "hsl(var(--chart-1))", icon: <Sparkles className="size-3.5" /> },
+  newcomers: {
+    label: "Newcomers",
+    color: "hsl(var(--chart-3))",
+    icon: <GraduationCap className="size-3.5" />,
+  },
+  commuters: {
+    label: "Commuters",
+    color: "hsl(var(--chart-4))",
+    icon: <Briefcase className="size-3.5" />,
+  },
 };
 
 const STATUS_META: Record<OpportunityStatus, { label: string; cls: string; dot: string }> = {
@@ -49,144 +84,242 @@ const STATUS_META: Record<OpportunityStatus, { label: string; cls: string; dot: 
   },
 };
 
-const SEED: Omit<Opportunity, "id" | "time">[] = [
-  {
-    profile: "Travailleur matinal détecté (8:05)",
-    action: "Envoi offre Espresso rapide",
-    status: "sending",
-    segment: "commuters",
-    icon: <Briefcase className="size-3.5" />,
-  },
-  {
-    profile: "Étudiant détecté sous la pluie",
-    action: "Offre Cappuccino +25%",
-    status: "scanning",
-    segment: "newcomers",
-    icon: <GraduationCap className="size-3.5" />,
-  },
-  {
-    profile: "Client fidèle (12 visites/mois)",
-    action: "Push pré-réservation",
-    status: "converted",
-    segment: "loyals",
-    icon: <Sparkles className="size-3.5" />,
-  },
-  {
-    profile: "Alerte fréquentation -30%",
-    action: "Extension géo-fence → 500m",
-    status: "sending",
-    segment: "newcomers",
-    icon: <Radar className="size-3.5" />,
-  },
-];
+const ACTION_ICON = (segment: Segment, isMia: boolean, status: OpportunityStatus) => {
+  if (status === "converted") return <CheckCircle2 className="size-3.5" />;
+  if (isMia) return <GraduationCap className="size-3.5" />;
+  if (segment === "commuters") return <Briefcase className="size-3.5" />;
+  if (segment === "loyals") return <Sparkles className="size-3.5" />;
+  if (segment === "newcomers") return <GraduationCap className="size-3.5" />;
+  return <Radar className="size-3.5" />;
+};
 
-const RANDOM_OPPS: Omit<Opportunity, "id" | "time">[] = [
+const normalizeSegment = (s: string): Segment =>
+  s === "loyals" || s === "newcomers" || s === "commuters" ? s : "newcomers";
+
+const normalizeStatus = (s: string): OpportunityStatus =>
+  s === "scanning" || s === "sending" || s === "converted" ? s : "sending";
+
+const rowToOpp = (row: ActivityLogRow): Opportunity => {
+  const occurredAt = new Date(row.occurred_at);
+  return {
+    id: row.id,
+    occurredAt,
+    time: fmtTime(occurredAt),
+    profile: row.profile,
+    action: row.action,
+    status: normalizeStatus(row.status),
+    segment: normalizeSegment(row.segment),
+    redemptionId: row.redemption_id,
+    highlight: row.is_mia,
+  };
+};
+
+// Pool of autonomous AI scans that get inserted into Supabase to keep the
+// feed alive even if no human is interacting. Aligned with our KPI:
+// - Commuters during weekdays
+// - Loyals & Newcomers during weekend
+const RANDOM_OPPS: Array<{
+  profile: string;
+  action: string;
+  status: OpportunityStatus;
+  segment: Segment;
+  source: string;
+}> = [
   {
     profile: "Profil Commuter — quartier S-Bahn",
     action: "Café & croissant -15%",
     status: "sending",
     segment: "commuters",
-    icon: <Briefcase className="size-3.5" />,
+    source: "ai-scan",
   },
   {
     profile: "Nouveau passant détecté (1ère fois)",
     action: "Welcome offer Cappuccino",
     status: "scanning",
     segment: "newcomers",
-    icon: <GraduationCap className="size-3.5" />,
+    source: "ai-scan",
   },
   {
     profile: "Loyal — historique 30j positif",
     action: "Pré-commande prioritaire",
-    status: "converted",
+    status: "sending",
     segment: "loyals",
-    icon: <Sparkles className="size-3.5" />,
+    source: "ai-scan",
   },
   {
     profile: "Pic météo détecté — 4 wallets proches",
     action: "Offre boisson chaude groupée",
     status: "sending",
     segment: "commuters",
-    icon: <Coffee className="size-3.5" />,
+    source: "weather-trigger",
   },
   {
     profile: "Étudiant proche campus — pause 14h",
     action: "Cookie + café -20%",
     status: "scanning",
     segment: "newcomers",
-    icon: <GraduationCap className="size-3.5" />,
+    source: "ai-scan",
+  },
+  {
+    profile: "Alerte fréquentation -30%",
+    action: "Extension géo-fence → 500m",
+    status: "sending",
+    segment: "newcomers",
+    source: "geo-trigger",
   },
 ];
 
 export const LiveOpportunities = () => {
-  const [opps, setOpps] = useState<Opportunity[]>(() =>
-    SEED.map((s, i) => ({
-      ...s,
-      id: `seed-${i}`,
-      time: fmtTime(new Date(Date.now() - (SEED.length - i) * 11000)),
-    })).reverse()
-  );
-  const [counts, setCounts] = useState<Record<Segment, number>>({
-    loyals: 8,
-    newcomers: 14,
-    commuters: 11,
-  });
-  const counterRef = useRef(0);
+  const [opps, setOpps] = useState<Opportunity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const seededRef = useRef(false);
   const { data: weather } = useStuttgartWeather();
   const { stuttgart } = useSignals();
-  // Stuttgart-day driven segmentation hint:
-  // Weekdays (Mon-Fri) → favor Commuters
-  // Weekend (Sat-Sun)  → favor Loyals & Newcomers
+
   const isWeekend = stuttgart.day === 0 || stuttgart.day === 6;
-  const preferredSegments: Segment[] = isWeekend
-    ? ["loyals", "newcomers"]
-    : ["commuters"];
-  const segmentHintLabel = isWeekend
-    ? "Loyals · Newcomers"
-    : "Commuters";
+  const preferredSegments: Segment[] = isWeekend ? ["loyals", "newcomers"] : ["commuters"];
+  const segmentHintLabel = isWeekend ? "Loyals · Newcomers" : "Commuters";
 
-  const push = (entry: Omit<Opportunity, "id" | "time">) => {
-    counterRef.current += 1;
-    setOpps((prev) =>
-      [
-        { ...entry, id: `opp-${Date.now()}-${counterRef.current}`, time: fmtTime() },
-        ...prev,
-      ].slice(0, 25)
-    );
-    setCounts((c) => ({ ...c, [entry.segment]: c[entry.segment] + 1 }));
-  };
-
-  // Background ticker — autonomous AI scanning, biased toward the day's
-  // preferred segment (Commuters during the week, Loyals/Newcomers weekend).
+  // Initial load + bootstrap if empty
   useEffect(() => {
-    const id = setInterval(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("activity_logs")
+        .select("*")
+        .order("occurred_at", { ascending: false })
+        .limit(25);
+
+      if (cancelled) return;
+      if (!error && data) {
+        setOpps(data.map((r) => rowToOpp(r as ActivityLogRow)));
+      }
+      setLoading(false);
+
+      // If table empty, seed a few rows so the demo has content
+      if (!error && (!data || data.length === 0) && !seededRef.current) {
+        seededRef.current = true;
+        const now = Date.now();
+        const seed = [
+          {
+            profile: "Travailleur matinal détecté",
+            action: "Envoi offre Espresso rapide",
+            status: "sending",
+            segment: "commuters",
+            source: "ai-scan",
+            occurred_at: new Date(now - 35000).toISOString(),
+          },
+          {
+            profile: "Étudiant détecté sous la pluie",
+            action: "Offre Cappuccino +25%",
+            status: "scanning",
+            segment: "newcomers",
+            source: "weather-trigger",
+            occurred_at: new Date(now - 22000).toISOString(),
+          },
+          {
+            profile: "Client fidèle (12 visites/mois)",
+            action: "Push pré-réservation",
+            status: "converted",
+            segment: "loyals",
+            source: "ai-scan",
+            occurred_at: new Date(now - 11000).toISOString(),
+          },
+        ];
+        await supabase.from("activity_logs").insert(seed);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Realtime: INSERT + UPDATE on activity_logs
+  useEffect(() => {
+    const channel = supabase
+      .channel("live-opportunities-feed")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "activity_logs" },
+        (payload) => {
+          const opp = rowToOpp(payload.new as ActivityLogRow);
+          setOpps((prev) => {
+            if (prev.some((o) => o.id === opp.id)) return prev;
+            return [opp, ...prev].slice(0, 25);
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "activity_logs" },
+        (payload) => {
+          const updated = rowToOpp(payload.new as ActivityLogRow);
+          setOpps((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+        }
+      )
+      // When a redemption is recorded → flip the matching activity row to "converted"
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "redemptions" },
+        async (payload) => {
+          const r = payload.new as { id: string };
+          if (!r?.id) return;
+          await supabase
+            .from("activity_logs")
+            .update({ status: "converted" })
+            .eq("redemption_id", r.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Autonomous AI ticker — INSERTS into activity_logs every ~7s, biased
+  // toward the day's preferred segment.
+  useEffect(() => {
+    const id = setInterval(async () => {
       const preferred = RANDOM_OPPS.filter((o) => preferredSegments.includes(o.segment));
       const pool = preferred.length && Math.random() < 0.7 ? preferred : RANDOM_OPPS;
       const entry = pool[Math.floor(Math.random() * pool.length)];
-      push(entry);
-    }, 6500);
+      await supabase.from("activity_logs").insert({
+        profile: entry.profile,
+        action: entry.action,
+        status: entry.status,
+        segment: entry.segment,
+        source: entry.source,
+      });
+    }, 7000);
     return () => clearInterval(id);
   }, [isWeekend]);
 
-  // Special "Mia" opportunity → triggers Supabase insert into offers_config
+  // Mia scenario — every ~20s, push a Mia-flagged activity + offer + redemption
   useEffect(() => {
     const id = setInterval(async () => {
-      // 1 in 4 chance to trigger the Mia scenario
-      if (Math.random() > 0.25) return;
+      if (Math.random() > 0.3) return;
 
       const isRain = weather?.weather === "rain";
-      push({
-        profile: "Profil Mia détecté · étudiante, zone campus",
-        action: isRain
-          ? "Pluie — Cappuccino +25% envoyé"
-          : "Pause étudiante — Cappuccino +20%",
-        status: "sending",
-        segment: "newcomers",
-        icon: <GraduationCap className="size-3.5" />,
-        highlight: true,
-      });
+      const action = isRain
+        ? "Pluie — Cappuccino +25% envoyé"
+        : "Pause étudiante — Cappuccino +20%";
 
-      // Trigger the actual Supabase insert (links to Mia's app via realtime)
+      // 1. Insert the Mia opportunity (sending)
+      const { data: log } = await supabase
+        .from("activity_logs")
+        .insert({
+          profile: "Profil Mia détecté · étudiante, zone campus",
+          action,
+          status: "sending",
+          segment: "newcomers",
+          is_mia: true,
+          source: "mia-scenario",
+        })
+        .select("id")
+        .single();
+
+      // 2. Trigger the offer (links to Mia's app via realtime)
       try {
         await supabase.from("offers_config").insert({
           weather: isRain ? "rain" : "cloud",
@@ -195,22 +328,43 @@ export const LiveOpportunities = () => {
           traffic_condition: "low",
           active: true,
         });
-        setTimeout(() => {
-          push({
-            profile: "Mia — offre acceptée dans l'app",
-            action: "Paiement Payone confirmé €3.80",
-            status: "converted",
-            segment: "newcomers",
-            icon: <CheckCircle2 className="size-3.5" />,
-            highlight: true,
-          });
-        }, 2200);
-      } catch (e) {
-        // Silent fail — UI continues
+      } catch {
+        /* silent */
       }
-    }, 18000);
+
+      // 3. After ~2.2s simulate Mia accepting → insert redemption,
+      //    realtime handler will flip the activity row to "converted"
+      setTimeout(async () => {
+        const { data: red } = await supabase
+          .from("redemptions")
+          .insert({
+            product: "Cappuccino",
+            amount: 3.8,
+            discount_percent: isRain ? 25 : 20,
+            weather: isRain ? "rain" : "cloud",
+            status: "completed",
+          })
+          .select("id")
+          .single();
+
+        if (red?.id && log?.id) {
+          // Link redemption to the activity row so the realtime UPDATE matches it
+          await supabase
+            .from("activity_logs")
+            .update({ redemption_id: red.id, status: "converted" })
+            .eq("id", log.id);
+        }
+      }, 2200);
+    }, 20000);
     return () => clearInterval(id);
   }, [weather?.weather]);
+
+  // Derived audience counts (from the live feed — fully dynamic)
+  const counts = useMemo(() => {
+    const c: Record<Segment, number> = { loyals: 0, newcomers: 0, commuters: 0 };
+    for (const o of opps) c[o.segment] += 1;
+    return c;
+  }, [opps]);
 
   const total = counts.loyals + counts.newcomers + counts.commuters;
   const pieData = (Object.keys(counts) as Segment[]).map((k) => ({
@@ -233,11 +387,14 @@ export const LiveOpportunities = () => {
               Opportunités détectées en direct
             </h2>
             <p className="text-[11px] text-muted-foreground font-mono">
-              IA · scan continu · {total} profils analysés aujourd'hui
+              IA · scan continu · {total} profils analysés (live)
             </p>
           </div>
         </div>
-        <Badge variant="outline" className="gap-1.5 border-success/40 bg-success/10 text-success font-mono text-[10px]">
+        <Badge
+          variant="outline"
+          className="gap-1.5 border-success/40 bg-success/10 text-success font-mono text-[10px]"
+        >
           <span className="size-1.5 rounded-full bg-success animate-pulse" />
           AI ACTIVE
         </Badge>
@@ -247,63 +404,80 @@ export const LiveOpportunities = () => {
         {/* Live feed */}
         <div className="lg:col-span-3 border-b lg:border-b-0 lg:border-r border-border/60">
           <div className="max-h-[380px] overflow-y-auto">
-            <ul className="divide-y divide-border/50">
-              {opps.map((opp, idx) => {
-                const status = STATUS_META[opp.status];
-                const seg = SEGMENT_META[opp.segment];
-                return (
-                  <li
-                    key={opp.id}
-                    className={cn(
-                      "px-5 py-3 flex items-start gap-3 transition-colors",
-                      idx === 0 && "bg-primary/5 animate-in fade-in slide-in-from-top-2 duration-300",
-                      opp.highlight && "bg-accent/40 border-l-2 border-l-primary"
-                    )}
-                  >
-                    <span
-                      className="shrink-0 mt-0.5 size-7 rounded-md grid place-items-center"
-                      style={{ background: `${seg.color}20`, color: seg.color }}
-                    >
-                      {opp.icon}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="font-mono text-[10px] text-muted-foreground tabular">
-                          {opp.time}
-                        </span>
-                        <span
-                          className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
-                          style={{ background: `${seg.color}18`, color: seg.color }}
-                        >
-                          {seg.label}
-                        </span>
-                        {opp.highlight && (
-                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary text-primary-foreground">
-                            ★ Mia
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[13px] font-medium text-foreground leading-snug truncate">
-                        {opp.profile}
-                      </p>
-                      <p className="text-[12px] text-muted-foreground leading-snug truncate flex items-center gap-1">
-                        <Zap className="size-3 shrink-0" />
-                        <span className="truncate">{opp.action}</span>
-                      </p>
-                    </div>
-                    <span
+            {loading && opps.length === 0 ? (
+              <div className="px-5 py-10 text-center text-[12px] text-muted-foreground font-mono">
+                Connexion au flux temps réel…
+              </div>
+            ) : opps.length === 0 ? (
+              <div className="px-5 py-10 text-center text-[12px] text-muted-foreground font-mono">
+                En attente du premier scan IA…
+              </div>
+            ) : (
+              <ul className="divide-y divide-border/50">
+                {opps.map((opp, idx) => {
+                  const status = STATUS_META[opp.status];
+                  const seg = SEGMENT_META[opp.segment];
+                  return (
+                    <li
+                      key={opp.id}
                       className={cn(
-                        "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-                        status.cls
+                        "px-5 py-3 flex items-start gap-3 transition-colors",
+                        idx === 0 &&
+                          "bg-primary/5 animate-in fade-in slide-in-from-top-2 duration-500",
+                        opp.highlight && "bg-accent/40 border-l-2 border-l-primary"
                       )}
                     >
-                      <span className={cn("size-1.5 rounded-full", status.dot, opp.status !== "converted" && "animate-pulse")} />
-                      {status.label}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+                      <span
+                        className="shrink-0 mt-0.5 size-7 rounded-md grid place-items-center"
+                        style={{ background: `${seg.color}20`, color: seg.color }}
+                      >
+                        {ACTION_ICON(opp.segment, opp.highlight, opp.status)}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-mono text-[10px] text-muted-foreground tabular">
+                            {opp.time}
+                          </span>
+                          <span
+                            className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                            style={{ background: `${seg.color}18`, color: seg.color }}
+                          >
+                            {seg.label}
+                          </span>
+                          {opp.highlight && (
+                            <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary text-primary-foreground">
+                              ★ Mia
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[13px] font-medium text-foreground leading-snug truncate">
+                          {opp.profile}
+                        </p>
+                        <p className="text-[12px] text-muted-foreground leading-snug truncate flex items-center gap-1">
+                          <Zap className="size-3 shrink-0" />
+                          <span className="truncate">{opp.action}</span>
+                        </p>
+                      </div>
+                      <span
+                        className={cn(
+                          "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider transition-all",
+                          status.cls
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "size-1.5 rounded-full",
+                            status.dot,
+                            opp.status !== "converted" && "animate-pulse"
+                          )}
+                        />
+                        {status.label}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </div>
 
@@ -378,7 +552,7 @@ export const LiveOpportunities = () => {
           <div className="mt-4 pt-4 border-t border-border/60">
             <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-mono">
               <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-              Modèle ML actif · latence 42ms
+              Modèle ML actif · stream Realtime · latence 42ms
             </div>
           </div>
         </div>
