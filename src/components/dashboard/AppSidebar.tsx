@@ -1,4 +1,4 @@
-import { LayoutDashboard, Wand2, Tag, BarChart3, Receipt, Settings, HelpCircle, Sparkles } from "lucide-react";
+import { LayoutDashboard, Brain, Wallet, Tag, BarChart3, Settings, HelpCircle, Sparkles } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -15,15 +15,27 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
-const workspaceItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard, end: true },
-  { title: "Automations", url: "/automations", icon: Wand2 },
-  { title: "Offers", url: "/offers", icon: Tag },
-  { title: "Transactions", url: "/transactions", icon: Receipt },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
+type Item = {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  end?: boolean;
+  badge?: string;
+  caption?: string;
+};
+
+const coreItems: Item[] = [
+  { title: "Dashboard", url: "/", icon: LayoutDashboard, end: true, badge: "M01", caption: "Context Sensing" },
+  { title: "IA Strategist", url: "/automations", icon: Brain, badge: "M02", caption: "Generative Engine" },
+  { title: "Finance & Payone", url: "/transactions", icon: Wallet, badge: "M03", caption: "Seamless Checkout" },
 ];
 
-const bottomItems = [
+const toolItems: Item[] = [
+  { title: "Offres actives", url: "/offers", icon: Tag },
+  { title: "Analytics avancées", url: "/analytics", icon: BarChart3 },
+];
+
+const bottomItems: Item[] = [
   { title: "Settings", url: "/settings", icon: Settings },
   { title: "Help", url: "/help", icon: HelpCircle },
 ];
@@ -50,15 +62,53 @@ export const AppSidebar = () => {
 
       <SidebarContent>
         <SidebarGroup>
-          {!collapsed && <SidebarGroupLabel>Workspace</SidebarGroupLabel>}
+          {!collapsed && <SidebarGroupLabel>Cahier des charges DSV</SidebarGroupLabel>}
           <SidebarGroupContent>
             <SidebarMenu>
-              {workspaceItems.map((item) => (
+              {coreItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title} className="h-auto py-2">
+                    <NavLink
+                      to={item.url}
+                      end={item.end}
+                      className="hover:bg-sidebar-accent/60"
+                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                    >
+                      <item.icon className="size-4 shrink-0" />
+                      {!collapsed && (
+                        <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="truncate text-sm leading-tight">{item.title}</div>
+                            {item.caption && (
+                              <div className="text-[10px] text-muted-foreground truncate font-normal">
+                                {item.caption}
+                              </div>
+                            )}
+                          </div>
+                          {item.badge && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary tracking-wider shrink-0">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          {!collapsed && <SidebarGroupLabel>Outils</SidebarGroupLabel>}
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {toolItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink
                       to={item.url}
-                      end={item.end}
                       className="hover:bg-sidebar-accent/60"
                       activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                     >

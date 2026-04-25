@@ -1,37 +1,27 @@
 import { KpiCards } from "@/components/dashboard/KpiCards";
-import { TransactionChart } from "@/components/dashboard/TransactionChart";
 import { LiveAnalytics } from "@/components/dashboard/LiveAnalytics";
-import { AiActivityLog } from "@/components/dashboard/AiActivityLog";
-import { RevenueComparison } from "@/components/dashboard/RevenueComparison";
-import { ContextPanel } from "@/components/dashboard/ContextPanel";
-import { MiaSimulator } from "@/components/dashboard/MiaSimulator";
 import { LiveOpportunities } from "@/components/dashboard/LiveOpportunities";
 
 const Dashboard = () => {
   return (
     <>
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary/10 text-primary">
+            Module 01
+          </span>
+          <span className="text-xs text-muted-foreground font-medium">Context Sensing — Le Présent</span>
+        </div>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          Vue temps réel
+        </h1>
+      </div>
+
       <KpiCards />
 
+      <LiveAnalytics />
+
       <LiveOpportunities />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <LiveAnalytics />
-        </div>
-        <div className="space-y-6">
-          <MiaSimulator />
-          <AiActivityLog />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <TransactionChart />
-        </div>
-        <ContextPanel />
-      </div>
-
-      <RevenueComparison />
     </>
   );
 };
