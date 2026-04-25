@@ -1,6 +1,8 @@
 import { Wallet } from "lucide-react";
 import { TransactionsTable } from "@/components/dashboard/TransactionsTable";
 import { TransactionChart } from "@/components/dashboard/TransactionChart";
+import { KpiCards } from "@/components/dashboard/KpiCards";
+import { LiveAnalytics } from "@/components/dashboard/LiveAnalytics";
 
 const Transactions = () => {
   return (
@@ -17,6 +19,10 @@ const Transactions = () => {
           Finance & Payone
         </h1>
       </div>
+
+      <KpiCards />
+
+      <LiveAnalytics />
 
       <TransactionChart />
       <TransactionsTable />
