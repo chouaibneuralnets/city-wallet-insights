@@ -27,7 +27,7 @@ const weatherLabel = (w?: string) => {
 };
 
 export const InputSignals = () => {
-  const { data: weather, loading } = useStuttgartWeather();
+  const { weather, weatherLoading: loading, temperatureC } = useSignals();
   const { pct: trafficPct, count: salesCount } = useTrafficDensity();
   const [event, setEvent] = useState<StuttgartEvent | null>(() => getCurrentStuttgartEvent());
 
