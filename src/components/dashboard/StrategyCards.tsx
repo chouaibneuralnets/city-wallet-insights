@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CloudRain,
   Sun,
@@ -17,6 +17,9 @@ import {
   Sparkles,
   Coffee,
   X,
+  Lock,
+  Unlock,
+  PowerOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -167,12 +170,30 @@ type Props = {
   }) => void;
 };
 
+const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+type LockState = {
+  /** ms epoch of the last successful send for this strategy. */
+  lastSentAt: number;
+  /** Increments each time the switch flips OFF→ON, resetting the lock window. */
+  sessionId: number;
+};
+
 export const StrategyCards = ({ liveWeather, onWinningChange }: Props) => {
   const { temperatureC } = useSignals();
   const { pct: trafficPct } = useTrafficDensity();
   const [strategies, setStrategies] = useState<Strategy[]>(initialStrategies);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [publishingId, setPublishingId] = useState<string | null>(null);
+
+  /** Lock registry: per-strategy session + lastSentAt. Activation OFF→ON bumps sessionId. */
+  const [locks, setLocks] = useState<Record<string, LockState>>({});
+  /** Tick to refresh remaining-time labels every second. */
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   // Live Stuttgart context
   const [stuttgart, setStuttgart] = useState(() => getStuttgartParts());
@@ -217,44 +238,150 @@ export const StrategyCards = ({ liveWeather, onWinningChange }: Props) => {
     onWinningChange?.({ strategy: winner.strategy, message: msg });
   }, [winner?.strategy.id, winner?.strategy.discount, winner?.strategy.product, winner?.strategy.tone, liveWeather, stuttgart.dayNameFr, onWinningChange, winner]);
 
-  const removeStrategy = (id: string) =>
+  const removeStrategy = (id: string) => {
     setStrategies((prev) => prev.filter((s) => s.id !== id));
+    setLocks((prev) => {
+      const { [id]: _, ...rest } = prev;
+      return rest;
+    });
+  };
 
-  const toggleActive = (id: string, v: boolean) =>
+  /**
+   * Activation switch is the master kill-switch.
+   *  - OFF blocks every send (auto + manual) instantly.
+   *  - OFF → ON resets the lock so a fresh offer can be sent once conditions match.
+   *  - ON  → OFF clears the current session lock.
+   */
+  const toggleActive = (id: string, v: boolean) => {
     setStrategies((prev) => prev.map((s) => (s.id === id ? { ...s, active: v } : s)));
+    setLocks((prev) => {
+      const next = { ...prev };
+      if (v) {
+        next[id] = { lastSentAt: 0, sessionId: (prev[id]?.sessionId ?? 0) + 1 };
+      } else {
+        delete next[id];
+      }
+      return next;
+    });
+  };
 
   const addStrategy = (s: Omit<Strategy, "id">) =>
     setStrategies((prev) => [...prev, { ...s, id: `s-${Date.now()}` }]);
 
-  const handleDeploy = async (s: Strategy) => {
-    setPublishingId(s.id);
-    try {
-      const message = generateMessage(s.tone, liveWeather, s.product, s.discount, {
-        day: stuttgart.dayNameFr,
-      });
-      const { error } = await supabase.from("offers_config").insert({
-        weather: s.weather === "any" ? liveWeather : s.weather,
-        discount_percent: s.discount,
-        product: s.product,
-        traffic_condition: trafficPct < 35 ? "low" : "normal",
-        active: true,
-        tone: s.tone,
-        message,
-        generated_text: message,
-      });
-      if (error) throw error;
-      toast.success(`Stratégie "${s.name}" déployée`, {
-        description: `"${message.slice(0, 80)}${message.length > 80 ? "…" : ""}"`,
-        icon: <CheckCircle2 className="size-4 text-success" />,
-      });
-    } catch (e) {
-      toast.error("Échec du déploiement", {
-        description: e instanceof Error ? e.message : "Erreur inconnue",
-      });
-    } finally {
-      setPublishingId(null);
-    }
-  };
+  /** ms remaining on the lock for this strategy, or 0 if unlocked. */
+  const lockRemaining = useCallback(
+    (id: string) => {
+      const lk = locks[id];
+      if (!lk || !lk.lastSentAt) return 0;
+      const left = LOCK_DURATION_MS - (Date.now() - lk.lastSentAt);
+      return left > 0 ? left : 0;
+    },
+    [locks],
+  );
+
+  const isLocked = useCallback((id: string) => lockRemaining(id) > 0, [lockRemaining]);
+
+  /**
+   * Core send routine — gated by activation switch + lock.
+   * Pushes the offer to `offers_config` and logs the emission in `activity_logs`
+   * (which feeds the live opportunities widget in realtime).
+   */
+  const sendOffer = useCallback(
+    async (s: Strategy, source: "manual" | "auto") => {
+      if (!s.active) {
+        if (source === "manual") {
+          toast.warning("Règle désactivée", {
+            description: "Activez la règle pour autoriser l'envoi.",
+          });
+        }
+        return;
+      }
+      if (isLocked(s.id)) {
+        if (source === "manual") {
+          const mins = Math.ceil(lockRemaining(s.id) / 60000);
+          toast.info("Verrouillage actif", {
+            description: `Une offre a déjà été envoyée. Prochaine fenêtre dans ~${mins} min ou après ré-activation.`,
+          });
+        }
+        return;
+      }
+
+      setPublishingId(s.id);
+      try {
+        const message = generateMessage(s.tone, liveWeather, s.product, s.discount, {
+          day: stuttgart.dayNameFr,
+        });
+        const weatherToUse = s.weather === "any" ? liveWeather : s.weather;
+
+        const { data: cfg, error: cfgErr } = await supabase
+          .from("offers_config")
+          .insert({
+            weather: weatherToUse,
+            discount_percent: s.discount,
+            product: s.product,
+            traffic_condition: trafficPct < 35 ? "low" : "normal",
+            active: true,
+            tone: s.tone,
+            message,
+            generated_text: message,
+          })
+          .select("id")
+          .single();
+        if (cfgErr) throw cfgErr;
+
+        await supabase.from("activity_logs").insert({
+          action: "offer_sent",
+          profile: s.segment === "Tous" ? "Audience générale" : s.segment,
+          segment: s.segment.toLowerCase(),
+          source: source === "auto" ? "auto-rule" : "manual-deploy",
+          status: "sending",
+          offer_id: cfg?.id ?? null,
+        });
+
+        // Engage the 15-min lock so Mia receives only one offer per activation.
+        setLocks((prev) => ({
+          ...prev,
+          [s.id]: {
+            lastSentAt: Date.now(),
+            sessionId: prev[s.id]?.sessionId ?? 1,
+          },
+        }));
+
+        toast.success(
+          source === "auto" ? `Auto-envoi · "${s.name}"` : `Stratégie "${s.name}" déployée`,
+          {
+            description: `"${message.slice(0, 80)}${message.length > 80 ? "…" : ""}"`,
+            icon: <CheckCircle2 className="size-4 text-success" />,
+          },
+        );
+      } catch (e) {
+        toast.error("Échec de l'envoi", {
+          description: e instanceof Error ? e.message : "Erreur inconnue",
+        });
+      } finally {
+        setPublishingId(null);
+      }
+    },
+    [liveWeather, stuttgart.dayNameFr, trafficPct, isLocked, lockRemaining],
+  );
+
+  const handleDeploy = (s: Strategy) => sendOffer(s, "manual");
+
+  /**
+   * Auto-trigger: when the WINNING strategy is active, matched, and unlocked,
+   * fire one offer automatically. Lock prevents any subsequent send for 15 min.
+   */
+  const lastFireRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!winner) return;
+    const s = winner.strategy;
+    if (!s.active) return;
+    if (isLocked(s.id)) return;
+    const fingerprint = `${s.id}:${locks[s.id]?.sessionId ?? 0}`;
+    if (lastFireRef.current === fingerprint) return;
+    lastFireRef.current = fingerprint;
+    sendOffer(s, "auto");
+  }, [winner, locks, sendOffer, isLocked]);
 
   return (
     <Card className="p-0 shadow-sm-elegant border-border/70 overflow-hidden">
@@ -400,6 +527,29 @@ export const StrategyCards = ({ liveWeather, onWinningChange }: Props) => {
                 </div>
               </div>
 
+              {/* Lock / activation status banner */}
+              {!strategy.active ? (
+                <div className="mb-3 flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-dashed border-border bg-muted/40 text-[11px] text-muted-foreground">
+                  <PowerOff className="size-3.5" />
+                  Règle <span className="font-semibold">OFF</span> — aucun envoi vers Mia. Modifications libres.
+                </div>
+              ) : isLocked(strategy.id) ? (
+                <div className="mb-3 flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-warning/40 bg-warning/10 text-[11px] text-warning">
+                  <Lock className="size-3.5" />
+                  Verrouillée — prochaine fenêtre dans{" "}
+                  <span className="font-mono font-semibold">
+                    {Math.floor(lockRemaining(strategy.id) / 60000)}m{" "}
+                    {String(Math.floor((lockRemaining(strategy.id) % 60000) / 1000)).padStart(2, "0")}s
+                  </span>
+                  {" "}ou ré-activez la règle.
+                </div>
+              ) : (
+                <div className="mb-3 flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-success/30 bg-success/10 text-[11px] text-success">
+                  <Unlock className="size-3.5" />
+                  Prêt — un envoi déclenché dès que les conditions matchent.
+                </div>
+              )}
+
               {/* Footer: score + controls */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
@@ -414,6 +564,7 @@ export const StrategyCards = ({ liveWeather, onWinningChange }: Props) => {
                   <Switch
                     checked={strategy.active}
                     onCheckedChange={(v) => toggleActive(strategy.id, v)}
+                    aria-label="Règle active"
                   />
                   <Button
                     variant="ghost"
@@ -426,15 +577,28 @@ export const StrategyCards = ({ liveWeather, onWinningChange }: Props) => {
                   <Button
                     size="sm"
                     className="h-8 gap-1.5"
-                    disabled={publishingId === strategy.id || !strategy.active}
+                    disabled={
+                      publishingId === strategy.id ||
+                      !strategy.active ||
+                      isLocked(strategy.id)
+                    }
                     onClick={() => handleDeploy(strategy)}
+                    title={
+                      !strategy.active
+                        ? "Règle désactivée"
+                        : isLocked(strategy.id)
+                          ? "Verrouillée — attendez la fin du délai ou ré-activez"
+                          : "Déployer maintenant"
+                    }
                   >
                     {publishingId === strategy.id ? (
                       <Loader2 className="size-3.5 animate-spin" />
+                    ) : isLocked(strategy.id) ? (
+                      <Lock className="size-3.5" />
                     ) : (
                       <Rocket className="size-3.5" />
                     )}
-                    Déployer
+                    {isLocked(strategy.id) ? "Verrouillée" : "Déployer"}
                   </Button>
                 </div>
               </div>
