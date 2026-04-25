@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Coffee, Sun, CloudRain, Snowflake, Cloud, Sparkles, RefreshCw } from "lucide-react";
+import { Sun, CloudRain, Snowflake, Cloud, Sparkles, RefreshCw } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { productMeta, tonesMeta, type Tone } from "@/lib/aiGenerator";
+import { useTypewriter } from "@/hooks/useTypewriter";
 
 export type Weather = "rain" | "sun" | "snow" | "cloud";
 
