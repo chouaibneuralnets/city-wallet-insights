@@ -1,10 +1,12 @@
-import { CloudRain, Sun, Cloud, Clock, Users, Sparkles, ArrowRight, Brain } from "lucide-react";
+import { CloudRain, Sun, Cloud, Clock, Users, Sparkles, ArrowRight, Brain, Activity } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useStuttgartWeather } from "@/hooks/useStuttgartWeather";
+import { useTrafficDensity } from "@/hooks/useTrafficDensity";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 type SignalLevel = "active" | "passive";
 
@@ -18,7 +20,9 @@ type Signal = {
 
 export const CompositeState = () => {
   const { data: weather } = useStuttgartWeather();
+  const { pct: density } = useTrafficDensity();
   const [proximityCount, setProximityCount] = useState(3);
+  const lastDispatchRef = useRef<number>(0);
 
   // Listen to offers_config inserts as proxy for "client à proximité détecté"
   useEffect(() => {
@@ -43,6 +47,7 @@ export const CompositeState = () => {
   const isOffPeak = (hour >= 10 && hour < 12) || (hour >= 14 && hour < 17);
   const isRain = weather?.weather === "rain";
   const isCloud = weather?.weather === "cloud";
+  const isLowDensity = density < 35;
 
   const signals: Signal[] = [
     {
@@ -60,6 +65,13 @@ export const CompositeState = () => {
       level: isOffPeak ? "active" : "passive",
     },
     {
+      key: "density",
+      label: isLowDensity ? "Densité Payone faible" : density < 65 ? "Densité Payone modérée" : "Densité Payone forte",
+      detail: `${density}% · seuil offre 35%`,
+      icon: Activity,
+      level: isLowDensity ? "active" : "passive",
+    },
+    {
       key: "proximity",
       label: `${proximityCount} client${proximityCount > 1 ? "s" : ""} à proximité`,
       detail: "Rayon 200m · géofence",
@@ -69,10 +81,45 @@ export const CompositeState = () => {
   ];
 
   const activeCount = signals.filter((s) => s.level === "active").length;
-  const opportunityLevel =
-    activeCount >= 3 ? "haute" : activeCount === 2 ? "moyenne" : "basse";
-  const opportunityColor =
-    activeCount >= 3 ? "success" : activeCount === 2 ? "warning" : "muted";
+  // Low density forces "Opportunité Haute" regardless of other signals
+  const opportunityLevel = isLowDensity || activeCount >= 3
+    ? "haute"
+    : activeCount === 2
+    ? "moyenne"
+    : "basse";
+  const opportunityColor = isLowDensity || activeCount >= 3
+    ? "success"
+    : activeCount === 2
+    ? "warning"
+    : "muted";
+
+  // Auto-dispatch an offer to Supabase when density drops below 35%.
+  // Throttled to once every 2 minutes to avoid spam.
+  useEffect(() => {
+    if (!isLowDensity) return;
+    const now = Date.now();
+    if (now - lastDispatchRef.current < 120_000) return;
+    lastDispatchRef.current = now;
+
+    const dispatch = async () => {
+      const product = isRain ? "Cappuccino" : isOffPeak ? "Espresso" : "Café du jour";
+      const discount = isRain ? 25 : 20;
+      const { error } = await supabase.from("offers_config").insert({
+        weather: isRain ? "rain" : weather?.weather ?? "cloud",
+        traffic_condition: "low",
+        product,
+        discount_percent: discount,
+        active: true,
+      });
+      if (!error) {
+        toast({
+          title: "Offre déclenchée par l'IA",
+          description: `Densité ${density}% → ${product} -${discount}% envoyé via Supabase.`,
+        });
+      }
+    };
+    dispatch();
+  }, [isLowDensity, density, isRain, isOffPeak, weather?.weather]);
 
   const colorMap = {
     success: {
@@ -111,7 +158,7 @@ export const CompositeState = () => {
           <h2 className="text-sm font-semibold tracking-tight">Diagnostic du contexte actuel</h2>
         </div>
         <Badge variant="outline" className="gap-1.5 font-mono text-[10px] border-border/60">
-          {activeCount}/3 signaux actifs
+          {activeCount}/{signals.length} signaux actifs
         </Badge>
       </div>
 
@@ -170,7 +217,9 @@ export const CompositeState = () => {
               Opportunité {opportunityLevel}
             </div>
             <p className="text-[12px] text-muted-foreground mt-2 leading-snug">
-              {activeCount >= 3
+              {isLowDensity
+                ? `Densité ${density}% < 35% — offre auto-déclenchée vers Supabase.`
+                : activeCount >= 3
                 ? "Tous les signaux convergent — déclenchement offre auto-recommandé."
                 : activeCount === 2
                 ? "2 conditions remplies — règle prête à se déclencher."
