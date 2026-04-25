@@ -1,0 +1,3 @@
+ALTER TABLE public.offers_config 
+  ADD COLUMN IF NOT EXISTS tone TEXT DEFAULT 'Amical',
+  ADD COLUMN IF NOT EXISTS message TEXT;
