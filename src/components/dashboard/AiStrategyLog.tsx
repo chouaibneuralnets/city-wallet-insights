@@ -221,6 +221,36 @@ export const AiStrategyLog = ({
           });
         },
       )
+      // Listen to client refusals coming from the Mia app (status='refused')
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "redemptions" },
+        (payload: any) => {
+          if (payload.new?.status !== "refused") return;
+          const product = payload.new?.product ?? "Café";
+          const discount = payload.new?.discount_percent ?? 20;
+          push({
+            level: "refused",
+            message: `Offre refusée par le client · ${product} -${discount}% (Mia a appuyé sur "Ignorer")`,
+            icon: <XCircle className="size-3.5" />,
+          });
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "redemptions" },
+        (payload: any) => {
+          if (payload.new?.status !== "refused") return;
+          if (payload.old?.status === "refused") return;
+          const product = payload.new?.product ?? "Café";
+          const discount = payload.new?.discount_percent ?? 20;
+          push({
+            level: "refused",
+            message: `Offre refusée par le client · ${product} -${discount}% (statut mis à jour : refused)`,
+            icon: <XCircle className="size-3.5" />,
+          });
+        },
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
