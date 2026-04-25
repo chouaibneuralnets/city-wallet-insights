@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Sun, CloudRain, Snowflake, Cloud, Sparkles, RefreshCw } from "lucide-react";
+import { Sun, CloudRain, Snowflake, Cloud, Sparkles, RefreshCw, Database } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { productMeta, tonesMeta, type Tone } from "@/lib/aiGenerator";
 import { useTypewriter } from "@/hooks/useTypewriter";
+import { supabase } from "@/integrations/supabase/client";
 
 export type Weather = "rain" | "sun" | "snow" | "cloud";
 
@@ -89,8 +90,53 @@ export const IPhonePreview = ({
   const now = useNow();
   const [animKey, setAnimKey] = useState(0);
 
-  // Fallback to scenario default if no message is provided yet.
-  const finalMessage = message ?? scenario.body(discount);
+  // Source of truth: the most recently deployed offer's `generated_text`
+  // from Supabase. This is the EXACT text Mia receives in her wallet app.
+  const [deployedText, setDeployedText] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchLatest = async () => {
+      const { data } = await supabase
+        .from("offers_config")
+        .select("generated_text, message, updated_at")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled) return;
+      const row = data as { generated_text?: string | null; message?: string | null } | null;
+      const text = row?.generated_text ?? row?.message ?? null;
+      if (text) setDeployedText(text);
+    };
+    fetchLatest();
+
+    const channel = supabase
+      .channel("offers_config-preview")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "offers_config" },
+        (payload) => {
+          const row = (payload.new ?? {}) as {
+            generated_text?: string | null;
+            message?: string | null;
+          };
+          const text = row.generated_text ?? row.message ?? null;
+          if (text) {
+            setDeployedText(text);
+            setAnimKey((k) => k + 1);
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Priority: live in-progress message from RuleBuilder > last deployed text > scenario fallback
+  const finalMessage = message ?? deployedText ?? scenario.body(discount);
   const typed = useTypewriter(finalMessage, 16);
 
   const productInfo = productMeta[product] ?? productMeta["Café"];
@@ -109,7 +155,7 @@ export const IPhonePreview = ({
 
   return (
     <Card className="p-6 shadow-sm-elegant border-border/70 h-full flex flex-col bg-gradient-to-br from-card to-secondary/30 overflow-hidden">
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-4 gap-2">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="size-6 rounded-md bg-gradient-primary flex items-center justify-center">
@@ -119,6 +165,12 @@ export const IPhonePreview = ({
           </div>
           <p className="text-sm text-muted-foreground">Aperçu live de l'offre IA sur l'écran client</p>
         </div>
+        {deployedText && (
+          <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-success/10 text-success border border-success/20 text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap">
+            <Database className="size-3" />
+            Sync app Mia
+          </div>
+        )}
       </div>
 
       {/* Live weather indicator (read-only — driven by Module 01 sensors) */}

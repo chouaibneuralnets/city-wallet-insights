@@ -132,6 +132,8 @@ export const RuleBuilder = ({
         active,
         tone,
         message,
+        // Canonical text shipped to Mia's wallet app + read back by Magic Preview
+        generated_text: message,
       });
       if (error) throw error;
       setLastPublishedAt(new Date());
