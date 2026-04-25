@@ -22,7 +22,7 @@ type Opportunity = {
 };
 
 const fmtTime = (d = new Date()) =>
-  d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" });
 
 const SEGMENT_META: Record<Segment, { label: string; color: string; icon: React.ReactNode }> = {
   loyals: { label: "Loyals", color: "hsl(var(--chart-1))", icon: <Sparkles className="size-3" /> },

@@ -31,7 +31,7 @@ type LogEntry = {
 };
 
 const fmtTime = (d = new Date()) =>
-  d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" });
 
 const levelMeta: Record<LogLevel, { tag: string; cls: string }> = {
   scan: { tag: "SCAN", cls: "text-primary bg-primary/10" },

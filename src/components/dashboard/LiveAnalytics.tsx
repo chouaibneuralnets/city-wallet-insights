@@ -22,7 +22,7 @@ const seed = (): Bucket[] => {
   return Array.from({ length: SLOTS }, (_, i) => {
     const t = new Date(now - (SLOTS - 1 - i) * 5000);
     return {
-      time: t.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+      time: t.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" }),
       accepted: Math.floor(Math.random() * 3),
       revenue: Math.floor(Math.random() * 12 + 4),
     };
@@ -49,7 +49,7 @@ export const LiveAnalytics = () => {
       setData((prev) => [
         ...prev.slice(1),
         {
-          time: t.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+          time: t.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" }),
           accepted,
           revenue,
         },
