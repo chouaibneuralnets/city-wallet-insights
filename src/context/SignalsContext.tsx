@@ -25,8 +25,10 @@ type SignalsContextValue = {
   weatherLoading: boolean;
   /** Always rounded to nearest integer — single source of truth */
   temperatureC: number | null;
-  /** Live wall-clock — updates every second */
+  /** Live wall-clock — updates every second (UTC instant) */
   now: Date;
+  /** Stuttgart-localized clock parts (hour/minute/day/tzAbbr). Single source of truth for "what time is it at Café Müller". */
+  stuttgart: StuttgartParts;
   /** Real wallet pings from Supabase */
   pings: ProximityPing[];
   /** Wallets normalized to map coordinates */
