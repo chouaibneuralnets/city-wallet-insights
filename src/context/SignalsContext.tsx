@@ -61,12 +61,37 @@ export const SignalsProvider = ({ children }: { children: ReactNode }) => {
   const { pings, miaDetected, count, loading: pingsLoading } = useProximityPings();
 
   const [now, setNow] = useState(() => new Date());
+  const lastPingRef = useRef<number>(0);
 
   // Live wall-clock ticking every second.
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  // Keep the geofence "alive" — if fewer than 5 fresh pings, insert a new
+  // anonymous wallet ping every ~30s. Simulates real foot-traffic around
+  // Café Müller and feeds the realtime channel.
+  useEffect(() => {
+    const id = setInterval(async () => {
+      if (Date.now() - lastPingRef.current < 25_000) return;
+      if (count >= 5) return;
+      lastPingRef.current = Date.now();
+
+      // Random GPS within ~150m of Café Müller (48.7758, 9.1829)
+      const r = Math.sqrt(Math.random()) * 0.0014;
+      const a = Math.random() * Math.PI * 2;
+      const lat = CAFE_LAT + r * Math.cos(a);
+      const lng = CAFE_LNG + r * Math.sin(a) * 1.5;
+      await supabase.from("wallet_pings").insert({
+        wallet_id: `w-live-${Math.random().toString(36).slice(2, 8)}`,
+        lat,
+        lng,
+        is_mia: false,
+      });
+    }, 10_000);
+    return () => clearInterval(id);
+  }, [count]);
 
   const temperatureC = useMemo(() => {
     if (!weather || typeof weather.temperature !== "number") return null;
