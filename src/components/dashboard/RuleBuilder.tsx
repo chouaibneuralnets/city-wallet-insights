@@ -219,27 +219,35 @@ export const RuleBuilder = ({
 
   const handlePublish = () => dispatchOffer({ auto: false });
 
-  // Auto-trigger: when rule becomes active AND conditions match, send once.
+  // Auto-trigger: ONLY on the OFF → ON transition, and only if conditions
+  // already match at that moment. Changing remise/conditions while ON does
+  // NOT re-send. To resend, user must toggle OFF then ON again.
   const conditionsMatch = weather === "sun" && trafficLow;
+  const conditionsMatchRef = useRef(conditionsMatch);
+  useEffect(() => {
+    conditionsMatchRef.current = conditionsMatch;
+  }, [conditionsMatch]);
+
   const wasActiveRef = useRef(active);
   useEffect(() => {
-    // Reset lock & session flag whenever the rule is toggled OFF.
-    if (wasActiveRef.current && !active) {
+    const prev = wasActiveRef.current;
+    if (prev && !active) {
+      // ON → OFF : reset session lock so next activation can re-send.
       sessionDispatchedRef.current = false;
       setLockUntil(null);
+    } else if (!prev && active) {
+      // OFF → ON : if conditions already match and no active 15-min lock, send once.
+      if (
+        conditionsMatchRef.current &&
+        !sessionDispatchedRef.current &&
+        !(lockUntil && Date.now() < lockUntil)
+      ) {
+        dispatchOffer({ auto: true });
+      }
     }
     wasActiveRef.current = active;
-  }, [active]);
-
-  useEffect(() => {
-    if (!active) return;
-    if (!conditionsMatch) return;
-    if (sessionDispatchedRef.current) return;
-    if (lockUntil && Date.now() < lockUntil) return;
-    // Fire once for this activation cycle.
-    dispatchOffer({ auto: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, conditionsMatch]);
+  }, [active]);
 
   return (
     <Card className="p-6 shadow-sm-elegant border-border/70">
