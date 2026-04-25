@@ -328,6 +328,43 @@ export const RuleBuilder = ({
         </div>
       </div>
 
+      {/* Brand tone — Module 02 */}
+      <div className="mt-6 pt-6 border-t border-border">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="size-4 text-primary" />
+            <span className="text-sm font-medium text-foreground">Ton de la marque</span>
+            <span className="text-[10px] text-muted-foreground font-mono">SLM local</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {tones.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => setTone(t.value)}
+              className={cn(
+                "flex flex-col items-start gap-1 p-3 rounded-lg border text-left transition-all",
+                tone === t.value
+                  ? "border-primary bg-primary-soft ring-2 ring-primary/30"
+                  : "border-border hover:border-primary/40 hover:bg-secondary/40"
+              )}
+            >
+              <span className="text-base">{t.emoji}</span>
+              <span className={cn("text-sm font-semibold", tone === t.value ? "text-primary" : "text-foreground")}>
+                {t.value}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="mt-3 p-3 rounded-lg bg-foreground text-background text-xs leading-relaxed font-mono">
+          <div className="text-[9px] uppercase tracking-wider text-background/60 mb-1">
+            Aperçu généré · {currentTone.value}
+          </div>
+          "{currentTone.preview}"
+        </div>
+      </div>
+
       {/* Publish */}
       <div className="mt-6 pt-6 border-t border-border flex items-center justify-between gap-4">
         <div className="text-xs text-muted-foreground">
