@@ -5,9 +5,25 @@ import { useSignals } from "@/context/SignalsContext";
 
 const keepVisible = (value: number) => Math.min(0.88, Math.max(0.12, value));
 
-const spreadWallets = <T extends { x: number; y: number }>(wallets: T[]) => {
+const spreadWallets = <T extends { x: number; y: number; isMia?: boolean }>(wallets: T[]) => {
   const center = 0.5;
   return wallets.map((wallet, index) => {
+    // Mia keeps her real relative position. If she sits exactly on the shop,
+    // nudge her just enough so the green pulsing dot is visible next to the Café icon.
+    if (wallet.isMia) {
+      const dx = wallet.x - center;
+      const dy = wallet.y - center;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < 0.06) {
+        return {
+          ...wallet,
+          x: keepVisible(center + 0.08),
+          y: keepVisible(center - 0.06),
+        };
+      }
+      return { ...wallet, x: keepVisible(wallet.x), y: keepVisible(wallet.y) };
+    }
+
     const dx = wallet.x - center;
     const dy = wallet.y - center;
     const distance = Math.sqrt(dx * dx + dy * dy);
@@ -33,7 +49,9 @@ const spreadWallets = <T extends { x: number; y: number }>(wallets: T[]) => {
 
 export const ProximityMap = () => {
   const { wallets, miaDetected, proximityCount } = useSignals();
-  const visibleWallets = spreadWallets(wallets);
+  // Render Mia LAST so her marker (and label) sits on top of every other wallet.
+  const ordered = [...wallets].sort((a, b) => Number(!!a.isMia) - Number(!!b.isMia));
+  const visibleWallets = spreadWallets(ordered);
 
   return (
     <Card className="p-0 shadow-sm-elegant border-border/70 overflow-hidden">
