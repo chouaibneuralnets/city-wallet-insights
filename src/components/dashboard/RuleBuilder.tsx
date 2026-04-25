@@ -44,6 +44,7 @@ import {
 } from "@/lib/aiGenerator";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { useSignals } from "@/context/SignalsContext";
+import { ConditionChips, conditionLabel, evaluateCondition, type Condition } from "./ConditionChips";
 
 const weatherMeta: Record<
   Weather,
