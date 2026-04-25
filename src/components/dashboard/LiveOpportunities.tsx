@@ -159,7 +159,7 @@ export const LiveOpportunities = () => {
       // 1 in 4 chance to trigger the Mia scenario
       if (Math.random() > 0.25) return;
 
-      const isRain = weather?.condition === "rain";
+      const isRain = weather?.weather === "rain";
       push({
         profile: "Profil Mia détecté · étudiante, zone campus",
         action: isRain
@@ -195,7 +195,7 @@ export const LiveOpportunities = () => {
       }
     }, 18000);
     return () => clearInterval(id);
-  }, [weather?.condition]);
+  }, [weather?.weather]);
 
   const total = counts.loyals + counts.newcomers + counts.commuters;
   const pieData = (Object.keys(counts) as Segment[]).map((k) => ({
