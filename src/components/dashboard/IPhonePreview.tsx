@@ -90,8 +90,53 @@ export const IPhonePreview = ({
   const now = useNow();
   const [animKey, setAnimKey] = useState(0);
 
-  // Fallback to scenario default if no message is provided yet.
-  const finalMessage = message ?? scenario.body(discount);
+  // Source of truth: the most recently deployed offer's `generated_text`
+  // from Supabase. This is the EXACT text Mia receives in her wallet app.
+  const [deployedText, setDeployedText] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchLatest = async () => {
+      const { data } = await supabase
+        .from("offers_config")
+        .select("generated_text, message, updated_at")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled) return;
+      const row = data as { generated_text?: string | null; message?: string | null } | null;
+      const text = row?.generated_text ?? row?.message ?? null;
+      if (text) setDeployedText(text);
+    };
+    fetchLatest();
+
+    const channel = supabase
+      .channel("offers_config-preview")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "offers_config" },
+        (payload) => {
+          const row = (payload.new ?? {}) as {
+            generated_text?: string | null;
+            message?: string | null;
+          };
+          const text = row.generated_text ?? row.message ?? null;
+          if (text) {
+            setDeployedText(text);
+            setAnimKey((k) => k + 1);
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Priority: live in-progress message from RuleBuilder > last deployed text > scenario fallback
+  const finalMessage = message ?? deployedText ?? scenario.body(discount);
   const typed = useTypewriter(finalMessage, 16);
 
   const productInfo = productMeta[product] ?? productMeta["Café"];
