@@ -104,6 +104,8 @@ export const RuleBuilder = ({
   onGenerationChange,
   active: activeProp,
   onActiveChange,
+  title,
+  onRemove,
 }: Props) => {
   const { temperatureC } = useSignals();
   const [actions] = useState(initialActions);
