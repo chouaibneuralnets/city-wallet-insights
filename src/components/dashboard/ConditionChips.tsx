@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { getStuttgartParts } from "@/lib/stuttgartTime";
 
 export type ConditionType = "Heure" | "Jour" | "Stock" | "Événement";
 
