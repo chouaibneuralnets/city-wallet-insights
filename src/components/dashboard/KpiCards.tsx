@@ -35,7 +35,8 @@ export const KpiCards = () => {
     useKpiMetrics();
 
   const flashRevenue = useFlashOnChange(revenueSaved);
-  const flashOffers = useFlashOnChange(offersAccepted);
+  const flashConv = useFlashOnChange(conversionRate);
+  const flashPayone = useFlashOnChange(payoneVolume);
 
   const cards: Array<{
     label: string;
@@ -49,7 +50,7 @@ export const KpiCards = () => {
     live?: boolean;
   }> = [
     {
-      label: "Chiffre d'affaires sauvé",
+      label: "CA sauvé",
       value: formatEuro(revenueSaved),
       sub: `${offersAccepted} paiements acceptés`,
       delta: offersAccepted > 0 ? `+${offersAccepted}` : "—",
@@ -62,38 +63,29 @@ export const KpiCards = () => {
     {
       label: "Taux de conversion",
       value: `${conversionRate.toFixed(1)}%`,
-      sub: `${offersAccepted} / ${offersSent} offres`,
+      sub: `${offersAccepted} acceptées / ${offersSent} envoyées`,
       delta: conversionRate >= 25 ? "Excellent" : conversionRate > 0 ? "En cours" : "—",
       trend: conversionRate >= 25 ? "up" : "down",
       icon: Zap,
       accent: "success",
+      flash: flashConv,
       live: true,
     },
     {
-      label: "Offres IA déclenchées",
-      value: offersSent.toLocaleString("fr-FR"),
-      sub: "Cumul réseau",
-      delta: offersSent > 0 ? `+${offersSent}` : "—",
-      trend: "up",
-      icon: Sparkles,
-      accent: "warning",
-      flash: flashOffers,
-      live: true,
-    },
-    {
-      label: "Volume Payone",
+      label: "Volume Payone total",
       value: formatEuro(payoneVolume),
-      sub: "Transactions traitées",
+      sub: "Transactions sécurisées",
       delta: payoneVolume > 0 ? "Live" : "—",
       trend: "up",
       icon: ArrowUpRight,
       accent: "primary",
+      flash: flashPayone,
       live: true,
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       {cards.map((kpi) => (
         <Card
           key={kpi.label}
