@@ -103,11 +103,14 @@ export const SignalsProvider = ({ children }: { children: ReactNode }) => {
 
   const wallets = useMemo(() => pings.map(pingToWallet), [pings]);
 
+  const stuttgart = useMemo(() => getStuttgartParts(now), [now]);
+
   const value: SignalsContextValue = {
     weather,
     weatherLoading,
     temperatureC,
     now,
+    stuttgart,
     pings,
     wallets,
     miaDetected,
