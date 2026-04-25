@@ -74,6 +74,9 @@ export const AiStrategyLog = ({
   const counterRef = useRef(0);
   const lastAutoPushRef = useRef<number>(0);
   const lastSatisfiedRef = useRef<boolean>(false);
+  // Anti-spam: track last dispatch time per offer signature (product+weather+discount)
+  const lastSignatureDispatchRef = useRef<Record<string, number>>({});
+  const THROTTLE_MS = 5 * 60 * 1000; // 5 minutes
   const consoleRef = useRef<HTMLDivElement>(null);
 
   const push = (entry: Omit<LogEntry, "id" | "time">) => {
