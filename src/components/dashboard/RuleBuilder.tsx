@@ -266,7 +266,7 @@ export const RuleBuilder = ({
         <div>
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <h2 className="text-lg font-semibold text-foreground tracking-tight">
-              Constructeur de règle
+              {title ?? "Constructeur de règle"}
             </h2>
             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary-soft text-primary">
               If-Then
