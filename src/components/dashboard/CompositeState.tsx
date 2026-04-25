@@ -19,15 +19,25 @@ type Signal = {
 };
 
 export const CompositeState = () => {
-  const { weather, temperatureC, proximityCount } = useSignals();
+  const { weather, temperatureC, proximityCount, now } = useSignals();
   const { pct: density } = useTrafficDensity();
   const lastDispatchRef = useRef<number>(0);
 
-  const hour = new Date().getHours();
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  const second = now.getSeconds();
   const isOffPeak = (hour >= 10 && hour < 12) || (hour >= 14 && hour < 17);
+  const isLateNight = hour >= 22 || hour < 6;
   const isRain = weather?.weather === "rain";
   const isCloud = weather?.weather === "cloud";
   const isLowDensity = density < 35;
+
+  const timeLabel = isLateNight
+    ? "Heure de nuit"
+    : isOffPeak
+    ? "Heure creuse"
+    : "Heure de pointe";
+  const timeActive = isOffPeak || isLateNight;
 
   const signals: Signal[] = [
     {
@@ -39,10 +49,10 @@ export const CompositeState = () => {
     },
     {
       key: "time",
-      label: isOffPeak ? "Heure creuse" : "Heure standard",
-      detail: `${hour.toString().padStart(2, "0")}h${new Date().getMinutes().toString().padStart(2, "0")}`,
+      label: timeLabel,
+      detail: `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}:${second.toString().padStart(2, "0")} · Stuttgart`,
       icon: Clock,
-      level: isOffPeak ? "active" : "passive",
+      level: timeActive ? "active" : "passive",
     },
     {
       key: "density",
