@@ -7,6 +7,9 @@ import { IPhonePreview, type Weather } from "@/components/dashboard/IPhonePrevie
 import { TransactionChart } from "@/components/dashboard/TransactionChart";
 import { ContextPanel } from "@/components/dashboard/ContextPanel";
 import { MarketStatus } from "@/components/dashboard/MarketStatus";
+import { LiveAnalytics } from "@/components/dashboard/LiveAnalytics";
+import { RevenueComparison } from "@/components/dashboard/RevenueComparison";
+import { AiActivityLog } from "@/components/dashboard/AiActivityLog";
 
 const Index = () => {
   const [discount, setDiscount] = useState(20);
@@ -19,6 +22,17 @@ const Index = () => {
         <Header />
         <main className="flex-1 p-6 lg:p-8 space-y-6">
           <KpiCards />
+
+          {/* Live business row — réactif aux acceptations Mia */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <LiveAnalytics />
+            </div>
+            <AiActivityLog />
+          </div>
+
+          {/* Comparatif business — Sans IA vs City-Wallet */}
+          <RevenueComparison />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
