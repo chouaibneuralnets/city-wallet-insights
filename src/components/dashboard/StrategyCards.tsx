@@ -170,12 +170,30 @@ type Props = {
   }) => void;
 };
 
+const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+type LockState = {
+  /** ms epoch of the last successful send for this strategy. */
+  lastSentAt: number;
+  /** Increments each time the switch flips OFF→ON, resetting the lock window. */
+  sessionId: number;
+};
+
 export const StrategyCards = ({ liveWeather, onWinningChange }: Props) => {
   const { temperatureC } = useSignals();
   const { pct: trafficPct } = useTrafficDensity();
   const [strategies, setStrategies] = useState<Strategy[]>(initialStrategies);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [publishingId, setPublishingId] = useState<string | null>(null);
+
+  /** Lock registry: per-strategy session + lastSentAt. Activation OFF→ON bumps sessionId. */
+  const [locks, setLocks] = useState<Record<string, LockState>>({});
+  /** Tick to refresh remaining-time labels every second. */
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   // Live Stuttgart context
   const [stuttgart, setStuttgart] = useState(() => getStuttgartParts());
