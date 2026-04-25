@@ -91,6 +91,33 @@ export type Database = {
           },
         ]
       }
+      wallet_pings: {
+        Row: {
+          created_at: string
+          id: string
+          is_mia: boolean
+          lat: number
+          lng: number
+          wallet_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_mia?: boolean
+          lat: number
+          lng: number
+          wallet_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_mia?: boolean
+          lat?: number
+          lng?: number
+          wallet_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
