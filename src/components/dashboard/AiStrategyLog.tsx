@@ -192,7 +192,7 @@ export const AiStrategyLog = ({
     tick();
     const id = setInterval(tick, 25000);
     return () => clearInterval(id);
-  }, [autopilot, ruleSatisfied, message, product, discount, trafficPct]);
+  }, [autopilot, ruleSatisfied, message, product, discount, trafficPct, ruleActive]);
 
   // When autopilot is OFF and conditions become satisfied → suggest manual
   useEffect(() => {
