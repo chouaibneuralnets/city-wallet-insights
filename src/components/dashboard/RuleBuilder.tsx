@@ -88,6 +88,10 @@ type Props = {
   /** Lifted active state so other modules (AiStrategyLog) can react to it. */
   active?: boolean;
   onActiveChange?: (v: boolean) => void;
+  /** Optional label shown next to the "If-Then" badge to identify the offer. */
+  title?: string;
+  /** When provided, renders a small remove button in the header. */
+  onRemove?: () => void;
 };
 
 const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
