@@ -1,10 +1,12 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Brain, Plus } from "lucide-react";
 import { RuleBuilder } from "@/components/dashboard/RuleBuilder";
 import { IPhonePreview, type Weather } from "@/components/dashboard/IPhonePreview";
 import { Module2Signals } from "@/components/dashboard/Module2Signals";
 import { AiStrategyLog } from "@/components/dashboard/AiStrategyLog";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { setRuleActiveValue } from "@/lib/ruleActiveStore";
 import type { Tone } from "@/lib/aiGenerator";
 
 type OfferRule = {
@@ -72,6 +74,24 @@ const Automations = () => {
   const anyActive = offers.some((o) => o.active);
   // Use the first offer as the lead for KPI display.
   const leadOffer = offers[0];
+
+  // Mirror the global "rule active" flag so all background tickers (Module 01
+  // LiveOpportunities, autopilot, …) honor the same kill-switch — even from
+  // other pages.
+  const wasActiveRef = useRef(anyActive);
+  useEffect(() => {
+    setRuleActiveValue(anyActive);
+    const wasActive = wasActiveRef.current;
+    wasActiveRef.current = anyActive;
+    if (wasActive && !anyActive) {
+      // ON → OFF transition: expire any pending offers in Supabase so Mia's
+      // app stops displaying them.
+      void supabase
+        .from("offers_config")
+        .update({ active: false })
+        .eq("active", true);
+    }
+  }, [anyActive]);
 
   return (
     <>

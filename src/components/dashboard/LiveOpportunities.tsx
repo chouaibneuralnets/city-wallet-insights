@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useStuttgartWeather } from "@/hooks/useStuttgartWeather";
 import { useSignals } from "@/context/SignalsContext";
+import { isRuleActive } from "@/lib/ruleActiveStore";
 
 type OpportunityStatus = "scanning" | "sending" | "converted";
 type Segment = "loyals" | "newcomers" | "commuters";
@@ -319,17 +320,22 @@ export const LiveOpportunities = () => {
         .select("id")
         .single();
 
-      // 2. Trigger the offer (links to Mia's app via realtime)
-      try {
-        await supabase.from("offers_config").insert({
-          weather: isRain ? "rain" : "cloud",
-          discount_percent: isRain ? 25 : 20,
-          product: "Cappuccino",
-          traffic_condition: "low",
-          active: true,
-        });
-      } catch {
-        /* silent */
+      // 2. Trigger the offer (links to Mia's app via realtime).
+      //    HARD GATE: only push to offers_config when the user has explicitly
+      //    activated the rule in Module 02. In STANDBY (rule OFF) we still
+      //    log the activity above for the demo, but no offer reaches Mia.
+      if (isRuleActive()) {
+        try {
+          await supabase.from("offers_config").insert({
+            weather: isRain ? "rain" : "cloud",
+            discount_percent: isRain ? 25 : 20,
+            product: "Cappuccino",
+            traffic_condition: "low",
+            active: true,
+          });
+        } catch {
+          /* silent */
+        }
       }
 
       // 3. After ~2.2s simulate Mia accepting → insert redemption,
