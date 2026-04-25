@@ -76,8 +76,10 @@ const conditionLibrary = [
 type Props = {
   discount: number;
   onDiscountChange: (v: number) => void;
+  /** Driven automatically from the live OpenWeather signal. */
   weather: Weather;
-  onWeatherChange: (w: Weather) => void;
+  /** Driven automatically from the live Payone density gauge (<35%). */
+  trafficLow: boolean;
   /** Bubble up product, tone, message so the iPhone preview stays in sync */
   onGenerationChange?: (g: { product: string; tone: Tone; message: string }) => void;
 };
@@ -86,11 +88,10 @@ export const RuleBuilder = ({
   discount,
   onDiscountChange,
   weather,
-  onWeatherChange,
+  trafficLow,
   onGenerationChange,
 }: Props) => {
   const { temperatureC } = useSignals();
-  const [trafficLow, setTrafficLow] = useState(true);
   const [actions] = useState(initialActions);
   const [active, setActive] = useState(true);
   const [product, setProduct] = useState<string>("Café");
