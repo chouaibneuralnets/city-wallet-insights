@@ -1,18 +1,16 @@
 import { useCallback, useState } from "react";
 import { Brain } from "lucide-react";
-import { RuleBuilder } from "@/components/dashboard/RuleBuilder";
+import { StrategyCards, type Strategy } from "@/components/dashboard/StrategyCards";
 import { IPhonePreview, type Weather } from "@/components/dashboard/IPhonePreview";
 import { Module2Signals } from "@/components/dashboard/Module2Signals";
 import { AiStrategyLog } from "@/components/dashboard/AiStrategyLog";
 import type { Tone } from "@/lib/aiGenerator";
 
 const Automations = () => {
-  const [discount, setDiscount] = useState(20);
   const [weather, setWeather] = useState<Weather>("cloud");
   const [trafficLow, setTrafficLow] = useState(true);
-  const [generation, setGeneration] = useState<{ product: string; tone: Tone; message: string }>({
-    product: "Café",
-    tone: "Amical",
+  const [winning, setWinning] = useState<{ strategy: Strategy | null; message: string }>({
+    strategy: null,
     message: "",
   });
   const [liveState, setLiveState] = useState<{
@@ -21,8 +19,8 @@ const Automations = () => {
     weatherLabel: string;
   }>({ ruleSatisfied: false, trafficPct: 0, weatherLabel: "—" });
 
-  const handleGenerationChange = useCallback(
-    (g: { product: string; tone: Tone; message: string }) => setGeneration(g),
+  const handleWinningChange = useCallback(
+    (w: { strategy: Strategy | null; message: string }) => setWinning(w),
     [],
   );
 
@@ -31,6 +29,10 @@ const Automations = () => {
       setLiveState(s),
     [],
   );
+
+  const previewProduct = winning.strategy?.product ?? "Café";
+  const previewTone: Tone = winning.strategy?.tone ?? "Amical";
+  const previewDiscount = winning.strategy?.discount ?? 20;
 
   return (
     <>
@@ -49,7 +51,7 @@ const Automations = () => {
         </h1>
       </div>
 
-      {/* Mirror of Module 01 — same live sources, drives the rule automatically */}
+      {/* Mirror of Module 01 — same live sources */}
       <Module2Signals
         onWeatherDetected={setWeather}
         onTrafficLowDetected={setTrafficLow}
@@ -59,33 +61,27 @@ const Automations = () => {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
-          <RuleBuilder
-            discount={discount}
-            onDiscountChange={setDiscount}
-            weather={weather}
-            trafficLow={trafficLow}
-            onGenerationChange={handleGenerationChange}
-          />
+          <StrategyCards liveWeather={weather} onWinningChange={handleWinningChange} />
         </div>
         <div className="xl:col-span-1">
           <IPhonePreview
             weather={weather}
-            discount={discount}
-            product={generation.product}
-            tone={generation.tone}
-            message={generation.message}
+            discount={previewDiscount}
+            product={previewProduct}
+            tone={previewTone}
+            message={winning.message}
           />
         </div>
       </div>
 
       {/* AI Strategy Log — autonomous console + autopilot toggle */}
       <AiStrategyLog
-        ruleSatisfied={liveState.ruleSatisfied}
+        ruleSatisfied={!!winning.strategy}
         trafficPct={liveState.trafficPct}
         weatherLabel={liveState.weatherLabel}
-        message={generation.message}
-        product={generation.product}
-        discount={discount}
+        message={winning.message}
+        product={previewProduct}
+        discount={previewDiscount}
       />
     </>
   );
