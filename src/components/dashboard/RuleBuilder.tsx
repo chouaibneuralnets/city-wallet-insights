@@ -184,7 +184,7 @@ export const RuleBuilder = ({
       const sec = remaining % 60;
       toast.warning("Verrou actif — une seule offre par session", {
         description: `Désactivez puis réactivez la règle, ou attendez ${min}m${sec.toString().padStart(2, "0")}s.`,
-        icon: <Lock className="size-4 text-warning" />,
+        icon: <LockIcon className="size-4 text-warning" />,
       });
       return;
     }
