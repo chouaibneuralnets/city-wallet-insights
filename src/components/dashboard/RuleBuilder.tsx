@@ -77,9 +77,38 @@ export const RuleBuilder = ({
   const [trafficLow, setTrafficLow] = useState(true);
   const [actions] = useState(initialActions);
   const [active, setActive] = useState(true);
+  const [product, setProduct] = useState("Café");
+  const [publishing, setPublishing] = useState(false);
+  const [lastPublishedAt, setLastPublishedAt] = useState<Date | null>(null);
 
   const WeatherIcon = weatherMeta[weather].icon;
   const discountAction = actions.find((a) => a.id === "a1");
+
+  const products = ["Café", "Pâtisserie", "Boissons fraîches", "Plat du jour", "Brunch"];
+
+  const handlePublish = async () => {
+    setPublishing(true);
+    try {
+      const { error } = await supabase.from("offers_config").insert({
+        weather,
+        discount_percent: discount,
+        product,
+        traffic_condition: trafficLow ? "low" : "normal",
+        active,
+      });
+      if (error) throw error;
+      setLastPublishedAt(new Date());
+      toast.success("Offre synchronisée sur le réseau City-Wallet", {
+        description: `Règle "${weatherMeta[weather].label} → -${discount}% sur ${product}" propagée à tous les commerçants partenaires.`,
+        icon: <CheckCircle2 className="size-4 text-success" />,
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erreur inconnue";
+      toast.error("Impossible de publier la règle", { description: msg });
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   return (
     <Card className="p-6 shadow-sm-elegant border-border/70">
