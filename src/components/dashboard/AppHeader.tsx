@@ -61,6 +61,18 @@ export const AppHeader = () => {
 
           <SidebarTrigger className="hidden lg:inline-flex" />
 
+          {/* Stuttgart timezone clock — proves the system is locked on the merchant's TZ */}
+          <div
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold border bg-primary/10 border-primary/30 text-primary"
+            title={`Horloge calée sur Europe/Berlin (${stuttgart.tzAbbr}) — heure officielle du commerçant`}
+          >
+            <Clock className="size-3.5" />
+            <span className="tabular-nums">{stuttgart.hms}</span>
+            <span className="opacity-70">·</span>
+            <span className="tracking-wide">{stuttgart.tzAbbr}</span>
+            <span className="hidden md:inline opacity-70">Stuttgart Time</span>
+          </div>
+
           {/* System status pill */}
           <button
             className={cn(
