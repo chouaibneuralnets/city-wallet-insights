@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      offers_config: {
+        Row: {
+          active: boolean
+          created_at: string
+          discount_percent: number
+          id: string
+          product: string
+          traffic_condition: string | null
+          updated_at: string
+          weather: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          product?: string
+          traffic_condition?: string | null
+          updated_at?: string
+          weather: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          product?: string
+          traffic_condition?: string | null
+          updated_at?: string
+          weather?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
