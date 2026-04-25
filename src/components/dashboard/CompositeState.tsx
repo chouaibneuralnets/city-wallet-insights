@@ -171,7 +171,7 @@ export const CompositeState = () => {
           <h2 className="text-sm font-semibold tracking-tight">Diagnostic du contexte actuel</h2>
         </div>
         <Badge variant="outline" className="gap-1.5 font-mono text-[10px] border-border/60">
-          {activeCount}/{signals.length} signaux actifs
+          {activeCount}/{signals.filter((s) => s.key !== "day").length} signaux actifs
         </Badge>
       </div>
 
