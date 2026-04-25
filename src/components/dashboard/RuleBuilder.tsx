@@ -88,6 +88,10 @@ type Props = {
   /** Lifted active state so other modules (AiStrategyLog) can react to it. */
   active?: boolean;
   onActiveChange?: (v: boolean) => void;
+  /** Optional label shown next to the "If-Then" badge to identify the offer. */
+  title?: string;
+  /** When provided, renders a small remove button in the header. */
+  onRemove?: () => void;
 };
 
 const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
@@ -100,6 +104,8 @@ export const RuleBuilder = ({
   onGenerationChange,
   active: activeProp,
   onActiveChange,
+  title,
+  onRemove,
 }: Props) => {
   const { temperatureC } = useSignals();
   const [actions] = useState(initialActions);
@@ -117,8 +123,13 @@ export const RuleBuilder = ({
   const [lockUntil, setLockUntil] = useState<number | null>(null);
   const sessionDispatchedRef = useRef(false);
 
-  // Dynamic conditions (Heure, Jour, Stock, Événement) — fully editable
-  const [conditions, setConditions] = useState<Condition[]>([]);
+  // Dynamic conditions (Heure, Jour, Stock, Événement) — fully editable.
+  // Seeded with two sensible defaults so the "x/y match" counter is meaningful
+  // out of the box. Users can remove or add more freely.
+  const [conditions, setConditions] = useState<Condition[]>(() => [
+    { id: Math.random().toString(36).slice(2, 9), type: "Heure", from: 14, to: 17 },
+    { id: Math.random().toString(36).slice(2, 9), type: "Jour", value: "Semaine" },
+  ]);
   // Simulated live world state for validation badges (in real app, these come from inventory + events APIs)
   const stockQty = 28;
   const activeEvent = "Marché de Noël";
@@ -255,7 +266,7 @@ export const RuleBuilder = ({
         <div>
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <h2 className="text-lg font-semibold text-foreground tracking-tight">
-              Constructeur de règle
+              {title ?? "Constructeur de règle"}
             </h2>
             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary-soft text-primary">
               If-Then
@@ -277,6 +288,16 @@ export const RuleBuilder = ({
               {active ? "Règle active" : "Règle inactive — envois bloqués"}
             </span>
             <Switch checked={active} onCheckedChange={setActive} />
+            {onRemove && (
+              <button
+                type="button"
+                onClick={onRemove}
+                aria-label="Supprimer cette offre"
+                className="ml-1 size-7 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
+              >
+                <X className="size-4" />
+              </button>
+            )}
           </div>
           {active && lockUntil && (
             <span className="inline-flex items-center gap-1 text-[10px] text-warning font-medium">
