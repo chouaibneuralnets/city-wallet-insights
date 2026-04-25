@@ -440,6 +440,11 @@ export const RuleBuilder = ({
           <div className="flex items-center gap-2">
             <Sparkles className="size-4 text-primary" />
             <span className="text-sm font-medium text-foreground">Remise maximale autorisée</span>
+            {active && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-warning">
+                <LockIcon className="size-3" /> figé
+              </span>
+            )}
           </div>
           <span className="text-2xl font-bold text-primary tabular">{discount}%</span>
         </div>
@@ -448,7 +453,8 @@ export const RuleBuilder = ({
           onValueChange={(v) => onDiscountChange(v[0])}
           max={50}
           step={5}
-          className="w-full"
+          disabled={active}
+          className={cn("w-full", active && "opacity-60")}
         />
         <div className="flex justify-between mt-2 text-[11px] text-muted-foreground">
           <span>0%</span>
