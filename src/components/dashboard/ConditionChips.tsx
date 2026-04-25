@@ -81,17 +81,19 @@ const defaultCondition = (type: ConditionType): Condition => {
   }
 };
 
-/** Validate a single condition against the current world state. */
+/** Validate a single condition against the current world state.
+ *  Time/day checks always use Stuttgart (Europe/Berlin), never the browser TZ. */
 export const evaluateCondition = (
   c: Condition,
   ctx: { now: Date; stockQty: number; activeEvent: string },
 ): boolean => {
+  const stg = getStuttgartParts(ctx.now);
   if (c.type === "Heure") {
-    const h = ctx.now.getHours();
+    const h = stg.hour;
     return h >= c.from && h < c.to;
   }
   if (c.type === "Jour") {
-    const today = dayIndexFR[ctx.now.getDay()];
+    const today = stg.dayNameFr;
     if (c.value === "Week-end") return today === "Samedi" || today === "Dimanche";
     if (c.value === "Semaine") return today !== "Samedi" && today !== "Dimanche";
     return today === c.value;
