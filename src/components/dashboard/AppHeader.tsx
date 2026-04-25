@@ -21,6 +21,7 @@ export const AppHeader = () => {
   const location = useLocation();
   const meta = META[location.pathname] ?? { eyebrow: "Workspace", title: "City-Wallet" };
   const { data, error } = useStuttgartWeather();
+  const { stuttgart } = useSignals();
   const operational = !error && (!!data || true); // optimiste tant qu'aucune erreur n'est remontée
 
   return (
