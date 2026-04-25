@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Smartphone, Send, Loader2, CheckCircle2 } from "lucide-react";
+import { Smartphone, Send, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ export const MiaSimulator = () => {
   const [amount, setAmount] = useState(3.5);
   const [loading, setLoading] = useState(false);
 
-  const sendOffer = async (status: "sent" | "accepted") => {
+  const sendOffer = async (status: "sent" | "accepted" | "refused") => {
     setLoading(true);
     try {
       const { error } = await supabase.from("redemptions").insert({
@@ -41,14 +41,40 @@ export const MiaSimulator = () => {
         });
       }
 
-      toast.success(
-        status === "accepted"
-          ? `Mia a payé ${product} (+${amount.toFixed(2)} €)`
-          : `Offre "${product}" envoyée à Mia`,
-        {
-          icon: <CheckCircle2 className="size-4 text-success" />,
+      // When Mia refuses: deactivate the latest matching active offer in
+      // offers_config so the dashboard reflects the rejection.
+      if (status === "refused") {
+        const { data: latest } = await supabase
+          .from("offers_config")
+          .select("id")
+          .eq("product", product)
+          .eq("active", true)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (latest?.id) {
+          await supabase
+            .from("offers_config")
+            .update({ active: false })
+            .eq("id", latest.id);
         }
-      );
+      }
+
+      if (status === "refused") {
+        toast(`Mia a ignoré l'offre "${product}"`, {
+          icon: <XCircle className="size-4 text-destructive" />,
+          description: "Statut mis à jour : refused",
+        });
+      } else {
+        toast.success(
+          status === "accepted"
+            ? `Mia a payé ${product} (+${amount.toFixed(2)} €)`
+            : `Offre "${product}" envoyée à Mia`,
+          {
+            icon: <CheckCircle2 className="size-4 text-success" />,
+          },
+        );
+      }
     } catch (e) {
       toast.error("Erreur de simulation", {
         description: e instanceof Error ? e.message : "Inconnue",
@@ -109,7 +135,17 @@ export const MiaSimulator = () => {
           disabled={loading}
         >
           <Send className="size-3.5" />
-          Envoyer offre
+          Envoyer
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1 gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          onClick={() => sendOffer("refused")}
+          disabled={loading}
+        >
+          <XCircle className="size-3.5" />
+          Ignorer
         </Button>
         <Button
           size="sm"
@@ -118,7 +154,7 @@ export const MiaSimulator = () => {
           disabled={loading}
         >
           {loading ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />}
-          Payer (Mia)
+          Payer
         </Button>
       </div>
     </Card>

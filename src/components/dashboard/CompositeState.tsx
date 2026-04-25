@@ -21,7 +21,7 @@ type Signal = {
 export const CompositeState = () => {
   const { weather, temperatureC, proximityCount, stuttgart } = useSignals();
   const { pct: density } = useTrafficDensity();
-  const lastDispatchRef = useRef<number>(0);
+  const lastDispatchRef = useRef<Record<string, number>>({});
 
   const hour = stuttgart.hour;
   const minute = stuttgart.minute;
@@ -84,18 +84,23 @@ export const CompositeState = () => {
     : "muted";
 
   // Auto-dispatch an offer to Supabase when density drops below 35%.
-  // Throttled to once every 2 minutes to avoid spam.
+  // Throttled per "secteur" (product × weather × discount) for 5 minutes
+  // to prevent spam of identical offers.
   useEffect(() => {
     if (!isLowDensity) return;
+    const THROTTLE_MS = 5 * 60 * 1000;
+    const product = isRain ? "Cappuccino" : isOffPeak ? "Espresso" : "Café du jour";
+    const discount = isRain ? 25 : 20;
+    const weatherKey = isRain ? "rain" : weather?.weather ?? "cloud";
+    const sector = `${product}|${weatherKey}|${discount}`;
     const now = Date.now();
-    if (now - lastDispatchRef.current < 120_000) return;
-    lastDispatchRef.current = now;
+    const last = lastDispatchRef.current[sector] ?? 0;
+    if (now - last < THROTTLE_MS) return;
+    lastDispatchRef.current[sector] = now;
 
     const dispatch = async () => {
-      const product = isRain ? "Cappuccino" : isOffPeak ? "Espresso" : "Café du jour";
-      const discount = isRain ? 25 : 20;
       const { error } = await supabase.from("offers_config").insert({
-        weather: isRain ? "rain" : weather?.weather ?? "cloud",
+        weather: weatherKey,
         traffic_condition: "low",
         product,
         discount_percent: discount,
@@ -106,6 +111,9 @@ export const CompositeState = () => {
           title: "Offre déclenchée par l'IA",
           description: `Densité ${density}% → ${product} -${discount}% envoyé via Supabase.`,
         });
+      } else {
+        // Free the throttle slot if the insert failed.
+        delete lastDispatchRef.current[sector];
       }
     };
     dispatch();

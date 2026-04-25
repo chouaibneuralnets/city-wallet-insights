@@ -17,10 +17,12 @@ import {
   CheckCircle2,
   AlertCircle,
   Hand,
+  ShieldAlert,
+  XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type LogLevel = "scan" | "detect" | "compute" | "send" | "idle" | "manual";
+type LogLevel = "scan" | "detect" | "compute" | "send" | "idle" | "manual" | "throttle" | "refused";
 
 type LogEntry = {
   id: string;
@@ -40,6 +42,8 @@ const levelMeta: Record<LogLevel, { tag: string; cls: string }> = {
   send: { tag: "SEND", cls: "text-success bg-success/10" },
   idle: { tag: "IDLE", cls: "text-muted-foreground bg-muted-foreground/10" },
   manual: { tag: "MANUAL", cls: "text-warning bg-warning/15" },
+  throttle: { tag: "THROTTLE", cls: "text-warning bg-warning/15" },
+  refused: { tag: "REFUSED", cls: "text-destructive bg-destructive/10" },
 };
 
 type Props = {
@@ -70,6 +74,9 @@ export const AiStrategyLog = ({
   const counterRef = useRef(0);
   const lastAutoPushRef = useRef<number>(0);
   const lastSatisfiedRef = useRef<boolean>(false);
+  // Anti-spam: track last dispatch time per offer signature (product+weather+discount)
+  const lastSignatureDispatchRef = useRef<Record<string, number>>({});
+  const THROTTLE_MS = 5 * 60 * 1000; // 5 minutes
   const consoleRef = useRef<HTMLDivElement>(null);
 
   const push = (entry: Omit<LogEntry, "id" | "time">) => {
@@ -134,7 +141,25 @@ export const AiStrategyLog = ({
     const tick = async () => {
       const now = Date.now();
       if (now - lastAutoPushRef.current < 25000) return;
+
+      // Anti-spam: skip if an identical offer was sent < 5 min ago for the
+      // same "secteur" (product × weather × discount signature).
+      const sector = `${product}|sun|${discount}`;
+      const lastSig = lastSignatureDispatchRef.current[sector] ?? 0;
+      const remainingMs = THROTTLE_MS - (now - lastSig);
+      if (remainingMs > 0) {
+        const remainingSec = Math.ceil(remainingMs / 1000);
+        push({
+          level: "throttle",
+          message: `Anti-spam · offre identique [${product} -${discount}%] déjà envoyée pour ce secteur (réessai dans ${remainingSec}s)`,
+          icon: <ShieldAlert className="size-3.5" />,
+        });
+        lastAutoPushRef.current = now;
+        return;
+      }
+
       lastAutoPushRef.current = now;
+      lastSignatureDispatchRef.current[sector] = now;
       push({
         level: "send",
         message: `Envoi auto vers Supabase · "${message.slice(0, 60)}${message.length > 60 ? "…" : ""}"`,
@@ -156,6 +181,8 @@ export const AiStrategyLog = ({
           message: `Erreur d'envoi auto : ${error.message}`,
           icon: <AlertCircle className="size-3.5" />,
         });
+        // Free the throttle slot on error so user isn't blocked.
+        delete lastSignatureDispatchRef.current[sector];
       }
     };
     tick();
@@ -191,6 +218,36 @@ export const AiStrategyLog = ({
             level: "send",
             message: `Offre envoyée vers Supabase · ${payload.new?.product ?? "Café"} -${payload.new?.discount_percent ?? 20}% · "${text.slice(0, 50)}${text.length > 50 ? "…" : ""}"`,
             icon: <Zap className="size-3.5" />,
+          });
+        },
+      )
+      // Listen to client refusals coming from the Mia app (status='refused')
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "redemptions" },
+        (payload: any) => {
+          if (payload.new?.status !== "refused") return;
+          const product = payload.new?.product ?? "Café";
+          const discount = payload.new?.discount_percent ?? 20;
+          push({
+            level: "refused",
+            message: `Offre refusée par le client · ${product} -${discount}% (Mia a appuyé sur "Ignorer")`,
+            icon: <XCircle className="size-3.5" />,
+          });
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "redemptions" },
+        (payload: any) => {
+          if (payload.new?.status !== "refused") return;
+          if (payload.old?.status === "refused") return;
+          const product = payload.new?.product ?? "Café";
+          const discount = payload.new?.discount_percent ?? 20;
+          push({
+            level: "refused",
+            message: `Offre refusée par le client · ${product} -${discount}% (statut mis à jour : refused)`,
+            icon: <XCircle className="size-3.5" />,
           });
         },
       )
@@ -281,6 +338,8 @@ export const AiStrategyLog = ({
                     log.level === "scan" && "text-white/70",
                     log.level === "idle" && "text-white/50",
                     log.level === "manual" && "text-warning",
+                    log.level === "throttle" && "text-warning/90",
+                    log.level === "refused" && "text-destructive",
                   )}
                 >
                   {log.message}
