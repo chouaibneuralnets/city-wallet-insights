@@ -21,7 +21,7 @@ type Signal = {
 export const CompositeState = () => {
   const { weather, temperatureC, proximityCount, stuttgart } = useSignals();
   const { pct: density } = useTrafficDensity();
-  const lastDispatchRef = useRef<number>(0);
+  const lastDispatchRef = useRef<Record<string, number>>({});
 
   const hour = stuttgart.hour;
   const minute = stuttgart.minute;
