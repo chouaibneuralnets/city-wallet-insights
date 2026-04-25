@@ -106,7 +106,7 @@ export const ProximityMap = () => {
               Mia dans le geofence
             </span>
           ) : (
-            <span className="text-muted-foreground">{wallets.length} wallets dans la zone</span>
+            <span className="text-muted-foreground">{proximityCount} client{proximityCount > 1 ? "s" : ""} à proximité</span>
           )}
         </div>
       </div>
