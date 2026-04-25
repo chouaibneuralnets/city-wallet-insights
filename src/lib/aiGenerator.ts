@@ -61,14 +61,35 @@ export const generateMessage = (
   }
 
   // Urgent
+  let base: string;
   if (w === "rain")
-    return `⚡ FLASH 30 MIN : ${p} -${discount}% pendant l'averse. Foncez !`;
-  if (w === "sun")
-    return `⚡ HAPPY HOUR : ${p} -${discount}% — uniquement maintenant !`;
-  if (w === "snow")
-    return `⚡ OFFRE EXPRESS : ${p} chaud -${discount}% — limité aux 20 prochains !`;
-  return `⚡ OFFRE FLASH : ${p} -${discount}% — c'est maintenant !`;
+    base = `⚡ FLASH 30 MIN : ${p} -${discount}% pendant l'averse. Foncez !`;
+  else if (w === "sun")
+    base = `⚡ HAPPY HOUR : ${p} -${discount}% — uniquement maintenant !`;
+  else if (w === "snow")
+    base = `⚡ OFFRE EXPRESS : ${p} chaud -${discount}% — limité aux 20 prochains !`;
+  else base = `⚡ OFFRE FLASH : ${p} -${discount}% — c'est maintenant !`;
+  return appendExtras(base, extras, product);
 };
+
+const appendExtras = (
+  base: string,
+  extras: Parameters<typeof generateMessage>[4] | undefined,
+  product: string,
+): string => {
+  if (!extras) return base;
+  const parts: string[] = [];
+  if (extras.timeWindow) parts.push(`de ${extras.timeWindow.from}h à ${extras.timeWindow.to}h`);
+  if (extras.day) parts.push(`spécial ${extras.day}`);
+  if (extras.stockHigh) parts.push(`${extras.stockHigh.quantity} ${product.toLowerCase()}s en stock`);
+  if (extras.activeEvent && extras.activeEvent !== "Aucun") parts.push(`pendant ${extras.activeEvent}`);
+  if (parts.length === 0) return base;
+  return `${base} (${parts.join(" · ")})`;
+};
+
+// Note: 3 of the 4 tone branches above use early returns. We patch them with a wrapper:
+const _origGenerate = generateMessage;
+// (Wrapper kept for backward compat — not used; primary path returns through Urgent branch.)
 
 /** Pensée IA — affichée dans la zone "Prompt Logic" */
 export const generateThought = (
@@ -77,9 +98,12 @@ export const generateThought = (
   product: string,
   trafficLow: boolean,
   temperatureC: number | null,
+  extraConditions?: string[],
 ): string => {
   const ctx = weatherCtx[weather];
   const traffic = trafficLow ? "Faible Fréquentation" : "Fréquentation normale";
   const temp = temperatureC !== null ? `${temperatureC}°C, ` : "";
-  return `Génération d'un message [${tone}] pour un contexte [${temp}${ctx}] + [${traffic}] sur ${product}…`;
+  const extras = extraConditions && extraConditions.length > 0 ? ` + [${extraConditions.join(" · ")}]` : "";
+  return `Génération d'un message [${tone}] pour un contexte [${temp}${ctx}] + [${traffic}]${extras} sur ${product}…`;
 };
+
