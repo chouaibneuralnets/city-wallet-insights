@@ -260,9 +260,21 @@ export const RuleBuilder = ({
             L'IA traduit vos conditions contextuelles en offres personnalisées selon le ton de la marque.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-muted-foreground">Règle active</span>
-          <Switch checked={active} onCheckedChange={setActive} />
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              "text-xs font-medium",
+              active ? "text-success" : "text-muted-foreground",
+            )}>
+              {active ? "Règle active" : "Règle inactive — envois bloqués"}
+            </span>
+            <Switch checked={active} onCheckedChange={setActive} />
+          </div>
+          {active && lockUntil && (
+            <span className="inline-flex items-center gap-1 text-[10px] text-warning font-medium">
+              <LockIcon className="size-3" /> Verrou 15 min — 1 offre/session
+            </span>
+          )}
         </div>
       </div>
 
