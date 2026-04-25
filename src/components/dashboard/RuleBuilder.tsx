@@ -63,6 +63,14 @@ const conditionLibrary = [
   { icon: Tag, field: "Stock", operator: ">", value: "20 unités" },
 ];
 
+type Tone = "Amical" | "Urgent" | "Exclusif";
+
+const tones: { value: Tone; emoji: string; preview: string }[] = [
+  { value: "Amical", emoji: "☕", preview: "Hey ! Petit café offert juste pour toi 😊" },
+  { value: "Urgent", emoji: "⚡", preview: "OFFRE FLASH 30min : -25% Cappuccino, dépêche-toi !" },
+  { value: "Exclusif", emoji: "✨", preview: "Membre privilégié — cappuccino signature -25%" },
+];
+
 export const RuleBuilder = ({
   discount,
   onDiscountChange,
@@ -78,11 +86,13 @@ export const RuleBuilder = ({
   const [actions] = useState(initialActions);
   const [active, setActive] = useState(true);
   const [product, setProduct] = useState("Café");
+  const [tone, setTone] = useState<Tone>("Amical");
   const [publishing, setPublishing] = useState(false);
   const [lastPublishedAt, setLastPublishedAt] = useState<Date | null>(null);
 
   const WeatherIcon = weatherMeta[weather].icon;
   const discountAction = actions.find((a) => a.id === "a1");
+  const currentTone = tones.find((t) => t.value === tone)!;
 
   const products = ["Café", "Pâtisserie", "Boissons fraîches", "Plat du jour", "Brunch"];
 
@@ -114,16 +124,19 @@ export const RuleBuilder = ({
     <Card className="p-6 shadow-sm-elegant border-border/70">
       <div className="flex items-start justify-between mb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <h2 className="text-lg font-semibold text-foreground tracking-tight">
               Constructeur de règle
             </h2>
             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary-soft text-primary">
               If-Then
             </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-foreground/5 text-muted-foreground">
+              Module 02 · Generative Engine
+            </span>
           </div>
           <p className="text-sm text-muted-foreground">
-            Définissez des conditions contextuelles pour déclencher des offres personnalisées.
+            L'IA traduit vos conditions contextuelles en offres personnalisées selon le ton de la marque.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -312,6 +325,43 @@ export const RuleBuilder = ({
           <span>0%</span>
           <span>25%</span>
           <span>50%</span>
+        </div>
+      </div>
+
+      {/* Brand tone — Module 02 */}
+      <div className="mt-6 pt-6 border-t border-border">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="size-4 text-primary" />
+            <span className="text-sm font-medium text-foreground">Ton de la marque</span>
+            <span className="text-[10px] text-muted-foreground font-mono">SLM local</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {tones.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => setTone(t.value)}
+              className={cn(
+                "flex flex-col items-start gap-1 p-3 rounded-lg border text-left transition-all",
+                tone === t.value
+                  ? "border-primary bg-primary-soft ring-2 ring-primary/30"
+                  : "border-border hover:border-primary/40 hover:bg-secondary/40"
+              )}
+            >
+              <span className="text-base">{t.emoji}</span>
+              <span className={cn("text-sm font-semibold", tone === t.value ? "text-primary" : "text-foreground")}>
+                {t.value}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="mt-3 p-3 rounded-lg bg-foreground text-background text-xs leading-relaxed font-mono">
+          <div className="text-[9px] uppercase tracking-wider text-background/60 mb-1">
+            Aperçu généré · {currentTone.value}
+          </div>
+          "{currentTone.preview}"
         </div>
       </div>
 
