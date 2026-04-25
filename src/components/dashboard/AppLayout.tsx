@@ -3,9 +3,11 @@ import { Lock } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/AppSidebar";
 import { AppHeader } from "@/components/dashboard/AppHeader";
+import { SignalsProvider } from "@/context/SignalsContext";
 
 export const AppLayout = () => {
   return (
+    <SignalsProvider>
     <SidebarProvider defaultOpen>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
@@ -33,5 +35,6 @@ export const AppLayout = () => {
         </SidebarInset>
       </div>
     </SidebarProvider>
+    </SignalsProvider>
   );
 };
