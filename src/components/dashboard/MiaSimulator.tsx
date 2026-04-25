@@ -135,7 +135,17 @@ export const MiaSimulator = () => {
           disabled={loading}
         >
           <Send className="size-3.5" />
-          Envoyer offre
+          Envoyer
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1 gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          onClick={() => sendOffer("refused")}
+          disabled={loading}
+        >
+          <XCircle className="size-3.5" />
+          Ignorer
         </Button>
         <Button
           size="sm"
@@ -144,7 +154,7 @@ export const MiaSimulator = () => {
           disabled={loading}
         >
           {loading ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />}
-          Payer (Mia)
+          Payer
         </Button>
       </div>
     </Card>
