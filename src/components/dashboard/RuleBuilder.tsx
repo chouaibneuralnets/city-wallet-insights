@@ -132,7 +132,9 @@ export const RuleBuilder = ({
         active,
         tone,
         message,
-      });
+        // Canonical text shipped to Mia's wallet app + read back by Magic Preview
+        generated_text: message,
+      } as never);
       if (error) throw error;
       setLastPublishedAt(new Date());
       toast.success("Offre déployée sur le réseau Payone", {
