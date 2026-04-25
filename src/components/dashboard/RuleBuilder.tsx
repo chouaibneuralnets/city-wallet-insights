@@ -252,17 +252,22 @@ export const RuleBuilder = ({
               </div>
             </div>
 
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              <span className="text-xs text-muted-foreground mr-1 self-center">Suggestions :</span>
-              {conditionLibrary.map((s) => (
-                <button
-                  key={s.field}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary text-xs text-muted-foreground hover:bg-primary-soft hover:text-primary transition-colors"
-                >
-                  <s.icon className="size-3" />
-                  {s.field} {s.operator} {s.value}
-                </button>
-              ))}
+            <div className="mt-4 pt-4 border-t border-dashed border-border/60">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                  Conditions personnalisées
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  {conditions.filter((c) => evaluateCondition(c, { now: new Date(), stockQty, activeEvent })).length}
+                  /{conditions.length} match
+                </span>
+              </div>
+              <ConditionChips
+                conditions={conditions}
+                onChange={setConditions}
+                stockQty={stockQty}
+                activeEvent={activeEvent}
+              />
             </div>
           </div>
         </div>
