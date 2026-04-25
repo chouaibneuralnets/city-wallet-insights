@@ -117,8 +117,13 @@ export const RuleBuilder = ({
   const [lockUntil, setLockUntil] = useState<number | null>(null);
   const sessionDispatchedRef = useRef(false);
 
-  // Dynamic conditions (Heure, Jour, Stock, Événement) — fully editable
-  const [conditions, setConditions] = useState<Condition[]>([]);
+  // Dynamic conditions (Heure, Jour, Stock, Événement) — fully editable.
+  // Seeded with two sensible defaults so the "x/y match" counter is meaningful
+  // out of the box. Users can remove or add more freely.
+  const [conditions, setConditions] = useState<Condition[]>(() => [
+    { id: Math.random().toString(36).slice(2, 9), type: "Heure", from: 14, to: 17 },
+    { id: Math.random().toString(36).slice(2, 9), type: "Jour", value: "Semaine" },
+  ]);
   // Simulated live world state for validation badges (in real app, these come from inventory + events APIs)
   const stockQty = 28;
   const activeEvent = "Marché de Noël";
