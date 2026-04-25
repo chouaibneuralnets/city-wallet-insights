@@ -31,6 +31,9 @@ export const CompositeState = () => {
   const isRain = weather?.weather === "rain";
   const isCloud = weather?.weather === "cloud";
   const isLowDensity = density < 35;
+  // Day of week — Stuttgart timezone (0=Sunday … 6=Saturday)
+  const isWeekend = stuttgart.day === 0 || stuttgart.day === 6;
+  const segmentHint = isWeekend ? "Loyals · Newcomers" : "Commuters";
 
   const timeLabel = isLateNight
     ? "Heure de nuit"
