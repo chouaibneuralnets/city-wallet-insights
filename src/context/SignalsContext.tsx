@@ -51,10 +51,28 @@ const pingToWallet = (p: ProximityPing): Wallet => {
   // Normalize geo coords → 0..1 viewport coords (centered on Café Müller)
   const dx = (p.lng - CAFE_LNG) / LNG_RANGE;
   const dy = (CAFE_LAT - p.lat) / LAT_RANGE; // flip Y for screen coords
+
+  // Clamp inside the geofence DISC (not the bounding box) so every wallet
+  // visually sits inside the dashed circle. The circle has inset-[8%], i.e.
+  // it spans 8%..92% → center (0.5, 0.5), radius 0.42 in viewport units.
+  const cx = 0.5;
+  const cy = 0.5;
+  const maxR = 0.40; // small safety margin so dots aren't clipped on the edge
+  let nx = 0.5 + dx;
+  let ny = 0.5 + dy;
+  const rx = nx - cx;
+  const ry = ny - cy;
+  const dist = Math.sqrt(rx * rx + ry * ry);
+  if (dist > maxR) {
+    const k = maxR / (dist || 1);
+    nx = cx + rx * k;
+    ny = cy + ry * k;
+  }
+
   return {
     id: p.id,
-    x: Math.min(0.92, Math.max(0.08, 0.5 + dx)),
-    y: Math.min(0.92, Math.max(0.08, 0.5 + dy)),
+    x: nx,
+    y: ny,
     isMia: p.is_mia,
   };
 };

@@ -78,6 +78,17 @@ export const ProximityMap = () => {
             <span className="font-bold">N</span>
             <span className="h-3 w-px bg-muted-foreground/50" />
           </div>
+
+          {/* Live proximity counter — always reflects `proximityCount` */}
+          <div className="absolute top-2 left-2 flex items-center gap-1.5 rounded-full border border-primary/40 bg-card/90 px-2 py-1 shadow-sm backdrop-blur">
+            <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="text-[10px] font-bold tabular text-foreground">
+              {proximityCount}
+            </span>
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
+              wallet{proximityCount > 1 ? "s" : ""}
+            </span>
+          </div>
         </div>
 
         {/* Legend */}
