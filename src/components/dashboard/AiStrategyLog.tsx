@@ -42,6 +42,8 @@ const levelMeta: Record<LogLevel, { tag: string; cls: string }> = {
   send: { tag: "SEND", cls: "text-success bg-success/10" },
   idle: { tag: "IDLE", cls: "text-muted-foreground bg-muted-foreground/10" },
   manual: { tag: "MANUAL", cls: "text-warning bg-warning/15" },
+  throttle: { tag: "THROTTLE", cls: "text-warning bg-warning/15" },
+  refused: { tag: "REFUSED", cls: "text-destructive bg-destructive/10" },
 };
 
 type Props = {
