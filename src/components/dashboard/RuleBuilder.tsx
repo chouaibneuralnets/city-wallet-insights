@@ -446,7 +446,7 @@ export const RuleBuilder = ({
           {lastPublishedAt ? (
             <span className="inline-flex items-center gap-1.5">
               <CheckCircle2 className="size-3 text-success" />
-              Dernière offre déployée à {lastPublishedAt.toLocaleTimeString("fr-FR")}
+              Dernière offre déployée à {lastPublishedAt.toLocaleTimeString("fr-FR", { timeZone: "Europe/Berlin" })}
             </span>
           ) : (
             <span>L'offre finalisée sera propagée à tous les commerçants partenaires.</span>

@@ -1,9 +1,10 @@
 import { useLocation } from "react-router-dom";
-import { Bell, Search, CheckCircle2 } from "lucide-react";
+import { Bell, Search, CheckCircle2, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useStuttgartWeather } from "@/hooks/useStuttgartWeather";
+import { useSignals } from "@/context/SignalsContext";
 import { cn } from "@/lib/utils";
 
 const META: Record<string, { eyebrow: string; title: string }> = {
@@ -20,6 +21,7 @@ export const AppHeader = () => {
   const location = useLocation();
   const meta = META[location.pathname] ?? { eyebrow: "Workspace", title: "City-Wallet" };
   const { data, error } = useStuttgartWeather();
+  const { stuttgart } = useSignals();
   const operational = !error && (!!data || true); // optimiste tant qu'aucune erreur n'est remontée
 
   return (
@@ -58,6 +60,18 @@ export const AppHeader = () => {
           </div>
 
           <SidebarTrigger className="hidden lg:inline-flex" />
+
+          {/* Stuttgart timezone clock — proves the system is locked on the merchant's TZ */}
+          <div
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold border bg-primary/10 border-primary/30 text-primary"
+            title={`Horloge calée sur Europe/Berlin (${stuttgart.tzAbbr}) — heure officielle du commerçant`}
+          >
+            <Clock className="size-3.5" />
+            <span className="tabular-nums">{stuttgart.hms}</span>
+            <span className="opacity-70">·</span>
+            <span className="tracking-wide">{stuttgart.tzAbbr}</span>
+            <span className="hidden md:inline opacity-70">Stuttgart Time</span>
+          </div>
 
           {/* System status pill */}
           <button

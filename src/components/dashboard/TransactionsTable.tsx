@@ -40,7 +40,7 @@ const seed = (n: number): Tx[] => {
     const t = new Date(now - i * (60_000 * (1 + Math.random() * 4)));
     return {
       id: `tx-${i}-${now}`,
-      time: t.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+      time: t.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" }),
       customer: CUSTOMERS[i % CUSTOMERS.length],
       product: PRODUCTS[i % PRODUCTS.length],
       productIcon: ICONS[i % ICONS.length],

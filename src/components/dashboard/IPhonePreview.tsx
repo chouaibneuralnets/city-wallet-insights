@@ -146,7 +146,7 @@ export const IPhonePreview = ({
     setAnimKey((k) => k + 1);
   }, [weather, discount, product, tone]);
 
-  const time = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  const time = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
   const date = now.toLocaleDateString("fr-FR", {
     weekday: "long",
     day: "numeric",

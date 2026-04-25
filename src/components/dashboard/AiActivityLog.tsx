@@ -14,7 +14,7 @@ type LogEntry = {
 };
 
 const fmtTime = (d = new Date()) =>
-  d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" });
 
 const WEATHER_LABEL: Record<string, { label: string; icon: React.ReactNode }> = {
   rain: { label: "Pluie détectée", icon: <CloudRain className="size-3.5" /> },

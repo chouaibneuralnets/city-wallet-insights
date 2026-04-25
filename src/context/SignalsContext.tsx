@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { useStuttgartWeather, type WeatherData } from "@/hooks/useStuttgartWeather";
 import { useProximityPings, type ProximityPing } from "@/hooks/useProximityPings";
 import { supabase } from "@/integrations/supabase/client";
+import { getStuttgartParts, type StuttgartParts } from "@/lib/stuttgartTime";
 
 /**
  * Single Source of Truth for live IoT signals.
@@ -24,8 +25,10 @@ type SignalsContextValue = {
   weatherLoading: boolean;
   /** Always rounded to nearest integer — single source of truth */
   temperatureC: number | null;
-  /** Live wall-clock — updates every second */
+  /** Live wall-clock — updates every second (UTC instant) */
   now: Date;
+  /** Stuttgart-localized clock parts (hour/minute/day/tzAbbr). Single source of truth for "what time is it at Café Müller". */
+  stuttgart: StuttgartParts;
   /** Real wallet pings from Supabase */
   pings: ProximityPing[];
   /** Wallets normalized to map coordinates */
@@ -100,11 +103,14 @@ export const SignalsProvider = ({ children }: { children: ReactNode }) => {
 
   const wallets = useMemo(() => pings.map(pingToWallet), [pings]);
 
+  const stuttgart = useMemo(() => getStuttgartParts(now), [now]);
+
   const value: SignalsContextValue = {
     weather,
     weatherLoading,
     temperatureC,
     now,
+    stuttgart,
     pings,
     wallets,
     miaDetected,
