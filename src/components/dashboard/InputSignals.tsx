@@ -86,7 +86,9 @@ export const InputSignals = () => {
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Météo · Stuttgart
             </span>
-            <span className="font-mono text-[10px] text-muted-foreground">live API</span>
+            <span className="font-mono text-[10px] text-muted-foreground">
+              {weather?.isFallback ? "demo" : "live API"}
+            </span>
           </div>
           {loading ? (
             <div className="h-20 flex items-center justify-center">
@@ -97,8 +99,19 @@ export const InputSignals = () => {
               <div className="flex items-end gap-3">
                 <WIcon className="size-10 text-primary" />
                 <div>
-                  <div className="text-3xl font-bold tabular leading-none text-foreground">
-                    {weather?.temperature?.toFixed(0) ?? "—"}°C
+                  <div className="flex items-center gap-2">
+                    <div className="text-3xl font-bold tabular leading-none text-foreground">
+                      {weather?.temperature?.toFixed(0) ?? "—"}°C
+                    </div>
+                    {weather?.isFallback && (
+                      <span
+                        title="Clé API manquante ou indisponible — valeurs simulées"
+                        className="inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-widest text-warning"
+                      >
+                        <span className="size-1 rounded-full bg-warning animate-pulse" />
+                        Demo data
+                      </span>
+                    )}
                   </div>
                   <div className="text-xs text-muted-foreground mt-1 capitalize">
                     {weather?.description ?? weatherLabel(weather?.weather)}
