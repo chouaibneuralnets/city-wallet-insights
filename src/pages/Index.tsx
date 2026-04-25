@@ -3,12 +3,13 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
 import { KpiCards } from "@/components/dashboard/KpiCards";
 import { RuleBuilder } from "@/components/dashboard/RuleBuilder";
-import { AiSimulator } from "@/components/dashboard/AiSimulator";
+import { IPhonePreview, type Weather } from "@/components/dashboard/IPhonePreview";
 import { TransactionChart } from "@/components/dashboard/TransactionChart";
 import { ContextPanel } from "@/components/dashboard/ContextPanel";
 
 const Index = () => {
-  const [discount, setDiscount] = useState(25);
+  const [discount, setDiscount] = useState(20);
+  const [weather, setWeather] = useState<Weather>("rain");
 
   return (
     <div className="min-h-screen flex w-full bg-background">
@@ -20,7 +21,12 @@ const Index = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <RuleBuilder discount={discount} onDiscountChange={setDiscount} />
+              <RuleBuilder
+                discount={discount}
+                onDiscountChange={setDiscount}
+                weather={weather}
+                onWeatherChange={setWeather}
+              />
             </div>
             <ContextPanel />
           </div>
@@ -29,7 +35,7 @@ const Index = () => {
             <div className="lg:col-span-2">
               <TransactionChart />
             </div>
-            <AiSimulator discount={discount} />
+            <IPhonePreview weather={weather} onWeatherChange={setWeather} discount={discount} />
           </div>
         </main>
       </div>

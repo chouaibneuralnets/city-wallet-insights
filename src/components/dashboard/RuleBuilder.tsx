@@ -1,17 +1,42 @@
 import { useState } from "react";
-import { CloudRain, Users, Clock, Calendar, Plus, X, ArrowRight, Tag, Bell, Percent, Sparkles } from "lucide-react";
+import {
+  CloudRain,
+  Sun,
+  Snowflake,
+  Cloud,
+  Users,
+  Clock,
+  Calendar,
+  Plus,
+  X,
+  ArrowRight,
+  Tag,
+  Bell,
+  Percent,
+  Sparkles,
+  ChevronDown,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import type { Weather } from "./IPhonePreview";
 
-type Condition = {
-  id: string;
-  icon: React.ComponentType<{ className?: string }>;
-  field: string;
-  operator: string;
-  value: string;
+const weatherMeta: Record<
+  Weather,
+  { icon: React.ComponentType<{ className?: string }>; label: string }
+> = {
+  rain: { icon: CloudRain, label: "Pluie" },
+  sun: { icon: Sun, label: "Soleil" },
+  snow: { icon: Snowflake, label: "Neige" },
+  cloud: { icon: Cloud, label: "Nuageux" },
 };
 
 type Action = {
@@ -21,14 +46,9 @@ type Action = {
   detail: string;
 };
 
-const initialConditions: Condition[] = [
-  { id: "c1", icon: CloudRain, field: "Météo", operator: "=", value: "Pluie" },
-  { id: "c2", icon: Users, field: "Fréquentation", operator: "=", value: "Basse" },
-];
-
 const initialActions: Action[] = [
-  { id: "a1", icon: Percent, label: "Générer offre", detail: "Max 25% de remise" },
-  { id: "a2", icon: Bell, label: "Notification push", detail: "Clients à <500m" },
+  { id: "a1", icon: Percent, label: "Générer offre", detail: "Max 25%" },
+  { id: "a2", icon: Bell, label: "Push notification", detail: "Clients à <500m" },
 ];
 
 const conditionLibrary = [
@@ -37,19 +57,32 @@ const conditionLibrary = [
   { icon: Tag, field: "Stock", operator: ">", value: "20 unités" },
 ];
 
-export const RuleBuilder = ({ discount, onDiscountChange }: { discount: number; onDiscountChange: (v: number) => void }) => {
-  const [conditions, setConditions] = useState(initialConditions);
+export const RuleBuilder = ({
+  discount,
+  onDiscountChange,
+  weather,
+  onWeatherChange,
+}: {
+  discount: number;
+  onDiscountChange: (v: number) => void;
+  weather: Weather;
+  onWeatherChange: (w: Weather) => void;
+}) => {
+  const [trafficLow, setTrafficLow] = useState(true);
   const [actions] = useState(initialActions);
   const [active, setActive] = useState(true);
 
-  const removeCondition = (id: string) => setConditions((c) => c.filter((x) => x.id !== id));
+  const WeatherIcon = weatherMeta[weather].icon;
+  const discountAction = actions.find((a) => a.id === "a1");
 
   return (
     <Card className="p-6 shadow-sm-elegant border-border/70">
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h2 className="text-lg font-semibold text-foreground tracking-tight">Constructeur de règle</h2>
+            <h2 className="text-lg font-semibold text-foreground tracking-tight">
+              Constructeur de règle
+            </h2>
             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary-soft text-primary">
               If-Then
             </span>
@@ -75,29 +108,62 @@ export const RuleBuilder = ({ discount, onDiscountChange }: { discount: number; 
           </div>
 
           <div className="flex-1 pb-6">
-            <div className="flex flex-wrap gap-2">
-              {conditions.map((cond, idx) => (
-                <div key={cond.id} className="flex items-center gap-2">
-                  {idx > 0 && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1.5">
-                      AND
-                    </span>
-                  )}
-                  <div className="group inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full bg-primary-soft border border-primary/20 text-sm">
-                    <cond.icon className="size-3.5 text-primary" />
-                    <span className="font-medium text-foreground">{cond.field}</span>
-                    <span className="text-muted-foreground">{cond.operator}</span>
-                    <span className="font-semibold text-primary">{cond.value}</span>
-                    <button
-                      onClick={() => removeCondition(cond.id)}
-                      className="ml-1 size-5 rounded-full hover:bg-primary/10 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
-                    >
-                      <X className="size-3" />
-                    </button>
-                  </div>
+            <div className="flex flex-wrap gap-2 items-center">
+              {/* Weather chip with dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="inline-flex items-center gap-2 pl-3 pr-2.5 py-1.5 rounded-full bg-primary-soft border border-primary/20 text-sm hover:bg-primary/10 transition-colors">
+                    <WeatherIcon className="size-3.5 text-primary" />
+                    <span className="font-medium text-foreground">Météo</span>
+                    <span className="text-muted-foreground">=</span>
+                    <span className="font-semibold text-primary">{weatherMeta[weather].label}</span>
+                    <ChevronDown className="size-3 text-muted-foreground" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="min-w-36">
+                  {(Object.keys(weatherMeta) as Weather[]).map((w) => {
+                    const I = weatherMeta[w].icon;
+                    return (
+                      <DropdownMenuItem
+                        key={w}
+                        onClick={() => onWeatherChange(w)}
+                        className={cn(
+                          "gap-2 cursor-pointer",
+                          w === weather && "bg-primary-soft text-primary font-medium"
+                        )}
+                      >
+                        <I className="size-4" /> {weatherMeta[w].label}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1.5">
+                AND
+              </span>
+
+              {trafficLow ? (
+                <div className="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full bg-primary-soft border border-primary/20 text-sm">
+                  <Users className="size-3.5 text-primary" />
+                  <span className="font-medium text-foreground">Fréquentation</span>
+                  <span className="text-muted-foreground">=</span>
+                  <span className="font-semibold text-primary">Basse</span>
+                  <button
+                    onClick={() => setTrafficLow(false)}
+                    className="ml-1 size-5 rounded-full hover:bg-primary/10 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <X className="size-3" />
+                  </button>
                 </div>
-              ))}
-              <Button variant="outline" size="sm" className="rounded-full h-8 gap-1 border-dashed">
+              ) : null}
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full h-8 gap-1 border-dashed"
+                onClick={() => setTrafficLow(true)}
+              >
                 <Plus className="size-3.5" /> Ajouter
               </Button>
             </div>
@@ -134,17 +200,27 @@ export const RuleBuilder = ({ discount, onDiscountChange }: { discount: number; 
           </div>
           <div className="flex-1">
             <div className="flex flex-wrap gap-2">
-              {actions.map((act) => (
-                <div
-                  key={act.id}
-                  className="inline-flex items-center gap-2 pl-3 pr-3 py-1.5 rounded-full bg-foreground text-background text-sm"
-                >
-                  <act.icon className="size-3.5" />
-                  <span className="font-medium">{act.label}</span>
+              {discountAction && (
+                <div className="inline-flex items-center gap-2 pl-3 pr-3 py-1.5 rounded-full bg-foreground text-background text-sm">
+                  <discountAction.icon className="size-3.5" />
+                  <span className="font-medium">{discountAction.label}</span>
                   <span className="text-background/60">·</span>
-                  <span className="font-semibold">{act.detail}</span>
+                  <span className="font-semibold tabular">{discount}%</span>
                 </div>
-              ))}
+              )}
+              {actions
+                .filter((a) => a.id !== "a1")
+                .map((act) => (
+                  <div
+                    key={act.id}
+                    className="inline-flex items-center gap-2 pl-3 pr-3 py-1.5 rounded-full bg-foreground text-background text-sm"
+                  >
+                    <act.icon className="size-3.5" />
+                    <span className="font-medium">{act.label}</span>
+                    <span className="text-background/60">·</span>
+                    <span className="font-semibold">{act.detail}</span>
+                  </div>
+                ))}
               <Button variant="outline" size="sm" className="rounded-full h-8 gap-1 border-dashed">
                 <Plus className="size-3.5" /> Action
               </Button>
@@ -167,7 +243,7 @@ export const RuleBuilder = ({ discount, onDiscountChange }: { discount: number; 
           onValueChange={(v) => onDiscountChange(v[0])}
           max={50}
           step={5}
-          className={cn("w-full")}
+          className="w-full"
         />
         <div className="flex justify-between mt-2 text-[11px] text-muted-foreground">
           <span>0%</span>
