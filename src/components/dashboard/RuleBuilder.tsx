@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CloudRain,
   Sun,
@@ -116,7 +116,7 @@ export const RuleBuilder = ({
   const typed = useTypewriter(thought, 14);
 
   // Push state up so the iPhone preview shows the same message + product icon.
-  useMemo(() => {
+  useEffect(() => {
     onGenerationChange?.({ product, tone, message });
   }, [product, tone, message, onGenerationChange]);
 
