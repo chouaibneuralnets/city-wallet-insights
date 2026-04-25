@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Receipt, Sparkles, CreditCard, Coffee, Croissant, GlassWater, UtensilsCrossed } from "lucide-react";
+import { Receipt, Sparkles, CreditCard, Coffee, Croissant, GlassWater, UtensilsCrossed, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Tx = {
@@ -131,6 +131,11 @@ export const TransactionsTable = () => {
                   <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                     <CreditCard className="size-3" /> {t.channel}
                   </span>
+                  {t.channel === "Payone" && (
+                    <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/30 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-success">
+                      <ShieldCheck className="size-2.5" /> Vérifié Payone
+                    </div>
+                  )}
                 </TableCell>
                 <TableCell className="text-right text-muted-foreground tabular">€{t.base.toFixed(2)}</TableCell>
                 <TableCell className="text-right tabular font-semibold text-foreground">€{t.paid.toFixed(2)}</TableCell>
