@@ -10,6 +10,7 @@ const Automations = () => {
   const [discount, setDiscount] = useState(20);
   const [weather, setWeather] = useState<Weather>("cloud");
   const [trafficLow, setTrafficLow] = useState(true);
+  const [ruleActive, setRuleActive] = useState(true);
   const [generation, setGeneration] = useState<{ product: string; tone: Tone; message: string }>({
     product: "Café",
     tone: "Amical",
