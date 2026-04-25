@@ -94,45 +94,11 @@ export const CompositeState = () => {
     ? "warning"
     : "muted";
 
-  // Auto-dispatch an offer to Supabase when density drops below 35%.
-  // Throttled per "secteur" (product × weather × discount) for 5 minutes
-  // to prevent spam of identical offers.
-  useEffect(() => {
-    if (!isLowDensity) return;
-    const THROTTLE_MS = 5 * 60 * 1000;
-    const product = isRain ? "Cappuccino" : isOffPeak ? "Espresso" : "Café du jour";
-    const discount = isRain ? 25 : 20;
-    const weatherKey = isRain ? "rain" : weather?.weather ?? "cloud";
-    const sector = `${product}|${weatherKey}|${discount}`;
-    const now = Date.now();
-    // Self-heal stale HMR state where the ref might still hold a number.
-    if (typeof lastDispatchRef.current !== "object" || lastDispatchRef.current === null) {
-      lastDispatchRef.current = {};
-    }
-    const last = lastDispatchRef.current[sector] ?? 0;
-    if (now - last < THROTTLE_MS) return;
-    lastDispatchRef.current[sector] = now;
-
-    const dispatch = async () => {
-      const { error } = await supabase.from("offers_config").insert({
-        weather: weatherKey,
-        traffic_condition: "low",
-        product,
-        discount_percent: discount,
-        active: true,
-      });
-      if (!error) {
-        toast({
-          title: "Offre déclenchée par l'IA",
-          description: `Densité ${density}% → ${product} -${discount}% envoyé via Supabase.`,
-        });
-      } else {
-        // Free the throttle slot if the insert failed.
-        delete lastDispatchRef.current[sector];
-      }
-    };
-    dispatch();
-  }, [isLowDensity, density, isRain, isOffPeak, weather?.weather]);
+  // NOTE: Auto-dispatch is intentionally disabled here. Sending offers to
+  // Supabase must ONLY happen when the user explicitly activates the rule
+  // in Module 02 (RuleBuilder). Module 01 stays a pure diagnostic view.
+  // Keeping the ref so HMR doesn't choke on missing state.
+  void lastDispatchRef;
 
   const colorMap = {
     success: {
