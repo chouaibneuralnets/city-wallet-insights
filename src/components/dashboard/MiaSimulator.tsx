@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Smartphone, Send, Loader2, CheckCircle2 } from "lucide-react";
+import { Smartphone, Send, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
