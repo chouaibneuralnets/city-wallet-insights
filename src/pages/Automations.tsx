@@ -75,6 +75,24 @@ const Automations = () => {
   // Use the first offer as the lead for KPI display.
   const leadOffer = offers[0];
 
+  // Mirror the global "rule active" flag so all background tickers (Module 01
+  // LiveOpportunities, autopilot, …) honor the same kill-switch — even from
+  // other pages.
+  const wasActiveRef = useRef(anyActive);
+  useEffect(() => {
+    setRuleActiveValue(anyActive);
+    const wasActive = wasActiveRef.current;
+    wasActiveRef.current = anyActive;
+    if (wasActive && !anyActive) {
+      // ON → OFF transition: expire any pending offers in Supabase so Mia's
+      // app stops displaying them.
+      void supabase
+        .from("offers_config")
+        .update({ active: false })
+        .eq("active", true);
+    }
+  }, [anyActive]);
+
   return (
     <>
       <div>
