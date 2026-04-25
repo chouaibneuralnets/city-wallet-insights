@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type LogLevel = "scan" | "detect" | "compute" | "send" | "idle" | "manual";
+type LogLevel = "scan" | "detect" | "compute" | "send" | "idle" | "manual" | "throttle" | "refused";
 
 type LogEntry = {
   id: string;
