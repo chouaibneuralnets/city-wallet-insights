@@ -141,6 +141,7 @@ export const AiStrategyLog = ({
   // Autopilot: when ON + conditions satisfied → auto-deploy every 25s max
   useEffect(() => {
     if (!autopilot || !ruleSatisfied || !message) return;
+    if (!ruleActive) return; // master kill-switch
     const tick = async () => {
       const now = Date.now();
       if (now - lastAutoPushRef.current < 25000) return;
