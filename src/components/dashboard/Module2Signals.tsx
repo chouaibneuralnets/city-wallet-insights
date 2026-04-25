@@ -54,6 +54,12 @@ type Props = {
   onTrafficLowDetected: (low: boolean) => void;
   /** Currently selected weather in the rule (for the validation badge). */
   ruleWeather: Weather;
+  /** Notify parent about the live derived state (used by the AI Strategy Log). */
+  onLiveStateChange?: (state: {
+    ruleSatisfied: boolean;
+    trafficPct: number;
+    weatherLabel: string;
+  }) => void;
 };
 
 /**
