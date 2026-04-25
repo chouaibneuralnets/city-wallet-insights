@@ -28,7 +28,7 @@ const weatherLabel = (w?: string) => {
 
 export const InputSignals = () => {
   const { weather, weatherLoading: loading, temperatureC } = useSignals();
-  const { pct: trafficPct, count: salesCount } = useTrafficDensity();
+  const { pct: trafficPct, count: salesCount, isQuiet } = useTrafficDensity();
   const [event, setEvent] = useState<StuttgartEvent | null>(() => getCurrentStuttgartEvent());
 
   // Refresh "current event" each minute so the displayed event reflects system time.
