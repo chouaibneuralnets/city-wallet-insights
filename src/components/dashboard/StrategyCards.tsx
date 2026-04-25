@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CloudRain,
   Sun,
@@ -17,6 +17,9 @@ import {
   Sparkles,
   Coffee,
   X,
+  Lock,
+  Unlock,
+  PowerOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
