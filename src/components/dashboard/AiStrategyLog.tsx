@@ -17,6 +17,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Hand,
+  ShieldAlert,
+  XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
