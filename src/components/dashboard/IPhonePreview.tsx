@@ -155,7 +155,7 @@ export const IPhonePreview = ({
 
   return (
     <Card className="p-6 shadow-sm-elegant border-border/70 h-full flex flex-col bg-gradient-to-br from-card to-secondary/30 overflow-hidden">
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-4 gap-2">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="size-6 rounded-md bg-gradient-primary flex items-center justify-center">
@@ -165,6 +165,12 @@ export const IPhonePreview = ({
           </div>
           <p className="text-sm text-muted-foreground">Aperçu live de l'offre IA sur l'écran client</p>
         </div>
+        {deployedText && (
+          <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-success/10 text-success border border-success/20 text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap">
+            <Database className="size-3" />
+            Sync app Mia
+          </div>
+        )}
       </div>
 
       {/* Live weather indicator (read-only — driven by Module 01 sensors) */}
