@@ -6,6 +6,7 @@ import { RuleBuilder } from "@/components/dashboard/RuleBuilder";
 import { IPhonePreview, type Weather } from "@/components/dashboard/IPhonePreview";
 import { TransactionChart } from "@/components/dashboard/TransactionChart";
 import { ContextPanel } from "@/components/dashboard/ContextPanel";
+import { MarketStatus } from "@/components/dashboard/MarketStatus";
 
 const Index = () => {
   const [discount, setDiscount] = useState(20);
@@ -28,14 +29,20 @@ const Index = () => {
                 onWeatherChange={setWeather}
               />
             </div>
-            <ContextPanel />
+            <MarketStatus onWeatherDetected={setWeather} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <TransactionChart />
             </div>
-            <IPhonePreview weather={weather} onWeatherChange={setWeather} discount={discount} />
+            <ContextPanel />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-3">
+              <IPhonePreview weather={weather} onWeatherChange={setWeather} discount={discount} />
+            </div>
           </div>
         </main>
       </div>
