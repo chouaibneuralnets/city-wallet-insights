@@ -219,27 +219,35 @@ export const RuleBuilder = ({
 
   const handlePublish = () => dispatchOffer({ auto: false });
 
-  // Auto-trigger: when rule becomes active AND conditions match, send once.
+  // Auto-trigger: ONLY on the OFF → ON transition, and only if conditions
+  // already match at that moment. Changing remise/conditions while ON does
+  // NOT re-send. To resend, user must toggle OFF then ON again.
   const conditionsMatch = weather === "sun" && trafficLow;
+  const conditionsMatchRef = useRef(conditionsMatch);
+  useEffect(() => {
+    conditionsMatchRef.current = conditionsMatch;
+  }, [conditionsMatch]);
+
   const wasActiveRef = useRef(active);
   useEffect(() => {
-    // Reset lock & session flag whenever the rule is toggled OFF.
-    if (wasActiveRef.current && !active) {
+    const prev = wasActiveRef.current;
+    if (prev && !active) {
+      // ON → OFF : reset session lock so next activation can re-send.
       sessionDispatchedRef.current = false;
       setLockUntil(null);
+    } else if (!prev && active) {
+      // OFF → ON : if conditions already match and no active 15-min lock, send once.
+      if (
+        conditionsMatchRef.current &&
+        !sessionDispatchedRef.current &&
+        !(lockUntil && Date.now() < lockUntil)
+      ) {
+        dispatchOffer({ auto: true });
+      }
     }
     wasActiveRef.current = active;
-  }, [active]);
-
-  useEffect(() => {
-    if (!active) return;
-    if (!conditionsMatch) return;
-    if (sessionDispatchedRef.current) return;
-    if (lockUntil && Date.now() < lockUntil) return;
-    // Fire once for this activation cycle.
-    dispatchOffer({ auto: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, conditionsMatch]);
+  }, [active]);
 
   return (
     <Card className="p-6 shadow-sm-elegant border-border/70">
@@ -336,12 +344,14 @@ export const RuleBuilder = ({
                   /{conditions.length} match
                 </span>
               </div>
-              <ConditionChips
-                conditions={conditions}
-                onChange={setConditions}
-                stockQty={stockQty}
-                activeEvent={activeEvent}
-              />
+              <div className={cn(active && "pointer-events-none opacity-60 select-none")} aria-disabled={active}>
+                <ConditionChips
+                  conditions={conditions}
+                  onChange={setConditions}
+                  stockQty={stockQty}
+                  activeEvent={activeEvent}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -372,8 +382,14 @@ export const RuleBuilder = ({
               )}
 
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="inline-flex items-center gap-2 pl-3 pr-2.5 py-1.5 rounded-full bg-foreground text-background text-sm hover:bg-foreground/90 transition-colors">
+                <DropdownMenuTrigger asChild disabled={active}>
+                  <button
+                    disabled={active}
+                    className={cn(
+                      "inline-flex items-center gap-2 pl-3 pr-2.5 py-1.5 rounded-full bg-foreground text-background text-sm hover:bg-foreground/90 transition-colors",
+                      active && "opacity-60 cursor-not-allowed hover:bg-foreground",
+                    )}
+                  >
                     <span className="text-base leading-none">{productMeta[product]?.emoji ?? "☕"}</span>
                     <span className="font-medium">Sur</span>
                     <span className="text-background/60">·</span>
@@ -424,6 +440,11 @@ export const RuleBuilder = ({
           <div className="flex items-center gap-2">
             <Sparkles className="size-4 text-primary" />
             <span className="text-sm font-medium text-foreground">Remise maximale autorisée</span>
+            {active && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-warning">
+                <LockIcon className="size-3" /> figé
+              </span>
+            )}
           </div>
           <span className="text-2xl font-bold text-primary tabular">{discount}%</span>
         </div>
@@ -432,7 +453,8 @@ export const RuleBuilder = ({
           onValueChange={(v) => onDiscountChange(v[0])}
           max={50}
           step={5}
-          className="w-full"
+          disabled={active}
+          className={cn("w-full", active && "opacity-60")}
         />
         <div className="flex justify-between mt-2 text-[11px] text-muted-foreground">
           <span>0%</span>
@@ -450,7 +472,7 @@ export const RuleBuilder = ({
             <span className="text-[10px] text-muted-foreground font-mono">SLM local</span>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className={cn("grid grid-cols-3 gap-2", active && "opacity-60")}>
           {(Object.keys(tonesMeta) as Tone[]).map((t) => {
             const m = tonesMeta[t];
             const selected = tone === t;
@@ -458,12 +480,14 @@ export const RuleBuilder = ({
               <button
                 key={t}
                 type="button"
+                disabled={active}
                 onClick={() => setTone(t)}
                 className={cn(
                   "group relative flex flex-col items-start gap-1 p-3 rounded-xl border text-left transition-all overflow-hidden",
                   selected
                     ? "border-primary bg-gradient-to-br from-primary-soft to-primary/5 ring-2 ring-primary/30 shadow-sm-elegant"
                     : "border-border hover:border-primary/40 hover:bg-secondary/40",
+                  active && "cursor-not-allowed",
                 )}
               >
                 <span className="text-lg">{m.emoji}</span>

@@ -55,6 +55,7 @@ const Automations = () => {
         onWeatherDetected={setWeather}
         onTrafficLowDetected={setTrafficLow}
         ruleWeather={weather}
+        ruleActive={ruleActive}
         onLiveStateChange={handleLiveStateChange}
       />
 
