@@ -2,7 +2,7 @@ export type StuttgartEvent = {
   id: string;
   title: string;
   venue: string;
-  /** ISO weekday: 1 = Mon ... 7 = Sun */
+  /** ISO weekday: 1 = Mon ... 7 = Sun. Use 0 to mean "any day during dateRange". */
   day: number;
   /** 24h format start time, e.g. "18:30" */
   start: string;
@@ -11,6 +11,8 @@ export type StuttgartEvent = {
   distanceKm: number;
   level: "hot" | "warm" | "info";
   category: "sport" | "culture" | "market" | "festival";
+  /** Optional active date window — MM-DD inclusive bounds. */
+  dateRange?: { from: string; to: string };
 };
 
 /**
@@ -77,12 +79,14 @@ export const STUTTGART_EVENTS: StuttgartEvent[] = [
     id: "frühlingsfest",
     title: "Frühlingsfest — Cannstatter Wasen",
     venue: "Cannstatter Wasen",
-    day: 0, // any day during festival period — used as fallback
+    day: 0, // any weekday during the festival period
     start: "11:00",
     end: "23:30",
     distanceKm: 3.1,
     level: "hot",
     category: "festival",
+    // Real Stuttgart Spring Festival window (mid-April → early May).
+    dateRange: { from: "04-18", to: "05-10" },
   },
   {
     id: "afterwork",
@@ -113,24 +117,48 @@ const toMinutes = (hhmm: string) => {
   return h * 60 + m;
 };
 
+const monthDay = (d: Date) =>
+  `${(d.getMonth() + 1).toString().padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`;
+
+const isInDateRange = (today: string, range?: { from: string; to: string }) => {
+  if (!range) return true;
+  if (range.from <= range.to) return today >= range.from && today <= range.to;
+  // Wrap around year-end
+  return today >= range.from || today <= range.to;
+};
+
 /** Returns the event currently active for the given date, or the next upcoming today. */
 export const getCurrentStuttgartEvent = (now: Date = new Date()): StuttgartEvent | null => {
   const jsDay = now.getDay(); // 0 Sun .. 6 Sat
   const isoDay = jsDay === 0 ? 7 : jsDay;
   const minutes = now.getHours() * 60 + now.getMinutes();
+  const today = monthDay(now);
 
-  // 1. Active event on this weekday
+  const inRange = (e: StuttgartEvent) => isInDateRange(today, e.dateRange);
+  const matchesDay = (e: StuttgartEvent) => e.day === 0 || e.day === isoDay;
+
+  // 1. Festival currently active in its date window — top priority (e.g. Frühlingsfest).
+  const festival = STUTTGART_EVENTS.find(
+    (e) =>
+      e.category === "festival" &&
+      inRange(e) &&
+      minutes >= toMinutes(e.start) &&
+      minutes <= toMinutes(e.end)
+  );
+  if (festival) return festival;
+
+  // 2. Active event on this weekday
   const active = STUTTGART_EVENTS.find(
-    (e) => e.day === isoDay && minutes >= toMinutes(e.start) && minutes <= toMinutes(e.end)
+    (e) => matchesDay(e) && inRange(e) && minutes >= toMinutes(e.start) && minutes <= toMinutes(e.end)
   );
   if (active) return active;
 
-  // 2. Next event today
+  // 3. Next event today
   const upcoming = STUTTGART_EVENTS
-    .filter((e) => e.day === isoDay && toMinutes(e.start) > minutes)
+    .filter((e) => matchesDay(e) && inRange(e) && toMinutes(e.start) > minutes)
     .sort((a, b) => toMinutes(a.start) - toMinutes(b.start))[0];
   if (upcoming) return upcoming;
 
-  // 3. Festival fallback (day 0)
-  return STUTTGART_EVENTS.find((e) => e.id === "frühlingsfest") ?? null;
+  // 4. Festival fallback if its window is open
+  return STUTTGART_EVENTS.find((e) => e.id === "frühlingsfest" && inRange(e)) ?? null;
 };

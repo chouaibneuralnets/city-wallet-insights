@@ -1,10 +1,10 @@
 import { CloudRain, Sun, Cloud, Clock, Users, Sparkles, ArrowRight, Brain, Activity } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useStuttgartWeather } from "@/hooks/useStuttgartWeather";
 import { useTrafficDensity } from "@/hooks/useTrafficDensity";
+import { useSignals } from "@/context/SignalsContext";
 import { cn } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -19,29 +19,9 @@ type Signal = {
 };
 
 export const CompositeState = () => {
-  const { data: weather } = useStuttgartWeather();
+  const { weather, temperatureC, proximityCount } = useSignals();
   const { pct: density } = useTrafficDensity();
-  const [proximityCount, setProximityCount] = useState(3);
   const lastDispatchRef = useRef<number>(0);
-
-  // Listen to offers_config inserts as proxy for "client à proximité détecté"
-  useEffect(() => {
-    const channel = supabase
-      .channel("composite-state-proximity")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "offers_config" },
-        () => setProximityCount((c) => Math.min(c + 1, 12))
-      )
-      .subscribe();
-    const id = setInterval(() => {
-      setProximityCount((c) => Math.max(1, c + (Math.random() > 0.5 ? 1 : -1)));
-    }, 8000);
-    return () => {
-      clearInterval(id);
-      supabase.removeChannel(channel);
-    };
-  }, []);
 
   const hour = new Date().getHours();
   const isOffPeak = (hour >= 10 && hour < 12) || (hour >= 14 && hour < 17);
@@ -53,7 +33,7 @@ export const CompositeState = () => {
     {
       key: "weather",
       label: isRain ? "Pluie détectée" : isCloud ? "Couvert" : weather?.weather === "snow" ? "Neige" : "Ciel dégagé",
-      detail: weather ? `${weather.temperature?.toFixed(0)}°C · Stuttgart` : "Capteur météo",
+      detail: temperatureC !== null ? `${temperatureC}°C · Stuttgart` : "Capteur météo",
       icon: isRain ? CloudRain : isCloud ? Cloud : Sun,
       level: isRain || isCloud ? "active" : "passive",
     },

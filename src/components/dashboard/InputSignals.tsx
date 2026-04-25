@@ -1,10 +1,10 @@
 import { Cloud, CloudRain, Sun, Snowflake, Wind, Droplets, Activity, Trophy, MapPin, Loader2, CalendarDays, Music, ShoppingBasket, PartyPopper } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useStuttgartWeather } from "@/hooks/useStuttgartWeather";
 import { useTrafficDensity } from "@/hooks/useTrafficDensity";
 import { getCurrentStuttgartEvent, type StuttgartEvent } from "@/data/stuttgartEvents";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useSignals } from "@/context/SignalsContext";
 import { cn } from "@/lib/utils";
 
 const weatherIcon = (w?: string) => {
@@ -27,7 +27,7 @@ const weatherLabel = (w?: string) => {
 };
 
 export const InputSignals = () => {
-  const { data: weather, loading } = useStuttgartWeather();
+  const { weather, weatherLoading: loading, temperatureC } = useSignals();
   const { pct: trafficPct, count: salesCount } = useTrafficDensity();
   const [event, setEvent] = useState<StuttgartEvent | null>(() => getCurrentStuttgartEvent());
 
@@ -81,7 +81,7 @@ export const InputSignals = () => {
                 <div>
                   <div className="flex items-center gap-2">
                     <div className="text-3xl font-bold tabular leading-none text-foreground">
-                      {weather?.temperature?.toFixed(0) ?? "—"}°C
+                      {temperatureC ?? "—"}°C
                     </div>
                     {weather?.isFallback && (
                       <span
