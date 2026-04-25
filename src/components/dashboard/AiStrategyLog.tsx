@@ -209,6 +209,29 @@ export const AiStrategyLog = ({
     });
   }, [autopilot, ruleSatisfied]);
 
+  // React to master rule switch — log + reset throttle when toggled.
+  const lastRuleActiveRef = useRef<boolean>(ruleActive);
+  useEffect(() => {
+    if (lastRuleActiveRef.current === ruleActive) return;
+    if (!ruleActive) {
+      push({
+        level: "refused",
+        message: `Règle désactivée — tous les envois vers Supabase sont bloqués`,
+        icon: <ShieldAlert className="size-3.5" />,
+      });
+      // Reset throttle so next activation can fire immediately.
+      lastSignatureDispatchRef.current = {};
+      lastAutoPushRef.current = 0;
+    } else {
+      push({
+        level: "detect",
+        message: `Règle activée — verrou réinitialisé, prêt à envoyer`,
+        icon: <CheckCircle2 className="size-3.5" />,
+      });
+    }
+    lastRuleActiveRef.current = ruleActive;
+  }, [ruleActive]);
+
   // Realtime feedback: every offers_config INSERT (including manual deploys)
   useEffect(() => {
     const channel = supabase
