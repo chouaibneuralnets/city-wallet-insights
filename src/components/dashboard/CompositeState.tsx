@@ -33,7 +33,7 @@ export const CompositeState = () => {
     {
       key: "weather",
       label: isRain ? "Pluie détectée" : isCloud ? "Couvert" : weather?.weather === "snow" ? "Neige" : "Ciel dégagé",
-      detail: weather ? `${weather.temperature?.toFixed(0)}°C · Stuttgart` : "Capteur météo",
+      detail: temperatureC !== null ? `${temperatureC}°C · Stuttgart` : "Capteur météo",
       icon: isRain ? CloudRain : isCloud ? Cloud : Sun,
       level: isRain || isCloud ? "active" : "passive",
     },
