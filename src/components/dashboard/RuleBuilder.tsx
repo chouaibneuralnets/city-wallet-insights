@@ -314,6 +314,32 @@ export const RuleBuilder = ({
           <span>50%</span>
         </div>
       </div>
+
+      {/* Publish */}
+      <div className="mt-6 pt-6 border-t border-border flex items-center justify-between gap-4">
+        <div className="text-xs text-muted-foreground">
+          {lastPublishedAt ? (
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="size-3.5 text-success" />
+              Synchronisé à {lastPublishedAt.toLocaleTimeString("fr-FR")}
+            </span>
+          ) : (
+            <span>La règle sera enregistrée dans le réseau City-Wallet.</span>
+          )}
+        </div>
+        <Button
+          onClick={handlePublish}
+          disabled={publishing || !active}
+          className="gap-2 bg-gradient-primary hover:opacity-90 transition-opacity"
+        >
+          {publishing ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Send className="size-4" />
+          )}
+          {publishing ? "Publication..." : "Publier l'offre"}
+        </Button>
+      </div>
     </Card>
   );
 };
