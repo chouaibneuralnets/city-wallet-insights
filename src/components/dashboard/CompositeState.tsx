@@ -1,4 +1,4 @@
-import { CloudRain, Sun, Cloud, Clock, Users, Sparkles, ArrowRight, Brain, Activity } from "lucide-react";
+import { CloudRain, Sun, Cloud, Clock, Users, Sparkles, ArrowRight, Brain, Activity, CalendarDays } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTrafficDensity } from "@/hooks/useTrafficDensity";
