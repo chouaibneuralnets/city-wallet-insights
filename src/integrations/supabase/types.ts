@@ -19,6 +19,7 @@ export type Database = {
           active: boolean
           created_at: string
           discount_percent: number
+          generated_text: string | null
           id: string
           message: string | null
           product: string
@@ -31,6 +32,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           discount_percent?: number
+          generated_text?: string | null
           id?: string
           message?: string | null
           product?: string
@@ -43,6 +45,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           discount_percent?: number
+          generated_text?: string | null
           id?: string
           message?: string | null
           product?: string
