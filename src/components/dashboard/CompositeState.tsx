@@ -1,4 +1,4 @@
-import { CloudRain, Sun, Cloud, Clock, Users, Sparkles, ArrowRight, Brain, Activity } from "lucide-react";
+import { CloudRain, Sun, Cloud, Clock, Users, Sparkles, ArrowRight, Brain, Activity, CalendarDays } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTrafficDensity } from "@/hooks/useTrafficDensity";
@@ -31,6 +31,9 @@ export const CompositeState = () => {
   const isRain = weather?.weather === "rain";
   const isCloud = weather?.weather === "cloud";
   const isLowDensity = density < 35;
+  // Day of week — Stuttgart timezone (0=Sunday … 6=Saturday)
+  const isWeekend = stuttgart.day === 0 || stuttgart.day === 6;
+  const segmentHint = isWeekend ? "Loyals · Newcomers" : "Commuters";
 
   const timeLabel = isLateNight
     ? "Heure de nuit"
@@ -55,6 +58,13 @@ export const CompositeState = () => {
       level: timeActive ? "active" : "passive",
     },
     {
+      key: "day",
+      label: `Jour : ${stuttgart.dayNameFr}`,
+      detail: `${isWeekend ? "Week-end" : "Semaine"} · cible ${segmentHint}`,
+      icon: CalendarDays,
+      level: "active",
+    },
+    {
       key: "density",
       label: isLowDensity ? "Densité Payone faible" : density < 65 ? "Densité Payone modérée" : "Densité Payone forte",
       detail: `${density}% · seuil offre 35%`,
@@ -70,7 +80,8 @@ export const CompositeState = () => {
     },
   ];
 
-  const activeCount = signals.filter((s) => s.level === "active").length;
+  // Day is informational (always "active") — exclude it from the opportunity scoring.
+  const activeCount = signals.filter((s) => s.level === "active" && s.key !== "day").length;
   // Low density forces "Opportunité Haute" regardless of other signals
   const opportunityLevel = isLowDensity || activeCount >= 3
     ? "haute"
@@ -160,7 +171,7 @@ export const CompositeState = () => {
           <h2 className="text-sm font-semibold tracking-tight">Diagnostic du contexte actuel</h2>
         </div>
         <Badge variant="outline" className="gap-1.5 font-mono text-[10px] border-border/60">
-          {activeCount}/{signals.length} signaux actifs
+          {activeCount}/{signals.filter((s) => s.key !== "day").length} signaux actifs
         </Badge>
       </div>
 
