@@ -20,7 +20,9 @@ export type Database = {
           created_at: string
           discount_percent: number
           id: string
+          message: string | null
           product: string
+          tone: string | null
           traffic_condition: string | null
           updated_at: string
           weather: string
@@ -30,7 +32,9 @@ export type Database = {
           created_at?: string
           discount_percent?: number
           id?: string
+          message?: string | null
           product?: string
+          tone?: string | null
           traffic_condition?: string | null
           updated_at?: string
           weather: string
@@ -40,7 +44,9 @@ export type Database = {
           created_at?: string
           discount_percent?: number
           id?: string
+          message?: string | null
           product?: string
+          tone?: string | null
           traffic_condition?: string | null
           updated_at?: string
           weather?: string

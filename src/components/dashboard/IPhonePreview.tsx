@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Coffee, Sun, CloudRain, Snowflake, Cloud, Sparkles, RefreshCw } from "lucide-react";
+import { Sun, CloudRain, Snowflake, Cloud, Sparkles, RefreshCw } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { productMeta, tonesMeta, type Tone } from "@/lib/aiGenerator";
+import { useTypewriter } from "@/hooks/useTypewriter";
 
 export type Weather = "rain" | "sun" | "snow" | "cloud";
 
@@ -73,18 +75,32 @@ export const IPhonePreview = ({
   weather,
   onWeatherChange,
   discount,
+  product = "Café",
+  tone = "Amical",
+  message,
 }: {
   weather: Weather;
   onWeatherChange: (w: Weather) => void;
   discount: number;
+  product?: string;
+  tone?: Tone;
+  /** Message final déjà généré par le RuleBuilder */
+  message?: string;
 }) => {
   const scenario = scenarios[weather];
   const now = useNow();
   const [animKey, setAnimKey] = useState(0);
 
+  // Fallback to scenario default if no message is provided yet.
+  const finalMessage = message ?? scenario.body(discount);
+  const typed = useTypewriter(finalMessage, 16);
+
+  const productInfo = productMeta[product] ?? productMeta["Café"];
+  const toneInfo = tonesMeta[tone];
+
   useEffect(() => {
     setAnimKey((k) => k + 1);
-  }, [weather, discount]);
+  }, [weather, discount, product, tone]);
 
   const time = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   const date = now.toLocaleDateString("fr-FR", {
@@ -229,21 +245,31 @@ export const IPhonePreview = ({
 
                   <div className="relative rounded-3xl bg-white/15 backdrop-blur-2xl border border-white/20 p-3 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)]">
                     <div className="flex items-start gap-2.5">
-                      {/* App icon */}
-                      <div className="size-9 rounded-xl bg-gradient-to-br from-amber-700 to-amber-900 flex items-center justify-center shrink-0 shadow-lg">
-                        <Coffee className="size-5 text-amber-50" strokeWidth={2.2} />
+                      {/* App icon — change selon le produit choisi */}
+                      <div
+                        className={cn(
+                          "size-9 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0 shadow-lg text-xl",
+                          productInfo.gradient,
+                        )}
+                      >
+                        <span aria-hidden>{productInfo.emoji}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-0.5">
                           <span className="text-[10px] font-semibold text-white/90 uppercase tracking-wider truncate">
-                            City-Wallet
+                            City-Wallet · {toneInfo.emoji} {tone}
                           </span>
                           <span className="text-[10px] text-white/60">à l'instant</span>
                         </div>
                         <div className="text-[12px] font-semibold text-white leading-tight mb-0.5">
                           {scenario.title}
                         </div>
-                        <div className="text-[11px] text-white/85 leading-snug">{scenario.body(discount)}</div>
+                        <div className="text-[11px] text-white/85 leading-snug min-h-[2.5rem]">
+                          {typed.text}
+                          {!typed.done && (
+                            <span className="inline-block w-1 h-3 bg-white/80 ml-0.5 align-middle animate-pulse" />
+                          )}
+                        </div>
 
                         {/* Action chips */}
                         <div className="flex gap-1.5 mt-2">
