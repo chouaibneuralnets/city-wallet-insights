@@ -71,6 +71,7 @@ export const Module2Signals = ({
   onWeatherDetected,
   onTrafficLowDetected,
   ruleWeather,
+  onLiveStateChange,
 }: Props) => {
   const { weather, weatherLoading, temperatureC, proximityCount } = useSignals();
   const { pct: trafficPct, count: salesCount } = useTrafficDensity();
@@ -91,6 +92,16 @@ export const Module2Signals = ({
   const weatherMatches = ruleWeather === liveWeather;
   const trafficMatches = trafficLow; // rule = "Densité < 35%"
   const ruleSatisfied = weatherMatches && trafficMatches;
+
+  // Notify parent (Automations) so the AI Strategy Log can react.
+  useEffect(() => {
+    onLiveStateChange?.({
+      ruleSatisfied,
+      trafficPct,
+      weatherLabel: weatherLabel(liveWeather),
+    });
+  }, [ruleSatisfied, trafficPct, liveWeather, onLiveStateChange]);
+
 
   const WIcon = weatherIcon(liveWeather);
   const trafficColor =
