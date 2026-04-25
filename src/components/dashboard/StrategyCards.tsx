@@ -527,6 +527,29 @@ export const StrategyCards = ({ liveWeather, onWinningChange }: Props) => {
                 </div>
               </div>
 
+              {/* Lock / activation status banner */}
+              {!strategy.active ? (
+                <div className="mb-3 flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-dashed border-border bg-muted/40 text-[11px] text-muted-foreground">
+                  <PowerOff className="size-3.5" />
+                  Règle <span className="font-semibold">OFF</span> — aucun envoi vers Mia. Modifications libres.
+                </div>
+              ) : isLocked(strategy.id) ? (
+                <div className="mb-3 flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-warning/40 bg-warning/10 text-[11px] text-warning">
+                  <Lock className="size-3.5" />
+                  Verrouillée — prochaine fenêtre dans{" "}
+                  <span className="font-mono font-semibold">
+                    {Math.floor(lockRemaining(strategy.id) / 60000)}m{" "}
+                    {String(Math.floor((lockRemaining(strategy.id) % 60000) / 1000)).padStart(2, "0")}s
+                  </span>
+                  {" "}ou ré-activez la règle.
+                </div>
+              ) : (
+                <div className="mb-3 flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-success/30 bg-success/10 text-[11px] text-success">
+                  <Unlock className="size-3.5" />
+                  Prêt — un envoi déclenché dès que les conditions matchent.
+                </div>
+              )}
+
               {/* Footer: score + controls */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
@@ -541,6 +564,7 @@ export const StrategyCards = ({ liveWeather, onWinningChange }: Props) => {
                   <Switch
                     checked={strategy.active}
                     onCheckedChange={(v) => toggleActive(strategy.id, v)}
+                    aria-label="Règle active"
                   />
                   <Button
                     variant="ghost"
@@ -553,15 +577,28 @@ export const StrategyCards = ({ liveWeather, onWinningChange }: Props) => {
                   <Button
                     size="sm"
                     className="h-8 gap-1.5"
-                    disabled={publishingId === strategy.id || !strategy.active}
+                    disabled={
+                      publishingId === strategy.id ||
+                      !strategy.active ||
+                      isLocked(strategy.id)
+                    }
                     onClick={() => handleDeploy(strategy)}
+                    title={
+                      !strategy.active
+                        ? "Règle désactivée"
+                        : isLocked(strategy.id)
+                          ? "Verrouillée — attendez la fin du délai ou ré-activez"
+                          : "Déployer maintenant"
+                    }
                   >
                     {publishingId === strategy.id ? (
                       <Loader2 className="size-3.5 animate-spin" />
+                    ) : isLocked(strategy.id) ? (
+                      <Lock className="size-3.5" />
                     ) : (
                       <Rocket className="size-3.5" />
                     )}
-                    Déployer
+                    {isLocked(strategy.id) ? "Verrouillée" : "Déployer"}
                   </Button>
                 </div>
               </div>
