@@ -166,7 +166,26 @@ export const RuleBuilder = ({
     onGenerationChange?.({ product, tone, message });
   }, [product, tone, message, onGenerationChange]);
 
-  const handlePublish = async () => {
+  const dispatchOffer = async (opts: { auto: boolean }) => {
+    if (!active) {
+      toast.error("Règle inactive", {
+        description: "Activez la règle pour autoriser l'envoi vers Mia.",
+        icon: <ShieldAlert className="size-4 text-warning" />,
+      });
+      return;
+    }
+    // 15-min lock: don't fire again for the same activation cycle until expiry.
+    const now = Date.now();
+    if (lockUntil && now < lockUntil) {
+      const remaining = Math.ceil((lockUntil - now) / 1000);
+      const min = Math.floor(remaining / 60);
+      const sec = remaining % 60;
+      toast.warning("Verrou actif — une seule offre par session", {
+        description: `Désactivez puis réactivez la règle, ou attendez ${min}m${sec.toString().padStart(2, "0")}s.`,
+        icon: <Lock className="size-4 text-warning" />,
+      });
+      return;
+    }
     setPublishing(true);
     try {
       const { error } = await supabase.from("offers_config").insert({
@@ -182,7 +201,9 @@ export const RuleBuilder = ({
       });
       if (error) throw error;
       setLastPublishedAt(new Date());
-      toast.success("Offre déployée sur le réseau Payone", {
+      sessionDispatchedRef.current = true;
+      setLockUntil(Date.now() + LOCK_DURATION_MS);
+      toast.success(opts.auto ? "Règle déclenchée — offre envoyée à Mia" : "Offre déployée sur le réseau Payone", {
         description: `"${message.slice(0, 80)}${message.length > 80 ? "…" : ""}"`,
         icon: <CheckCircle2 className="size-4 text-success" />,
       });
@@ -193,6 +214,30 @@ export const RuleBuilder = ({
       setPublishing(false);
     }
   };
+
+  const handlePublish = () => dispatchOffer({ auto: false });
+
+  // Auto-trigger: when rule becomes active AND conditions match, send once.
+  const conditionsMatch = weather === "sun" && trafficLow;
+  const wasActiveRef = useRef(active);
+  useEffect(() => {
+    // Reset lock & session flag whenever the rule is toggled OFF.
+    if (wasActiveRef.current && !active) {
+      sessionDispatchedRef.current = false;
+      setLockUntil(null);
+    }
+    wasActiveRef.current = active;
+  }, [active]);
+
+  useEffect(() => {
+    if (!active) return;
+    if (!conditionsMatch) return;
+    if (sessionDispatchedRef.current) return;
+    if (lockUntil && Date.now() < lockUntil) return;
+    // Fire once for this activation cycle.
+    dispatchOffer({ auto: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, conditionsMatch]);
 
   return (
     <Card className="p-6 shadow-sm-elegant border-border/70">
