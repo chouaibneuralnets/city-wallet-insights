@@ -100,18 +100,47 @@ export const RuleBuilder = ({
   const [publishing, setPublishing] = useState(false);
   const [lastPublishedAt, setLastPublishedAt] = useState<Date | null>(null);
 
+  // Dynamic conditions (Heure, Jour, Stock, Événement) — fully editable
+  const [conditions, setConditions] = useState<Condition[]>([]);
+  // Simulated live world state for validation badges (in real app, these come from inventory + events APIs)
+  const stockQty = 28;
+  const activeEvent = "Marché de Noël";
+
   const WeatherIcon = weatherMeta[weather].icon;
   const discountAction = actions.find((a) => a.id === "a1");
 
   const products = Object.keys(productMeta);
 
+  // Build extras for the AI message based on current conditions
+  const extras = useMemo(() => {
+    const time = conditions.find((c) => c.type === "Heure");
+    const day = conditions.find((c) => c.type === "Jour");
+    const stock = conditions.find((c) => c.type === "Stock");
+    const evt = conditions.find((c) => c.type === "Événement");
+    return {
+      timeWindow: time && time.type === "Heure" ? { from: time.from, to: time.to } : null,
+      day: day && day.type === "Jour" ? day.value : null,
+      stockHigh:
+        stock && stock.type === "Stock" && stock.operator === ">" ? { quantity: stock.quantity } : null,
+      activeEvent: evt && evt.type === "Événement" ? evt.value : null,
+    };
+  }, [conditions]);
+
   const message = useMemo(
-    () => generateMessage(tone, weather, product, discount),
-    [tone, weather, product, discount],
+    () => generateMessage(tone, weather, product, discount, extras),
+    [tone, weather, product, discount, extras],
   );
   const thought = useMemo(
-    () => generateThought(tone, weather, product, trafficLow, temperatureC),
-    [tone, weather, product, trafficLow, temperatureC],
+    () =>
+      generateThought(
+        tone,
+        weather,
+        product,
+        trafficLow,
+        temperatureC,
+        conditions.map(conditionLabel),
+      ),
+    [tone, weather, product, trafficLow, temperatureC, conditions],
   );
 
   // Typewriter for the AI thought line.
