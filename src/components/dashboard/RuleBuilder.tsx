@@ -288,6 +288,16 @@ export const RuleBuilder = ({
               {active ? "Règle active" : "Règle inactive — envois bloqués"}
             </span>
             <Switch checked={active} onCheckedChange={setActive} />
+            {onRemove && (
+              <button
+                type="button"
+                onClick={onRemove}
+                aria-label="Supprimer cette offre"
+                className="ml-1 size-7 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
+              >
+                <X className="size-4" />
+              </button>
+            )}
           </div>
           {active && lockUntil && (
             <span className="inline-flex items-center gap-1 text-[10px] text-warning font-medium">
