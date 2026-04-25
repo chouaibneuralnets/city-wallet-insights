@@ -59,6 +59,8 @@ type Props = {
   product: string;
   /** Active discount (0-50). */
   discount: number;
+  /** Master switch — when OFF, no Supabase send is allowed. */
+  ruleActive?: boolean;
 };
 
 export const AiStrategyLog = ({
@@ -68,6 +70,7 @@ export const AiStrategyLog = ({
   message,
   product,
   discount,
+  ruleActive = true,
 }: Props) => {
   const [autopilot, setAutopilot] = useState(true);
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -138,6 +141,7 @@ export const AiStrategyLog = ({
   // Autopilot: when ON + conditions satisfied → auto-deploy every 25s max
   useEffect(() => {
     if (!autopilot || !ruleSatisfied || !message) return;
+    if (!ruleActive) return; // master kill-switch
     const tick = async () => {
       const now = Date.now();
       if (now - lastAutoPushRef.current < 25000) return;
@@ -188,7 +192,7 @@ export const AiStrategyLog = ({
     tick();
     const id = setInterval(tick, 25000);
     return () => clearInterval(id);
-  }, [autopilot, ruleSatisfied, message, product, discount, trafficPct]);
+  }, [autopilot, ruleSatisfied, message, product, discount, trafficPct, ruleActive]);
 
   // When autopilot is OFF and conditions become satisfied → suggest manual
   useEffect(() => {
@@ -204,6 +208,29 @@ export const AiStrategyLog = ({
       icon: <Hand className="size-4 text-warning" />,
     });
   }, [autopilot, ruleSatisfied]);
+
+  // React to master rule switch — log + reset throttle when toggled.
+  const lastRuleActiveRef = useRef<boolean>(ruleActive);
+  useEffect(() => {
+    if (lastRuleActiveRef.current === ruleActive) return;
+    if (!ruleActive) {
+      push({
+        level: "refused",
+        message: `Règle désactivée — tous les envois vers Supabase sont bloqués`,
+        icon: <ShieldAlert className="size-3.5" />,
+      });
+      // Reset throttle so next activation can fire immediately.
+      lastSignatureDispatchRef.current = {};
+      lastAutoPushRef.current = 0;
+    } else {
+      push({
+        level: "detect",
+        message: `Règle activée — verrou réinitialisé, prêt à envoyer`,
+        icon: <CheckCircle2 className="size-3.5" />,
+      });
+    }
+    lastRuleActiveRef.current = ruleActive;
+  }, [ruleActive]);
 
   // Realtime feedback: every offers_config INSERT (including manual deploys)
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CloudRain,
   Sun,
@@ -20,6 +20,8 @@ import {
   CheckCircle2,
   Brain,
   Rocket,
+  ShieldAlert,
+  Lock as LockIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -83,7 +85,12 @@ type Props = {
   trafficLow: boolean;
   /** Bubble up product, tone, message so the iPhone preview stays in sync */
   onGenerationChange?: (g: { product: string; tone: Tone; message: string }) => void;
+  /** Lifted active state so other modules (AiStrategyLog) can react to it. */
+  active?: boolean;
+  onActiveChange?: (v: boolean) => void;
 };
+
+const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 export const RuleBuilder = ({
   discount,
@@ -91,14 +98,24 @@ export const RuleBuilder = ({
   weather,
   trafficLow,
   onGenerationChange,
+  active: activeProp,
+  onActiveChange,
 }: Props) => {
   const { temperatureC } = useSignals();
   const [actions] = useState(initialActions);
-  const [active, setActive] = useState(true);
+  const [activeLocal, setActiveLocal] = useState(true);
+  const active = activeProp ?? activeLocal;
+  const setActive = (v: boolean) => {
+    setActiveLocal(v);
+    onActiveChange?.(v);
+  };
   const [product, setProduct] = useState<string>("Café");
   const [tone, setTone] = useState<Tone>("Amical");
   const [publishing, setPublishing] = useState(false);
   const [lastPublishedAt, setLastPublishedAt] = useState<Date | null>(null);
+  // Lock: stores timestamp of last auto-dispatch within current activation cycle.
+  const [lockUntil, setLockUntil] = useState<number | null>(null);
+  const sessionDispatchedRef = useRef(false);
 
   // Dynamic conditions (Heure, Jour, Stock, Événement) — fully editable
   const [conditions, setConditions] = useState<Condition[]>([]);
@@ -151,7 +168,26 @@ export const RuleBuilder = ({
     onGenerationChange?.({ product, tone, message });
   }, [product, tone, message, onGenerationChange]);
 
-  const handlePublish = async () => {
+  const dispatchOffer = async (opts: { auto: boolean }) => {
+    if (!active) {
+      toast.error("Règle inactive", {
+        description: "Activez la règle pour autoriser l'envoi vers Mia.",
+        icon: <ShieldAlert className="size-4 text-warning" />,
+      });
+      return;
+    }
+    // 15-min lock: don't fire again for the same activation cycle until expiry.
+    const now = Date.now();
+    if (lockUntil && now < lockUntil) {
+      const remaining = Math.ceil((lockUntil - now) / 1000);
+      const min = Math.floor(remaining / 60);
+      const sec = remaining % 60;
+      toast.warning("Verrou actif — une seule offre par session", {
+        description: `Désactivez puis réactivez la règle, ou attendez ${min}m${sec.toString().padStart(2, "0")}s.`,
+        icon: <LockIcon className="size-4 text-warning" />,
+      });
+      return;
+    }
     setPublishing(true);
     try {
       const { error } = await supabase.from("offers_config").insert({
@@ -167,7 +203,9 @@ export const RuleBuilder = ({
       });
       if (error) throw error;
       setLastPublishedAt(new Date());
-      toast.success("Offre déployée sur le réseau Payone", {
+      sessionDispatchedRef.current = true;
+      setLockUntil(Date.now() + LOCK_DURATION_MS);
+      toast.success(opts.auto ? "Règle déclenchée — offre envoyée à Mia" : "Offre déployée sur le réseau Payone", {
         description: `"${message.slice(0, 80)}${message.length > 80 ? "…" : ""}"`,
         icon: <CheckCircle2 className="size-4 text-success" />,
       });
@@ -178,6 +216,30 @@ export const RuleBuilder = ({
       setPublishing(false);
     }
   };
+
+  const handlePublish = () => dispatchOffer({ auto: false });
+
+  // Auto-trigger: when rule becomes active AND conditions match, send once.
+  const conditionsMatch = weather === "sun" && trafficLow;
+  const wasActiveRef = useRef(active);
+  useEffect(() => {
+    // Reset lock & session flag whenever the rule is toggled OFF.
+    if (wasActiveRef.current && !active) {
+      sessionDispatchedRef.current = false;
+      setLockUntil(null);
+    }
+    wasActiveRef.current = active;
+  }, [active]);
+
+  useEffect(() => {
+    if (!active) return;
+    if (!conditionsMatch) return;
+    if (sessionDispatchedRef.current) return;
+    if (lockUntil && Date.now() < lockUntil) return;
+    // Fire once for this activation cycle.
+    dispatchOffer({ auto: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, conditionsMatch]);
 
   return (
     <Card className="p-6 shadow-sm-elegant border-border/70">
@@ -198,9 +260,21 @@ export const RuleBuilder = ({
             L'IA traduit vos conditions contextuelles en offres personnalisées selon le ton de la marque.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-muted-foreground">Règle active</span>
-          <Switch checked={active} onCheckedChange={setActive} />
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              "text-xs font-medium",
+              active ? "text-success" : "text-muted-foreground",
+            )}>
+              {active ? "Règle active" : "Règle inactive — envois bloqués"}
+            </span>
+            <Switch checked={active} onCheckedChange={setActive} />
+          </div>
+          {active && lockUntil && (
+            <span className="inline-flex items-center gap-1 text-[10px] text-warning font-medium">
+              <LockIcon className="size-3" /> Verrou 15 min — 1 offre/session
+            </span>
+          )}
         </div>
       </div>
 
@@ -429,29 +503,54 @@ export const RuleBuilder = ({
 
       {/* Big deploy button */}
       <div className="mt-6 pt-6 border-t border-border">
-        <Button
-          onClick={handlePublish}
-          disabled={publishing || !active}
-          size="lg"
-          className="w-full gap-2 h-14 text-base font-semibold bg-gradient-primary hover:opacity-90 transition-opacity shadow-elegant"
-        >
-          {publishing ? (
-            <Loader2 className="size-5 animate-spin" />
-          ) : (
-            <Rocket className="size-5" />
-          )}
-          {publishing ? "Déploiement en cours…" : "Déployer sur le réseau Payone"}
-        </Button>
-        <div className="text-[11px] text-muted-foreground text-center mt-2">
-          {lastPublishedAt ? (
-            <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="size-3 text-success" />
-              Dernière offre déployée à {lastPublishedAt.toLocaleTimeString("fr-FR", { timeZone: "Europe/Berlin" })}
-            </span>
-          ) : (
-            <span>L'offre finalisée sera propagée à tous les commerçants partenaires.</span>
-          )}
-        </div>
+        {(() => {
+          const locked = !!(active && lockUntil && Date.now() < lockUntil);
+          return (
+            <>
+              <Button
+                onClick={handlePublish}
+                disabled={publishing || !active || locked}
+                size="lg"
+                className="w-full gap-2 h-14 text-base font-semibold bg-gradient-primary hover:opacity-90 transition-opacity shadow-elegant"
+              >
+                {publishing ? (
+                  <Loader2 className="size-5 animate-spin" />
+                ) : locked ? (
+                  <LockIcon className="size-5" />
+                ) : (
+                  <Rocket className="size-5" />
+                )}
+                {publishing
+                  ? "Déploiement en cours…"
+                  : !active
+                    ? "Règle inactive — envois bloqués"
+                    : locked
+                      ? "Verrouillé — 1 offre/session (15 min)"
+                      : "Déployer sur le réseau Payone"}
+              </Button>
+              <div className="text-[11px] text-muted-foreground text-center mt-2">
+                {!active ? (
+                  <span className="inline-flex items-center gap-1.5 text-warning">
+                    <ShieldAlert className="size-3" />
+                    Activez la règle pour déclencher l'envoi automatique vers Mia.
+                  </span>
+                ) : locked ? (
+                  <span className="inline-flex items-center gap-1.5 text-warning">
+                    <LockIcon className="size-3" />
+                    Désactivez puis réactivez la règle pour renvoyer une offre.
+                  </span>
+                ) : lastPublishedAt ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="size-3 text-success" />
+                    Dernière offre déployée à {lastPublishedAt.toLocaleTimeString("fr-FR", { timeZone: "Europe/Berlin" })}
+                  </span>
+                ) : (
+                  <span>L'offre finalisée sera propagée à tous les commerçants partenaires.</span>
+                )}
+              </div>
+            </>
+          );
+        })()}
       </div>
     </Card>
   );

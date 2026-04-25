@@ -10,6 +10,7 @@ const Automations = () => {
   const [discount, setDiscount] = useState(20);
   const [weather, setWeather] = useState<Weather>("cloud");
   const [trafficLow, setTrafficLow] = useState(true);
+  const [ruleActive, setRuleActive] = useState(true);
   const [generation, setGeneration] = useState<{ product: string; tone: Tone; message: string }>({
     product: "Café",
     tone: "Amical",
@@ -65,6 +66,8 @@ const Automations = () => {
             weather={weather}
             trafficLow={trafficLow}
             onGenerationChange={handleGenerationChange}
+            active={ruleActive}
+            onActiveChange={setRuleActive}
           />
         </div>
         <div className="xl:col-span-1">
@@ -86,6 +89,7 @@ const Automations = () => {
         message={generation.message}
         product={generation.product}
         discount={discount}
+        ruleActive={ruleActive}
       />
     </>
   );
