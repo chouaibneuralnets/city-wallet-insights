@@ -229,12 +229,14 @@ export const Module2Signals = ({
       <div
         className={cn(
           "px-5 py-3 border-t flex items-center gap-3 transition-colors",
-          ruleSatisfied
+          ruleSatisfied && ruleActive
             ? "bg-success/10 border-success/30"
-            : "bg-secondary/40 border-border/60",
+            : ruleSatisfied && !ruleActive
+              ? "bg-warning/10 border-warning/30"
+              : "bg-secondary/40 border-border/60",
         )}
       >
-        {ruleSatisfied ? (
+        {ruleSatisfied && ruleActive ? (
           <>
             <CheckCircle2 className="size-5 text-success shrink-0" />
             <div className="flex-1 min-w-0">
@@ -247,6 +249,21 @@ export const Module2Signals = ({
             </div>
             <Badge className="bg-success text-success-foreground hover:bg-success animate-pulse">
               ACTIVE
+            </Badge>
+          </>
+        ) : ruleSatisfied && !ruleActive ? (
+          <>
+            <AlertCircle className="size-5 text-warning shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-warning leading-tight">
+                Conditions OK — En attente d'activation
+              </div>
+              <div className="text-[11px] text-warning/80 mt-0.5 font-mono">
+                Basculez « Règle active » sur ON pour déclencher l'envoi vers Mia.
+              </div>
+            </div>
+            <Badge variant="outline" className="border-warning/40 text-warning">
+              STANDBY
             </Badge>
           </>
         ) : (
