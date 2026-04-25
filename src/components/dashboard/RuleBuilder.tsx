@@ -83,7 +83,12 @@ type Props = {
   trafficLow: boolean;
   /** Bubble up product, tone, message so the iPhone preview stays in sync */
   onGenerationChange?: (g: { product: string; tone: Tone; message: string }) => void;
+  /** Lifted active state so other modules (AiStrategyLog) can react to it. */
+  active?: boolean;
+  onActiveChange?: (v: boolean) => void;
 };
+
+const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 export const RuleBuilder = ({
   discount,
@@ -91,14 +96,24 @@ export const RuleBuilder = ({
   weather,
   trafficLow,
   onGenerationChange,
+  active: activeProp,
+  onActiveChange,
 }: Props) => {
   const { temperatureC } = useSignals();
   const [actions] = useState(initialActions);
-  const [active, setActive] = useState(true);
+  const [activeLocal, setActiveLocal] = useState(true);
+  const active = activeProp ?? activeLocal;
+  const setActive = (v: boolean) => {
+    setActiveLocal(v);
+    onActiveChange?.(v);
+  };
   const [product, setProduct] = useState<string>("Café");
   const [tone, setTone] = useState<Tone>("Amical");
   const [publishing, setPublishing] = useState(false);
   const [lastPublishedAt, setLastPublishedAt] = useState<Date | null>(null);
+  // Lock: stores timestamp of last auto-dispatch within current activation cycle.
+  const [lockUntil, setLockUntil] = useState<number | null>(null);
+  const sessionDispatchedRef = useRef(false);
 
   // Dynamic conditions (Heure, Jour, Stock, Événement) — fully editable
   const [conditions, setConditions] = useState<Condition[]>([]);
