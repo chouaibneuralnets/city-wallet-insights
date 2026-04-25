@@ -2,7 +2,7 @@ export type StuttgartEvent = {
   id: string;
   title: string;
   venue: string;
-  /** ISO weekday: 1 = Mon ... 7 = Sun */
+  /** ISO weekday: 1 = Mon ... 7 = Sun. Use 0 to mean "any day during dateRange". */
   day: number;
   /** 24h format start time, e.g. "18:30" */
   start: string;
@@ -11,6 +11,8 @@ export type StuttgartEvent = {
   distanceKm: number;
   level: "hot" | "warm" | "info";
   category: "sport" | "culture" | "market" | "festival";
+  /** Optional active date window — MM-DD inclusive bounds. */
+  dateRange?: { from: string; to: string };
 };
 
 /**
@@ -77,12 +79,14 @@ export const STUTTGART_EVENTS: StuttgartEvent[] = [
     id: "frühlingsfest",
     title: "Frühlingsfest — Cannstatter Wasen",
     venue: "Cannstatter Wasen",
-    day: 0, // any day during festival period — used as fallback
+    day: 0, // any weekday during the festival period
     start: "11:00",
     end: "23:30",
     distanceKm: 3.1,
     level: "hot",
     category: "festival",
+    // Real Stuttgart Spring Festival window (mid-April → early May).
+    dateRange: { from: "04-18", to: "05-10" },
   },
   {
     id: "afterwork",
