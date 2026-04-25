@@ -57,12 +57,18 @@ export const useProximityPings = () => {
       }
 
       // Keep only the most recent ping per wallet, within the geofence.
+      // Robust Mia detection: trust the `is_mia` flag OR a wallet_id starting with "mia".
       const seen = new Set<string>();
-      const fresh = data.filter((p) => {
-        if (seen.has(p.wallet_id)) return false;
-        seen.add(p.wallet_id);
-        return distanceMeters(CAFE_LAT, CAFE_LNG, p.lat, p.lng) <= RADIUS_M;
-      });
+      const fresh = data
+        .map((p) => ({
+          ...p,
+          is_mia: p.is_mia || /^mia[-_]?/i.test(p.wallet_id),
+        }))
+        .filter((p) => {
+          if (seen.has(p.wallet_id)) return false;
+          seen.add(p.wallet_id);
+          return distanceMeters(CAFE_LAT, CAFE_LNG, p.lat, p.lng) <= RADIUS_M;
+        });
 
       setPings(fresh);
       setLoading(false);
