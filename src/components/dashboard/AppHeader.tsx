@@ -1,9 +1,10 @@
 import { useLocation } from "react-router-dom";
-import { Bell, Search, CheckCircle2 } from "lucide-react";
+import { Bell, Search, CheckCircle2, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useStuttgartWeather } from "@/hooks/useStuttgartWeather";
+import { useSignals } from "@/context/SignalsContext";
 import { cn } from "@/lib/utils";
 
 const META: Record<string, { eyebrow: string; title: string }> = {
