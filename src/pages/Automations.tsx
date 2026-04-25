@@ -22,7 +22,7 @@ const Automations = () => {
 
   // Multiple offer rules — each with its own If-Then card.
   const [offers, setOffers] = useState<OfferRule[]>([
-    { id: uid(), title: "Offre principale", discount: 20, active: true },
+    { id: uid(), title: "Offre principale", discount: 20, active: false },
   ]);
 
   // The iPhone preview mirrors the FIRST active offer (or the first one if none active).
