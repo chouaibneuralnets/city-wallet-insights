@@ -116,7 +116,7 @@ export const InputSignals = () => {
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Densité trafic Payone
             </span>
-            <span className="font-mono text-[10px] text-muted-foreground">in-store</span>
+            <span className="font-mono text-[10px] text-muted-foreground">{salesCount} ventes / 10min</span>
           </div>
           <div className="flex items-end justify-between mb-2">
             <div className={cn("text-3xl font-bold tabular leading-none", trafficColor)}>
