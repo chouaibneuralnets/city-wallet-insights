@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { useStuttgartWeather, type WeatherData } from "@/hooks/useStuttgartWeather";
 import { useProximityPings, type ProximityPing } from "@/hooks/useProximityPings";
 import { supabase } from "@/integrations/supabase/client";
+import { getStuttgartParts, type StuttgartParts } from "@/lib/stuttgartTime";
 
 /**
  * Single Source of Truth for live IoT signals.
