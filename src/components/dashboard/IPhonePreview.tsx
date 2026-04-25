@@ -75,18 +75,32 @@ export const IPhonePreview = ({
   weather,
   onWeatherChange,
   discount,
+  product = "Café",
+  tone = "Amical",
+  message,
 }: {
   weather: Weather;
   onWeatherChange: (w: Weather) => void;
   discount: number;
+  product?: string;
+  tone?: Tone;
+  /** Message final déjà généré par le RuleBuilder */
+  message?: string;
 }) => {
   const scenario = scenarios[weather];
   const now = useNow();
   const [animKey, setAnimKey] = useState(0);
 
+  // Fallback to scenario default if no message is provided yet.
+  const finalMessage = message ?? scenario.body(discount);
+  const typed = useTypewriter(finalMessage, 16);
+
+  const productInfo = productMeta[product] ?? productMeta["Café"];
+  const toneInfo = tonesMeta[tone];
+
   useEffect(() => {
     setAnimKey((k) => k + 1);
-  }, [weather, discount]);
+  }, [weather, discount, product, tone]);
 
   const time = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   const date = now.toLocaleDateString("fr-FR", {
