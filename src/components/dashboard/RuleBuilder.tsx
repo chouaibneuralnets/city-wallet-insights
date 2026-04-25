@@ -344,12 +344,14 @@ export const RuleBuilder = ({
                   /{conditions.length} match
                 </span>
               </div>
-              <ConditionChips
-                conditions={conditions}
-                onChange={setConditions}
-                stockQty={stockQty}
-                activeEvent={activeEvent}
-              />
+              <div className={cn(active && "pointer-events-none opacity-60 select-none")} aria-disabled={active}>
+                <ConditionChips
+                  conditions={conditions}
+                  onChange={setConditions}
+                  stockQty={stockQty}
+                  activeEvent={activeEvent}
+                />
+              </div>
             </div>
           </div>
         </div>
