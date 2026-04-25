@@ -6,6 +6,7 @@ import { Brain, Coffee, GraduationCap, Briefcase, Radar, Zap, CheckCircle2, Spar
 import { cn } from "@/lib/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useStuttgartWeather } from "@/hooks/useStuttgartWeather";
+import { useSignals } from "@/context/SignalsContext";
 
 type OpportunityStatus = "scanning" | "sending" | "converted";
 type Segment = "loyals" | "newcomers" | "commuters";
