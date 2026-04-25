@@ -29,12 +29,13 @@ const weatherCtx: Record<Weather, string> = {
   cloud: "ciel nuageux",
 };
 
-/** Génère le message final selon Ton + Météo + Produit + Discount */
+/** Génère le message final selon Ton + Météo + Produit + Discount + conditions */
 export const generateMessage = (
   tone: Tone,
   weather: Weather,
   product: string,
   discount: number,
+  extras?: { stockHigh?: { quantity: number } | null; activeEvent?: string | null; timeWindow?: { from: number; to: number } | null; day?: string | null },
 ): string => {
   const p = product.toLowerCase();
   const w = weather;
