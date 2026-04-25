@@ -1,3 +1,5 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -32,15 +34,51 @@ Deno.serve(async (req) => {
     else if (main.includes("clear")) weather = "sun";
     else weather = "cloud";
 
+    const temperature = Math.round(data.main?.temp ?? 0);
+    const description = data.weather?.[0]?.description ?? "";
+
     const result = {
       city: "Stuttgart",
       weather,
-      description: data.weather?.[0]?.description ?? "",
-      temperature: Math.round(data.main?.temp ?? 0),
+      description,
+      temperature,
       humidity: data.main?.humidity ?? 0,
       wind: Math.round((data.wind?.speed ?? 0) * 10) / 10,
       timestamp: Date.now(),
     };
+
+    // ---- UPSERT into the canonical system_state table ----
+    // This is the single official source of truth that all other projects
+    // (Mia's wallet app, partner dashboards, etc.) must read from.
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (supabaseUrl && serviceKey) {
+        const admin = createClient(supabaseUrl, serviceKey);
+        const { error: upsertError } = await admin
+          .from("system_state")
+          .upsert(
+            {
+              id: "stuttgart_weather",
+              current_temp: temperature,
+              weather_condition: weather,
+              city: "Stuttgart",
+              description,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "id" }
+          );
+        if (upsertError) {
+          console.error("system_state upsert failed:", upsertError);
+        } else {
+          console.log(`system_state synced: ${temperature}°C / ${weather}`);
+        }
+      } else {
+        console.warn("Skipping system_state upsert — SUPABASE_URL or SERVICE_ROLE_KEY missing");
+      }
+    } catch (upsertErr) {
+      console.error("system_state upsert exception:", upsertErr);
+    }
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -100,6 +100,33 @@ export type Database = {
           },
         ]
       }
+      system_state: {
+        Row: {
+          city: string | null
+          current_temp: number | null
+          description: string | null
+          id: string
+          updated_at: string
+          weather_condition: string | null
+        }
+        Insert: {
+          city?: string | null
+          current_temp?: number | null
+          description?: string | null
+          id: string
+          updated_at?: string
+          weather_condition?: string | null
+        }
+        Update: {
+          city?: string | null
+          current_temp?: number | null
+          description?: string | null
+          id?: string
+          updated_at?: string
+          weather_condition?: string | null
+        }
+        Relationships: []
+      }
       wallet_pings: {
         Row: {
           created_at: string
