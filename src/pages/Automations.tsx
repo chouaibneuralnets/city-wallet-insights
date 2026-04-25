@@ -1,13 +1,24 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Brain, Cloud, MapPin, Activity } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { RuleBuilder } from "@/components/dashboard/RuleBuilder";
 import { IPhonePreview, type Weather } from "@/components/dashboard/IPhonePreview";
 import { MarketStatus } from "@/components/dashboard/MarketStatus";
+import type { Tone } from "@/lib/aiGenerator";
 
 const Automations = () => {
   const [discount, setDiscount] = useState(20);
   const [weather, setWeather] = useState<Weather>("rain");
+  const [generation, setGeneration] = useState<{ product: string; tone: Tone; message: string }>({
+    product: "Café",
+    tone: "Amical",
+    message: "",
+  });
+
+  const handleGenerationChange = useCallback(
+    (g: { product: string; tone: Tone; message: string }) => setGeneration(g),
+    [],
+  );
 
   return (
     <>
@@ -63,11 +74,19 @@ const Automations = () => {
             onDiscountChange={setDiscount}
             weather={weather}
             onWeatherChange={setWeather}
+            onGenerationChange={handleGenerationChange}
           />
           <MarketStatus onWeatherDetected={setWeather} />
         </div>
         <div className="xl:col-span-1">
-          <IPhonePreview weather={weather} onWeatherChange={setWeather} discount={discount} />
+          <IPhonePreview
+            weather={weather}
+            onWeatherChange={setWeather}
+            discount={discount}
+            product={generation.product}
+            tone={generation.tone}
+            message={generation.message}
+          />
         </div>
       </div>
     </>
