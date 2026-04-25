@@ -59,6 +59,8 @@ type Props = {
   product: string;
   /** Active discount (0-50). */
   discount: number;
+  /** Master switch — when OFF, no Supabase send is allowed. */
+  ruleActive?: boolean;
 };
 
 export const AiStrategyLog = ({
@@ -68,6 +70,7 @@ export const AiStrategyLog = ({
   message,
   product,
   discount,
+  ruleActive = true,
 }: Props) => {
   const [autopilot, setAutopilot] = useState(true);
   const [logs, setLogs] = useState<LogEntry[]>([]);
