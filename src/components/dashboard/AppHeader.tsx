@@ -19,8 +19,8 @@ const META: Record<string, { eyebrow: string; title: string }> = {
 export const AppHeader = () => {
   const location = useLocation();
   const meta = META[location.pathname] ?? { eyebrow: "Workspace", title: "City-Wallet" };
-  const { weather } = useStuttgartWeather();
-  const operational = !!weather; // si le hook répond, le système est OK (sinon on reste optimiste)
+  const { data, error } = useStuttgartWeather();
+  const operational = !error && (!!data || true); // optimiste tant qu'aucune erreur n'est remontée
 
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-md">
