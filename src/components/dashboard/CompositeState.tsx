@@ -19,13 +19,13 @@ type Signal = {
 };
 
 export const CompositeState = () => {
-  const { weather, temperatureC, proximityCount, now } = useSignals();
+  const { weather, temperatureC, proximityCount, stuttgart } = useSignals();
   const { pct: density } = useTrafficDensity();
   const lastDispatchRef = useRef<number>(0);
 
-  const hour = now.getHours();
-  const minute = now.getMinutes();
-  const second = now.getSeconds();
+  const hour = stuttgart.hour;
+  const minute = stuttgart.minute;
+  const second = stuttgart.second;
   const isOffPeak = (hour >= 10 && hour < 12) || (hour >= 14 && hour < 17);
   const isLateNight = hour >= 22 || hour < 6;
   const isRain = weather?.weather === "rain";
@@ -50,7 +50,7 @@ export const CompositeState = () => {
     {
       key: "time",
       label: timeLabel,
-      detail: `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}:${second.toString().padStart(2, "0")} · Stuttgart`,
+      detail: `${stuttgart.hms} · ${stuttgart.tzAbbr} · Stuttgart`,
       icon: Clock,
       level: timeActive ? "active" : "passive",
     },
