@@ -124,16 +124,19 @@ export const RuleBuilder = ({
     <Card className="p-6 shadow-sm-elegant border-border/70">
       <div className="flex items-start justify-between mb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <h2 className="text-lg font-semibold text-foreground tracking-tight">
               Constructeur de règle
             </h2>
             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary-soft text-primary">
               If-Then
             </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-foreground/5 text-muted-foreground">
+              Module 02 · Generative Engine
+            </span>
           </div>
           <p className="text-sm text-muted-foreground">
-            Définissez des conditions contextuelles pour déclencher des offres personnalisées.
+            L'IA traduit vos conditions contextuelles en offres personnalisées selon le ton de la marque.
           </p>
         </div>
         <div className="flex items-center gap-2">
