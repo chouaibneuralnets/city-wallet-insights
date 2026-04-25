@@ -80,7 +80,8 @@ export const CompositeState = () => {
     },
   ];
 
-  const activeCount = signals.filter((s) => s.level === "active").length;
+  // Day is informational (always "active") — exclude it from the opportunity scoring.
+  const activeCount = signals.filter((s) => s.level === "active" && s.key !== "day").length;
   // Low density forces "Opportunité Haute" regardless of other signals
   const opportunityLevel = isLowDensity || activeCount >= 3
     ? "haute"
