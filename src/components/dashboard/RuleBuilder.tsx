@@ -382,8 +382,14 @@ export const RuleBuilder = ({
               )}
 
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="inline-flex items-center gap-2 pl-3 pr-2.5 py-1.5 rounded-full bg-foreground text-background text-sm hover:bg-foreground/90 transition-colors">
+                <DropdownMenuTrigger asChild disabled={active}>
+                  <button
+                    disabled={active}
+                    className={cn(
+                      "inline-flex items-center gap-2 pl-3 pr-2.5 py-1.5 rounded-full bg-foreground text-background text-sm hover:bg-foreground/90 transition-colors",
+                      active && "opacity-60 cursor-not-allowed hover:bg-foreground",
+                    )}
+                  >
                     <span className="text-base leading-none">{productMeta[product]?.emoji ?? "☕"}</span>
                     <span className="font-medium">Sur</span>
                     <span className="text-background/60">·</span>
