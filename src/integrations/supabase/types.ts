@@ -154,6 +154,7 @@ export type Database = {
           current_temp: number | null
           description: string | null
           id: string
+          rules_enabled: boolean
           updated_at: string
           weather_condition: string | null
         }
@@ -162,6 +163,7 @@ export type Database = {
           current_temp?: number | null
           description?: string | null
           id: string
+          rules_enabled?: boolean
           updated_at?: string
           weather_condition?: string | null
         }
@@ -170,6 +172,7 @@ export type Database = {
           current_temp?: number | null
           description?: string | null
           id?: string
+          rules_enabled?: boolean
           updated_at?: string
           weather_condition?: string | null
         }
