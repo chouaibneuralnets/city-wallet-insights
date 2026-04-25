@@ -28,7 +28,7 @@ const weatherLabel = (w?: string) => {
 
 export const InputSignals = () => {
   const { weather, weatherLoading: loading, temperatureC } = useSignals();
-  const { pct: trafficPct, count: salesCount } = useTrafficDensity();
+  const { pct: trafficPct, count: salesCount, isQuiet } = useTrafficDensity();
   const [event, setEvent] = useState<StuttgartEvent | null>(() => getCurrentStuttgartEvent());
 
   // Refresh "current event" each minute so the displayed event reflects system time.
@@ -122,7 +122,18 @@ export const InputSignals = () => {
             <div className={cn("text-3xl font-bold tabular leading-none", trafficColor)}>
               {trafficPct}%
             </div>
-            <span className={cn("text-[11px] font-semibold", trafficColor)}>{trafficLabel}</span>
+            <div className="flex items-center gap-2">
+              {isQuiet && (
+                <Badge
+                  variant="outline"
+                  className="gap-1 border-warning/40 bg-warning/10 text-warning text-[9px] font-bold uppercase tracking-widest animate-pulse"
+                >
+                  <span className="size-1.5 rounded-full bg-warning" />
+                  Boutique calme
+                </Badge>
+              )}
+              <span className={cn("text-[11px] font-semibold", trafficColor)}>{trafficLabel}</span>
+            </div>
           </div>
           <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
             <div

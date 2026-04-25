@@ -2,14 +2,23 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Computes "Payone traffic density" as a percentage based on the number of
- * redemptions inserted in the last 10 minutes.
+ * Payone traffic density — 100% dynamic, tied to the `redemptions` table
+ * (the validated-sales ledger written by Mia and Module 03).
  *
- * Mapping: 0 events → 5%, then +9% per event, capped at 95%.
- * Reflects: more in-store transactions ⇒ higher density.
+ * Formula: density % = (sales_last_10min / 20) * 100
+ *   - 20 sales in 10 minutes ⇒ 100% capacity
+ *   - Floor: 5% (background noise — proves the sensor is alive)
+ *   - Cap:   100%
+ *
+ * Refresh:
+ *   - Recomputed every 10 seconds (polling fallback)
+ *   - Live: subscribed to INSERT events on `redemptions` via supabase.channel,
+ *     so the gauge moves instantly when a new sale lands.
+ *
+ * Alert threshold: < 35% ⇒ "Boutique calme"
  */
 export const useTrafficDensity = () => {
-  const [pct, setPct] = useState<number>(15);
+  const [pct, setPct] = useState<number>(5);
   const [count, setCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
@@ -29,20 +38,29 @@ export const useTrafficDensity = () => {
         return;
       }
       const n = data.length;
-      const value = Math.min(95, Math.max(5, 5 + n * 9));
+      // (sales / 20) * 100, floor 5%, cap 100%
+      const raw = (n / 20) * 100;
+      const value = Math.min(100, Math.max(5, Math.round(raw)));
       setCount(n);
       setPct(value);
       setLoading(false);
     };
 
     compute();
-    const id = setInterval(compute, 15000);
+    // Recompute every 10 seconds
+    const id = setInterval(compute, 10_000);
 
+    // Realtime: instant gauge update on new sales
     const channel = supabase
       .channel(`traffic-density-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "redemptions" },
+        { event: "INSERT", schema: "public", table: "redemptions" },
+        compute
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "redemptions" },
         compute
       )
       .subscribe();
@@ -54,6 +72,9 @@ export const useTrafficDensity = () => {
     };
   }, []);
 
-  const label = pct < 35 ? "Boutique calme" : pct < 65 ? "Activité modérée" : "Forte affluence";
-  return { pct, count, label, loading };
+  const label =
+    pct < 35 ? "Boutique calme" : pct < 65 ? "Activité modérée" : "Forte affluence";
+  const isQuiet = pct < 35;
+
+  return { pct, count, label, loading, isQuiet };
 };
