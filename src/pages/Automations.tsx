@@ -3,6 +3,7 @@ import { Brain } from "lucide-react";
 import { RuleBuilder } from "@/components/dashboard/RuleBuilder";
 import { IPhonePreview, type Weather } from "@/components/dashboard/IPhonePreview";
 import { Module2Signals } from "@/components/dashboard/Module2Signals";
+import { AiStrategyLog } from "@/components/dashboard/AiStrategyLog";
 import type { Tone } from "@/lib/aiGenerator";
 
 const Automations = () => {
@@ -14,9 +15,20 @@ const Automations = () => {
     tone: "Amical",
     message: "",
   });
+  const [liveState, setLiveState] = useState<{
+    ruleSatisfied: boolean;
+    trafficPct: number;
+    weatherLabel: string;
+  }>({ ruleSatisfied: false, trafficPct: 0, weatherLabel: "—" });
 
   const handleGenerationChange = useCallback(
     (g: { product: string; tone: Tone; message: string }) => setGeneration(g),
+    [],
+  );
+
+  const handleLiveStateChange = useCallback(
+    (s: { ruleSatisfied: boolean; trafficPct: number; weatherLabel: string }) =>
+      setLiveState(s),
     [],
   );
 
@@ -42,6 +54,7 @@ const Automations = () => {
         onWeatherDetected={setWeather}
         onTrafficLowDetected={setTrafficLow}
         ruleWeather={weather}
+        onLiveStateChange={handleLiveStateChange}
       />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -64,6 +77,16 @@ const Automations = () => {
           />
         </div>
       </div>
+
+      {/* AI Strategy Log — autonomous console + autopilot toggle */}
+      <AiStrategyLog
+        ruleSatisfied={liveState.ruleSatisfied}
+        trafficPct={liveState.trafficPct}
+        weatherLabel={liveState.weatherLabel}
+        message={generation.message}
+        product={generation.product}
+        discount={discount}
+      />
     </>
   );
 };
