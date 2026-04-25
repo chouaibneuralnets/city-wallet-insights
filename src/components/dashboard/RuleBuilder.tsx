@@ -15,7 +15,13 @@ import {
   Percent,
   Sparkles,
   ChevronDown,
+  Coffee,
+  Send,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -71,9 +77,38 @@ export const RuleBuilder = ({
   const [trafficLow, setTrafficLow] = useState(true);
   const [actions] = useState(initialActions);
   const [active, setActive] = useState(true);
+  const [product, setProduct] = useState("Café");
+  const [publishing, setPublishing] = useState(false);
+  const [lastPublishedAt, setLastPublishedAt] = useState<Date | null>(null);
 
   const WeatherIcon = weatherMeta[weather].icon;
   const discountAction = actions.find((a) => a.id === "a1");
+
+  const products = ["Café", "Pâtisserie", "Boissons fraîches", "Plat du jour", "Brunch"];
+
+  const handlePublish = async () => {
+    setPublishing(true);
+    try {
+      const { error } = await supabase.from("offers_config").insert({
+        weather,
+        discount_percent: discount,
+        product,
+        traffic_condition: trafficLow ? "low" : "normal",
+        active,
+      });
+      if (error) throw error;
+      setLastPublishedAt(new Date());
+      toast.success("Offre synchronisée sur le réseau City-Wallet", {
+        description: `Règle "${weatherMeta[weather].label} → -${discount}% sur ${product}" propagée à tous les commerçants partenaires.`,
+        icon: <CheckCircle2 className="size-4 text-success" />,
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erreur inconnue";
+      toast.error("Impossible de publier la règle", { description: msg });
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   return (
     <Card className="p-6 shadow-sm-elegant border-border/70">
@@ -208,6 +243,34 @@ export const RuleBuilder = ({
                   <span className="font-semibold tabular">{discount}%</span>
                 </div>
               )}
+
+              {/* Product selector chip */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="inline-flex items-center gap-2 pl-3 pr-2.5 py-1.5 rounded-full bg-foreground text-background text-sm hover:bg-foreground/90 transition-colors">
+                    <Coffee className="size-3.5" />
+                    <span className="font-medium">Sur</span>
+                    <span className="text-background/60">·</span>
+                    <span className="font-semibold">{product}</span>
+                    <ChevronDown className="size-3 opacity-70" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="min-w-44">
+                  {products.map((p) => (
+                    <DropdownMenuItem
+                      key={p}
+                      onClick={() => setProduct(p)}
+                      className={cn(
+                        "cursor-pointer",
+                        p === product && "bg-primary-soft text-primary font-medium"
+                      )}
+                    >
+                      {p}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               {actions
                 .filter((a) => a.id !== "a1")
                 .map((act) => (
@@ -250,6 +313,32 @@ export const RuleBuilder = ({
           <span>25%</span>
           <span>50%</span>
         </div>
+      </div>
+
+      {/* Publish */}
+      <div className="mt-6 pt-6 border-t border-border flex items-center justify-between gap-4">
+        <div className="text-xs text-muted-foreground">
+          {lastPublishedAt ? (
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="size-3.5 text-success" />
+              Synchronisé à {lastPublishedAt.toLocaleTimeString("fr-FR")}
+            </span>
+          ) : (
+            <span>La règle sera enregistrée dans le réseau City-Wallet.</span>
+          )}
+        </div>
+        <Button
+          onClick={handlePublish}
+          disabled={publishing || !active}
+          className="gap-2 bg-gradient-primary hover:opacity-90 transition-opacity"
+        >
+          {publishing ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Send className="size-4" />
+          )}
+          {publishing ? "Publication..." : "Publier l'offre"}
+        </Button>
       </div>
     </Card>
   );
