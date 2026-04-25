@@ -137,39 +137,49 @@ export const InputSignals = () => {
           </div>
         </div>
 
-        {/* Event badge */}
+        {/* Event badge — dynamic based on system time */}
         <div className="p-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Événements à proximité
+              Événement actuel — Stuttgart
             </span>
             <span className="font-mono text-[10px] text-muted-foreground">geo-feed</span>
           </div>
-          <div className="space-y-2">
-            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-warning/10 border border-warning/30">
-              <Trophy className="size-4 text-warning mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <div className="text-[12px] font-semibold text-foreground leading-tight">
-                  VfB Stuttgart — match à 1km
+          {event ? (() => {
+            const Icon =
+              event.category === "sport" ? Trophy
+              : event.category === "culture" ? Music
+              : event.category === "festival" ? PartyPopper
+              : ShoppingBasket;
+            const tone =
+              event.level === "hot"
+                ? { wrap: "bg-warning/10 border-warning/30", icon: "text-warning", badge: "bg-warning text-warning-foreground hover:bg-warning", label: "HOT" }
+                : event.level === "warm"
+                ? { wrap: "bg-primary/10 border-primary/30", icon: "text-primary", badge: "bg-primary text-primary-foreground hover:bg-primary", label: "LIVE" }
+                : { wrap: "bg-secondary/40 border-border/60", icon: "text-primary", badge: "bg-secondary text-foreground hover:bg-secondary", label: "INFO" };
+            return (
+              <div className="space-y-2">
+                <div className={cn("flex items-start gap-2.5 p-2.5 rounded-lg border", tone.wrap)}>
+                  <Icon className={cn("size-4 mt-0.5 shrink-0", tone.icon)} />
+                  <div className="min-w-0">
+                    <div className="text-[12px] font-semibold text-foreground leading-tight">
+                      {event.title}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
+                      {event.start}–{event.end} · {event.venue} · {event.distanceKm.toFixed(1)}km
+                    </div>
+                  </div>
+                  <Badge className={cn("ml-auto shrink-0 text-[9px]", tone.badge)}>{tone.label}</Badge>
                 </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">
-                  Coup d'envoi 18h30 · MHPArena
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono">
+                  <CalendarDays className="size-3" />
+                  <MapPin className="size-3" /> Stuttgart-Mitte · agenda hebdomadaire
                 </div>
               </div>
-              <Badge className="ml-auto shrink-0 text-[9px] bg-warning text-warning-foreground hover:bg-warning">HOT</Badge>
-            </div>
-            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-secondary/40 border border-border/60">
-              <MapPin className="size-4 text-primary mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <div className="text-[12px] font-semibold text-foreground leading-tight">
-                  Marché de Schillerplatz — actif
-                </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">
-                  Flux piéton +18% · 350m
-                </div>
-              </div>
-            </div>
-          </div>
+            );
+          })() : (
+            <div className="text-xs text-muted-foreground">Aucun événement à proximité.</div>
+          )}
         </div>
       </div>
     </Card>
