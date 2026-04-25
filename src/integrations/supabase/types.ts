@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: string
+          amount: number | null
+          created_at: string
+          id: string
+          is_mia: boolean
+          occurred_at: string
+          offer_id: string | null
+          profile: string
+          redemption_id: string | null
+          segment: string
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          action: string
+          amount?: number | null
+          created_at?: string
+          id?: string
+          is_mia?: boolean
+          occurred_at?: string
+          offer_id?: string | null
+          profile: string
+          redemption_id?: string | null
+          segment?: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          action?: string
+          amount?: number | null
+          created_at?: string
+          id?: string
+          is_mia?: boolean
+          occurred_at?: string
+          offer_id?: string | null
+          profile?: string
+          redemption_id?: string | null
+          segment?: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       offers_config: {
         Row: {
           active: boolean
