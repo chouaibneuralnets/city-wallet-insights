@@ -309,12 +309,19 @@ export const LiveOpportunities = () => {
 
         {/* Audience segmentation */}
         <div className="lg:col-span-2 p-5 bg-secondary/30">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3 gap-2">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Segmentation audience
             </h3>
             <span className="font-mono text-[10px] text-muted-foreground">{total} offres</span>
           </div>
+          <Badge
+            variant="outline"
+            className="mb-3 gap-1.5 font-mono text-[10px] border-primary/40 bg-primary/5 text-primary"
+          >
+            <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+            {stuttgart.dayNameFr} · cible du jour : {segmentHintLabel}
+          </Badge>
 
           <div className="h-[160px] -mx-2">
             <ResponsiveContainer width="100%" height="100%">
