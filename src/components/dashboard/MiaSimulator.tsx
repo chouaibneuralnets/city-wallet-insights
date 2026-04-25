@@ -27,6 +27,20 @@ export const MiaSimulator = () => {
         discount_percent: 20,
       });
       if (error) throw error;
+
+      // When Mia accepts: drop a ping inside the geofence so the proximity
+      // map + counter light up in real-time (within ~50m of Café Müller).
+      if (status === "accepted") {
+        const r = Math.sqrt(Math.random()) * 0.0005;
+        const a = Math.random() * Math.PI * 2;
+        await supabase.from("wallet_pings").insert({
+          wallet_id: "mia",
+          lat: 48.7758 + r * Math.cos(a),
+          lng: 9.1829 + r * Math.sin(a) * 1.5,
+          is_mia: true,
+        });
+      }
+
       toast.success(
         status === "accepted"
           ? `Mia a payé ${product} (+${amount.toFixed(2)} €)`
