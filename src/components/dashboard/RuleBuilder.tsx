@@ -472,7 +472,7 @@ export const RuleBuilder = ({
             <span className="text-[10px] text-muted-foreground font-mono">SLM local</span>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className={cn("grid grid-cols-3 gap-2", active && "opacity-60")}>
           {(Object.keys(tonesMeta) as Tone[]).map((t) => {
             const m = tonesMeta[t];
             const selected = tone === t;
@@ -480,12 +480,14 @@ export const RuleBuilder = ({
               <button
                 key={t}
                 type="button"
+                disabled={active}
                 onClick={() => setTone(t)}
                 className={cn(
                   "group relative flex flex-col items-start gap-1 p-3 rounded-xl border text-left transition-all overflow-hidden",
                   selected
                     ? "border-primary bg-gradient-to-br from-primary-soft to-primary/5 ring-2 ring-primary/30 shadow-sm-elegant"
                     : "border-border hover:border-primary/40 hover:bg-secondary/40",
+                  active && "cursor-not-allowed",
                 )}
               >
                 <span className="text-lg">{m.emoji}</span>
