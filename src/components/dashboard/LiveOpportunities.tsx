@@ -133,6 +133,17 @@ export const LiveOpportunities = () => {
   });
   const counterRef = useRef(0);
   const { data: weather } = useStuttgartWeather();
+  const { stuttgart } = useSignals();
+  // Stuttgart-day driven segmentation hint:
+  // Weekdays (Mon-Fri) → favor Commuters
+  // Weekend (Sat-Sun)  → favor Loyals & Newcomers
+  const isWeekend = stuttgart.day === 0 || stuttgart.day === 6;
+  const preferredSegments: Segment[] = isWeekend
+    ? ["loyals", "newcomers"]
+    : ["commuters"];
+  const segmentHintLabel = isWeekend
+    ? "Loyals · Newcomers"
+    : "Commuters";
 
   const push = (entry: Omit<Opportunity, "id" | "time">) => {
     counterRef.current += 1;
@@ -145,14 +156,17 @@ export const LiveOpportunities = () => {
     setCounts((c) => ({ ...c, [entry.segment]: c[entry.segment] + 1 }));
   };
 
-  // Background ticker — autonomous AI scanning
+  // Background ticker — autonomous AI scanning, biased toward the day's
+  // preferred segment (Commuters during the week, Loyals/Newcomers weekend).
   useEffect(() => {
     const id = setInterval(() => {
-      const entry = RANDOM_OPPS[Math.floor(Math.random() * RANDOM_OPPS.length)];
+      const preferred = RANDOM_OPPS.filter((o) => preferredSegments.includes(o.segment));
+      const pool = preferred.length && Math.random() < 0.7 ? preferred : RANDOM_OPPS;
+      const entry = pool[Math.floor(Math.random() * pool.length)];
       push(entry);
     }, 6500);
     return () => clearInterval(id);
-  }, []);
+  }, [isWeekend]);
 
   // Special "Mia" opportunity → triggers Supabase insert into offers_config
   useEffect(() => {
