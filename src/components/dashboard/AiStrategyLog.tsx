@@ -338,6 +338,8 @@ export const AiStrategyLog = ({
                     log.level === "scan" && "text-white/70",
                     log.level === "idle" && "text-white/50",
                     log.level === "manual" && "text-warning",
+                    log.level === "throttle" && "text-warning/90",
+                    log.level === "refused" && "text-destructive",
                   )}
                 >
                   {log.message}
