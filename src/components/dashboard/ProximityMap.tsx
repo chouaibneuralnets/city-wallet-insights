@@ -5,9 +5,25 @@ import { useSignals } from "@/context/SignalsContext";
 
 const keepVisible = (value: number) => Math.min(0.88, Math.max(0.12, value));
 
-const spreadWallets = <T extends { x: number; y: number }>(wallets: T[]) => {
+const spreadWallets = <T extends { x: number; y: number; isMia?: boolean }>(wallets: T[]) => {
   const center = 0.5;
   return wallets.map((wallet, index) => {
+    // Mia keeps her real relative position. If she sits exactly on the shop,
+    // nudge her just enough so the green pulsing dot is visible next to the Café icon.
+    if (wallet.isMia) {
+      const dx = wallet.x - center;
+      const dy = wallet.y - center;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < 0.06) {
+        return {
+          ...wallet,
+          x: keepVisible(center + 0.08),
+          y: keepVisible(center - 0.06),
+        };
+      }
+      return { ...wallet, x: keepVisible(wallet.x), y: keepVisible(wallet.y) };
+    }
+
     const dx = wallet.x - center;
     const dy = wallet.y - center;
     const distance = Math.sqrt(dx * dx + dy * dy);
@@ -33,7 +49,9 @@ const spreadWallets = <T extends { x: number; y: number }>(wallets: T[]) => {
 
 export const ProximityMap = () => {
   const { wallets, miaDetected, proximityCount } = useSignals();
-  const visibleWallets = spreadWallets(wallets);
+  // Render Mia LAST so her marker (and label) sits on top of every other wallet.
+  const ordered = [...wallets].sort((a, b) => Number(!!a.isMia) - Number(!!b.isMia));
+  const visibleWallets = spreadWallets(ordered);
 
   return (
     <Card className="p-0 shadow-sm-elegant border-border/70 overflow-hidden">
@@ -72,15 +90,20 @@ export const ProximityMap = () => {
           {visibleWallets.map((w) => (
             <div
               key={w.id}
-              className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-1000"
+              className={`absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-1000 ${w.isMia ? "z-30" : "z-10"}`}
               style={{ left: `${w.x * 100}%`, top: `${w.y * 100}%` }}
             >
               {w.isMia ? (
                 <div className="relative">
-                  <span className="absolute inset-0 size-4 -translate-x-1 -translate-y-1 rounded-full bg-success/40 animate-ping" />
-                  <span className="relative block size-2 rounded-full bg-success ring-2 ring-card shadow-md" />
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[9px] font-bold text-success whitespace-nowrap bg-card/90 px-1.5 py-0.5 rounded border border-success/40">
-                    Mia
+                  {/* Outer halo — slow pulse */}
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-7 rounded-full bg-success/30 animate-ping" />
+                  {/* Inner halo */}
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-4 rounded-full bg-success/50 animate-pulse" />
+                  {/* Bright dot */}
+                  <span className="relative block size-2.5 rounded-full bg-success ring-2 ring-card shadow-[0_0_12px_hsl(var(--success))]" />
+                  {/* Label */}
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[9px] font-bold tracking-wider text-success-foreground whitespace-nowrap bg-success px-1.5 py-0.5 rounded shadow-md">
+                    MIA
                   </span>
                 </div>
               ) : (
@@ -90,7 +113,7 @@ export const ProximityMap = () => {
           ))}
 
           {/* Café Müller marker (center) */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
             <div className="relative">
               <span className="absolute inset-0 size-8 -translate-x-1.5 -translate-y-1.5 rounded-full bg-primary/30 animate-pulse" />
               <div className="relative size-5 rounded-full bg-primary text-primary-foreground grid place-items-center ring-2 ring-card shadow-md">
