@@ -1,10 +1,10 @@
 import { Cloud, CloudRain, Sun, Snowflake, Wind, Droplets, Activity, Trophy, MapPin, Loader2, CalendarDays, Music, ShoppingBasket, PartyPopper } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useStuttgartWeather } from "@/hooks/useStuttgartWeather";
 import { useTrafficDensity } from "@/hooks/useTrafficDensity";
 import { getCurrentStuttgartEvent, type StuttgartEvent } from "@/data/stuttgartEvents";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useSignals } from "@/context/SignalsContext";
 import { cn } from "@/lib/utils";
 
 const weatherIcon = (w?: string) => {
