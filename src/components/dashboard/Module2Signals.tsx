@@ -54,6 +54,8 @@ type Props = {
   onTrafficLowDetected: (low: boolean) => void;
   /** Currently selected weather in the rule (for the validation badge). */
   ruleWeather: Weather;
+  /** Master switch — when OFF, the green "génération active" banner stays hidden. */
+  ruleActive?: boolean;
   /** Notify parent about the live derived state (used by the AI Strategy Log). */
   onLiveStateChange?: (state: {
     ruleSatisfied: boolean;
@@ -71,6 +73,7 @@ export const Module2Signals = ({
   onWeatherDetected,
   onTrafficLowDetected,
   ruleWeather,
+  ruleActive = true,
   onLiveStateChange,
 }: Props) => {
   const { weather, weatherLoading, temperatureC, proximityCount } = useSignals();
