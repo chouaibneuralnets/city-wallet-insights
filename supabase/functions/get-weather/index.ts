@@ -1,8 +1,12 @@
-import { corsHeaders } from "@supabase/supabase-js/cors";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -11,7 +15,6 @@ Deno.serve(async (req) => {
       throw new Error("OPENWEATHERMAP_API_KEY is not configured");
     }
 
-    // Stuttgart coordinates
     const url = `https://api.openweathermap.org/data/2.5/weather?q=Stuttgart,DE&appid=${apiKey}&units=metric&lang=fr`;
     const response = await fetch(url);
 
@@ -22,7 +25,6 @@ Deno.serve(async (req) => {
 
     const data = await response.json();
 
-    // Map OpenWeatherMap "main" to our internal weather type
     const main = (data.weather?.[0]?.main || "Clouds").toLowerCase();
     let weather: "rain" | "sun" | "snow" | "cloud" = "cloud";
     if (main.includes("rain") || main.includes("drizzle") || main.includes("thunder")) weather = "rain";
@@ -36,7 +38,7 @@ Deno.serve(async (req) => {
       description: data.weather?.[0]?.description ?? "",
       temperature: Math.round(data.main?.temp ?? 0),
       humidity: data.main?.humidity ?? 0,
-      wind: Math.round((data.wind?.speed ?? 0) * 3.6),
+      wind: Math.round((data.wind?.speed ?? 0) * 10) / 10,
       timestamp: Date.now(),
     };
 

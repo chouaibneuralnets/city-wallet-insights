@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import type { Weather } from "@/components/dashboard/IPhonePreview";
 
 export type WeatherData = {
@@ -37,38 +38,60 @@ export const useStuttgartWeather = (pollMs = 60_000) => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchWeather = useCallback(async () => {
-    const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY as string | undefined;
-
-    if (!apiKey) {
-      setData({ ...FALLBACK, timestamp: Date.now() });
-      setError("missing-key");
-      setLoading(false);
-      return;
-    }
-
+    // 1) Try the secure edge function (uses OPENWEATHERMAP_API_KEY server-side)
     try {
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=Stuttgart,DE&appid=${apiKey}&units=metric&lang=fr`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`OpenWeather ${res.status}`);
-      const json = await res.json();
+      const { data: res, error: fnErr } = await supabase.functions.invoke("get-weather");
+      if (fnErr) throw fnErr;
+      if (res?.error) throw new Error(res.error);
 
-      const result: WeatherData = {
-        city: "Stuttgart",
-        weather: mapWeather(json.weather?.[0]?.main ?? "Clouds"),
-        description: json.weather?.[0]?.description ?? "",
-        temperature: Math.round(json.main?.temp ?? 0),
-        humidity: json.main?.humidity ?? 0,
-        wind: Math.round((json.wind?.speed ?? 0) * 10) / 10,
-        timestamp: Date.now(),
-        isFallback: false,
-      };
-      setData(result);
-      setError(null);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Unknown error";
+      // Edge function already returns normalized fields
+      if (res && typeof res.temperature === "number") {
+        setData({
+          city: res.city ?? "Stuttgart",
+          weather: res.weather ?? "cloud",
+          description: res.description ?? "",
+          temperature: res.temperature,
+          humidity: res.humidity ?? 0,
+          wind: res.wind ?? 0,
+          timestamp: res.timestamp ?? Date.now(),
+          isFallback: false,
+        });
+        setError(null);
+        setLoading(false);
+        return;
+      }
+      throw new Error("invalid-response");
+    } catch (edgeErr) {
+      // 2) Fallback to direct client call if a VITE key is provided
+      const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY as string | undefined;
+      if (apiKey) {
+        try {
+          const url = `https://api.openweathermap.org/data/2.5/weather?q=Stuttgart,DE&appid=${apiKey}&units=metric&lang=fr`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`OpenWeather ${res.status}`);
+          const json = await res.json();
+          setData({
+            city: "Stuttgart",
+            weather: mapWeather(json.weather?.[0]?.main ?? "Clouds"),
+            description: json.weather?.[0]?.description ?? "",
+            temperature: Math.round(json.main?.temp ?? 0),
+            humidity: json.main?.humidity ?? 0,
+            wind: Math.round((json.wind?.speed ?? 0) * 10) / 10,
+            timestamp: Date.now(),
+            isFallback: false,
+          });
+          setError(null);
+          setLoading(false);
+          return;
+        } catch (clientErr) {
+          // fallthrough to demo data
+        }
+      }
+
+      // 3) Final fallback: demo data
+      const msg = edgeErr instanceof Error ? edgeErr.message : "weather-unavailable";
       setData({ ...FALLBACK, timestamp: Date.now() });
       setError(msg);
-    } finally {
       setLoading(false);
     }
   }, []);
