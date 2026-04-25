@@ -1,18 +1,18 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useStuttgartWeather, type WeatherData } from "@/hooks/useStuttgartWeather";
+import { useProximityPings, type ProximityPing } from "@/hooks/useProximityPings";
 
 /**
  * Single Source of Truth for live IoT signals.
  *
- * - Weather is shared (same temperature everywhere, rounded to integer).
- * - Proximity wallets are owned by this context so the map and the
- *   "X clients à proximité" counter NEVER disagree.
+ * - Weather: shared, rounded to integer (12°C identique partout)
+ * - Proximity: real Supabase `wallet_pings` within 200m & last 5 min
+ * - Time: live ticker each second so `21:24` updates to `21:25` in real time
  */
 
 export type Wallet = {
   id: string;
-  /** 0..1 normalized coordinates inside the geofence area */
+  /** 0..1 normalized coordinates inside the map */
   x: number;
   y: number;
   isMia?: boolean;
@@ -23,110 +23,67 @@ type SignalsContextValue = {
   weatherLoading: boolean;
   /** Always rounded to nearest integer — single source of truth */
   temperatureC: number | null;
+  /** Live wall-clock — updates every second */
+  now: Date;
+  /** Real wallet pings from Supabase */
+  pings: ProximityPing[];
+  /** Wallets normalized to map coordinates */
   wallets: Wallet[];
   miaDetected: boolean;
-  /** Number of wallets currently rendered (== dot count on the mini-map) */
   proximityCount: number;
+  pingsLoading: boolean;
 };
 
 const SignalsContext = createContext<SignalsContextValue | null>(null);
 
-const randomWallet = (id: string, isMia = false): Wallet => {
-  const r = Math.sqrt(Math.random()) * 0.85;
-  const a = Math.random() * Math.PI * 2;
-  return { id, x: 0.5 + (r * Math.cos(a)) / 2, y: 0.5 + (r * Math.sin(a)) / 2, isMia };
+const CAFE_LAT = 48.7758;
+const CAFE_LNG = 9.1829;
+// At Stuttgart latitude, ~200m corresponds to ~0.0018° lat / ~0.0027° lng.
+// Map area covers ~400m diameter (200m radius geofence + margin).
+const LAT_RANGE = 0.0036;
+const LNG_RANGE = 0.0054;
+
+const pingToWallet = (p: ProximityPing): Wallet => {
+  // Normalize geo coords → 0..1 viewport coords (centered on Café Müller)
+  const dx = (p.lng - CAFE_LNG) / LNG_RANGE;
+  const dy = (CAFE_LAT - p.lat) / LAT_RANGE; // flip Y for screen coords
+  return {
+    id: p.id,
+    x: Math.min(0.92, Math.max(0.08, 0.5 + dx)),
+    y: Math.min(0.92, Math.max(0.08, 0.5 + dy)),
+    isMia: p.is_mia,
+  };
 };
 
 export const SignalsProvider = ({ children }: { children: ReactNode }) => {
   const { data: weather, loading: weatherLoading } = useStuttgartWeather();
+  const { pings, miaDetected, count, loading: pingsLoading } = useProximityPings();
 
-  const [wallets, setWallets] = useState<Wallet[]>(() => [
-    randomWallet("w1"),
-    randomWallet("w2"),
-    randomWallet("w3"),
-  ]);
-  const [miaDetected, setMiaDetected] = useState(false);
+  const [now, setNow] = useState(() => new Date());
 
-  // Drift wallets so the dots feel "alive" without changing the count.
+  // Live wall-clock ticking every second.
   useEffect(() => {
-    const id = setInterval(() => {
-      setWallets((prev) =>
-        prev.map((w) =>
-          w.isMia
-            ? w
-            : {
-                ...w,
-                x: Math.min(0.92, Math.max(0.08, w.x + (Math.random() - 0.5) * 0.02)),
-                y: Math.min(0.92, Math.max(0.08, w.y + (Math.random() - 0.5) * 0.02)),
-              }
-        )
-      );
-    }, 2500);
+    const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
-
-  // Slowly fluctuate population (1..6 non-Mia wallets) to mimic a live geofence.
-  useEffect(() => {
-    const id = setInterval(() => {
-      setWallets((prev) => {
-        const others = prev.filter((w) => !w.isMia);
-        const mia = prev.find((w) => w.isMia);
-        const direction = Math.random() > 0.5 ? 1 : -1;
-        let nextOthers = others;
-        if (direction > 0 && others.length < 6) {
-          nextOthers = [...others, randomWallet(`w-${Date.now()}`)];
-        } else if (direction < 0 && others.length > 1) {
-          nextOthers = others.slice(1);
-        }
-        return mia ? [...nextOthers, mia] : nextOthers;
-      });
-    }, 9000);
-    return () => clearInterval(id);
-  }, []);
-
-  // Mia is detected when an offer is dispatched (Project 2 simulator).
-  useEffect(() => {
-    const channel = supabase
-      .channel(`signals-mia-${Math.random().toString(36).slice(2)}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "offers_config" },
-        () => {
-          setMiaDetected(true);
-          setWallets((prev) => {
-            const without = prev.filter((w) => !w.isMia);
-            return [...without, randomWallet(`mia-${Date.now()}`, true)];
-          });
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  // Auto-clear Mia after 15s of inactivity (re-arm whenever miaDetected flips true).
-  useEffect(() => {
-    if (!miaDetected) return;
-    const t = setTimeout(() => {
-      setMiaDetected(false);
-      setWallets((prev) => prev.filter((w) => !w.isMia));
-    }, 15000);
-    return () => clearTimeout(t);
-  }, [miaDetected]);
 
   const temperatureC = useMemo(() => {
     if (!weather || typeof weather.temperature !== "number") return null;
     return Math.round(weather.temperature);
   }, [weather]);
 
+  const wallets = useMemo(() => pings.map(pingToWallet), [pings]);
+
   const value: SignalsContextValue = {
     weather,
     weatherLoading,
     temperatureC,
+    now,
+    pings,
     wallets,
     miaDetected,
-    proximityCount: wallets.length,
+    proximityCount: count,
+    pingsLoading,
   };
 
   return <SignalsContext.Provider value={value}>{children}</SignalsContext.Provider>;
