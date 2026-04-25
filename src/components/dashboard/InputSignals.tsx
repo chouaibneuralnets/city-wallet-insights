@@ -81,7 +81,7 @@ export const InputSignals = () => {
                 <div>
                   <div className="flex items-center gap-2">
                     <div className="text-3xl font-bold tabular leading-none text-foreground">
-                      {weather?.temperature?.toFixed(0) ?? "—"}°C
+                      {temperatureC ?? "—"}°C
                     </div>
                     {weather?.isFallback && (
                       <span
