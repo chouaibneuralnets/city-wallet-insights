@@ -58,6 +58,13 @@ export const CompositeState = () => {
       level: timeActive ? "active" : "passive",
     },
     {
+      key: "day",
+      label: `Jour : ${stuttgart.dayNameFr}`,
+      detail: `${isWeekend ? "Week-end" : "Semaine"} · cible ${segmentHint}`,
+      icon: CalendarDays,
+      level: "active",
+    },
+    {
       key: "density",
       label: isLowDensity ? "Densité Payone faible" : density < 65 ? "Densité Payone modérée" : "Densité Payone forte",
       detail: `${density}% · seuil offre 35%`,
