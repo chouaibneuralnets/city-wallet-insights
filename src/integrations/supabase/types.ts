@@ -47,6 +47,50 @@ export type Database = {
         }
         Relationships: []
       }
+      redemptions: {
+        Row: {
+          amount: number
+          created_at: string
+          discount_percent: number
+          id: string
+          offer_id: string | null
+          product: string
+          status: string
+          updated_at: string
+          weather: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          offer_id?: string | null
+          product?: string
+          status?: string
+          updated_at?: string
+          weather?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          offer_id?: string | null
+          product?: string
+          status?: string
+          updated_at?: string
+          weather?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "redemptions_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
