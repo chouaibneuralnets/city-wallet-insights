@@ -3,8 +3,37 @@ import { Badge } from "@/components/ui/badge";
 import { Coffee, MapPin, Radar } from "lucide-react";
 import { useSignals } from "@/context/SignalsContext";
 
+const keepVisible = (value: number) => Math.min(0.88, Math.max(0.12, value));
+
+const spreadWallets = <T extends { x: number; y: number }>(wallets: T[]) => {
+  const center = 0.5;
+  return wallets.map((wallet, index) => {
+    const dx = wallet.x - center;
+    const dy = wallet.y - center;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // If a wallet is exactly on the shop marker, it is hidden by the Café icon.
+    // Push it onto a small deterministic ring so the visual count matches the signal count.
+    if (distance < 0.11) {
+      const angle = index * 2.399963229728653 + 0.35;
+      return {
+        ...wallet,
+        x: keepVisible(center + Math.cos(angle) * 0.18),
+        y: keepVisible(center + Math.sin(angle) * 0.18),
+      };
+    }
+
+    return {
+      ...wallet,
+      x: keepVisible(wallet.x),
+      y: keepVisible(wallet.y),
+    };
+  });
+};
+
 export const ProximityMap = () => {
   const { wallets, miaDetected, proximityCount } = useSignals();
+  const visibleWallets = spreadWallets(wallets);
 
   return (
     <Card className="p-0 shadow-sm-elegant border-border/70 overflow-hidden">
@@ -40,7 +69,7 @@ export const ProximityMap = () => {
           <div className="absolute inset-[28%] rounded-full border border-primary/30 bg-primary/5" />
 
           {/* Wallet dots */}
-          {wallets.map((w) => (
+          {visibleWallets.map((w) => (
             <div
               key={w.id}
               className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-1000"
