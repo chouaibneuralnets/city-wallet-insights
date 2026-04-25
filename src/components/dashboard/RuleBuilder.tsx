@@ -63,6 +63,14 @@ const conditionLibrary = [
   { icon: Tag, field: "Stock", operator: ">", value: "20 unités" },
 ];
 
+type Tone = "Amical" | "Urgent" | "Exclusif";
+
+const tones: { value: Tone; emoji: string; preview: string }[] = [
+  { value: "Amical", emoji: "☕", preview: "Hey ! Petit café offert juste pour toi 😊" },
+  { value: "Urgent", emoji: "⚡", preview: "OFFRE FLASH 30min : -25% Cappuccino, dépêche-toi !" },
+  { value: "Exclusif", emoji: "✨", preview: "Membre privilégié — cappuccino signature -25%" },
+];
+
 export const RuleBuilder = ({
   discount,
   onDiscountChange,
@@ -78,11 +86,13 @@ export const RuleBuilder = ({
   const [actions] = useState(initialActions);
   const [active, setActive] = useState(true);
   const [product, setProduct] = useState("Café");
+  const [tone, setTone] = useState<Tone>("Amical");
   const [publishing, setPublishing] = useState(false);
   const [lastPublishedAt, setLastPublishedAt] = useState<Date | null>(null);
 
   const WeatherIcon = weatherMeta[weather].icon;
   const discountAction = actions.find((a) => a.id === "a1");
+  const currentTone = tones.find((t) => t.value === tone)!;
 
   const products = ["Café", "Pâtisserie", "Boissons fraîches", "Plat du jour", "Brunch"];
 
