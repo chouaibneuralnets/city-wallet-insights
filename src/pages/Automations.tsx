@@ -66,6 +66,8 @@ const Automations = () => {
             weather={weather}
             trafficLow={trafficLow}
             onGenerationChange={handleGenerationChange}
+            active={ruleActive}
+            onActiveChange={setRuleActive}
           />
         </div>
         <div className="xl:col-span-1">
@@ -87,6 +89,7 @@ const Automations = () => {
         message={generation.message}
         product={generation.product}
         discount={discount}
+        ruleActive={ruleActive}
       />
     </>
   );
