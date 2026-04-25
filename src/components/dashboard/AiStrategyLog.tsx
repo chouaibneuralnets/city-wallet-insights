@@ -141,7 +141,25 @@ export const AiStrategyLog = ({
     const tick = async () => {
       const now = Date.now();
       if (now - lastAutoPushRef.current < 25000) return;
+
+      // Anti-spam: skip if an identical offer was sent < 5 min ago for the
+      // same "secteur" (product × weather × discount signature).
+      const sector = `${product}|sun|${discount}`;
+      const lastSig = lastSignatureDispatchRef.current[sector] ?? 0;
+      const remainingMs = THROTTLE_MS - (now - lastSig);
+      if (remainingMs > 0) {
+        const remainingSec = Math.ceil(remainingMs / 1000);
+        push({
+          level: "throttle",
+          message: `Anti-spam · offre identique [${product} -${discount}%] déjà envoyée pour ce secteur (réessai dans ${remainingSec}s)`,
+          icon: <ShieldAlert className="size-3.5" />,
+        });
+        lastAutoPushRef.current = now;
+        return;
+      }
+
       lastAutoPushRef.current = now;
+      lastSignatureDispatchRef.current[sector] = now;
       push({
         level: "send",
         message: `Envoi auto vers Supabase · "${message.slice(0, 60)}${message.length > 60 ? "…" : ""}"`,
@@ -163,6 +181,8 @@ export const AiStrategyLog = ({
           message: `Erreur d'envoi auto : ${error.message}`,
           icon: <AlertCircle className="size-3.5" />,
         });
+        // Free the throttle slot on error so user isn't blocked.
+        delete lastSignatureDispatchRef.current[sector];
       }
     };
     tick();
