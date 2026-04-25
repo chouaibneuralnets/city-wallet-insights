@@ -44,6 +44,7 @@ import {
 } from "@/lib/aiGenerator";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { useSignals } from "@/context/SignalsContext";
+import { ConditionChips, conditionLabel, evaluateCondition, type Condition } from "./ConditionChips";
 
 const weatherMeta: Record<
   Weather,
@@ -99,18 +100,47 @@ export const RuleBuilder = ({
   const [publishing, setPublishing] = useState(false);
   const [lastPublishedAt, setLastPublishedAt] = useState<Date | null>(null);
 
+  // Dynamic conditions (Heure, Jour, Stock, Événement) — fully editable
+  const [conditions, setConditions] = useState<Condition[]>([]);
+  // Simulated live world state for validation badges (in real app, these come from inventory + events APIs)
+  const stockQty = 28;
+  const activeEvent = "Marché de Noël";
+
   const WeatherIcon = weatherMeta[weather].icon;
   const discountAction = actions.find((a) => a.id === "a1");
 
   const products = Object.keys(productMeta);
 
+  // Build extras for the AI message based on current conditions
+  const extras = useMemo(() => {
+    const time = conditions.find((c) => c.type === "Heure");
+    const day = conditions.find((c) => c.type === "Jour");
+    const stock = conditions.find((c) => c.type === "Stock");
+    const evt = conditions.find((c) => c.type === "Événement");
+    return {
+      timeWindow: time && time.type === "Heure" ? { from: time.from, to: time.to } : null,
+      day: day && day.type === "Jour" ? day.value : null,
+      stockHigh:
+        stock && stock.type === "Stock" && stock.operator === ">" ? { quantity: stock.quantity } : null,
+      activeEvent: evt && evt.type === "Événement" ? evt.value : null,
+    };
+  }, [conditions]);
+
   const message = useMemo(
-    () => generateMessage(tone, weather, product, discount),
-    [tone, weather, product, discount],
+    () => generateMessage(tone, weather, product, discount, extras),
+    [tone, weather, product, discount, extras],
   );
   const thought = useMemo(
-    () => generateThought(tone, weather, product, trafficLow, temperatureC),
-    [tone, weather, product, trafficLow, temperatureC],
+    () =>
+      generateThought(
+        tone,
+        weather,
+        product,
+        trafficLow,
+        temperatureC,
+        conditions.map(conditionLabel),
+      ),
+    [tone, weather, product, trafficLow, temperatureC, conditions],
   );
 
   // Typewriter for the AI thought line.
@@ -222,17 +252,22 @@ export const RuleBuilder = ({
               </div>
             </div>
 
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              <span className="text-xs text-muted-foreground mr-1 self-center">Suggestions :</span>
-              {conditionLibrary.map((s) => (
-                <button
-                  key={s.field}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary text-xs text-muted-foreground hover:bg-primary-soft hover:text-primary transition-colors"
-                >
-                  <s.icon className="size-3" />
-                  {s.field} {s.operator} {s.value}
-                </button>
-              ))}
+            <div className="mt-4 pt-4 border-t border-dashed border-border/60">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                  Conditions personnalisées
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  {conditions.filter((c) => evaluateCondition(c, { now: new Date(), stockQty, activeEvent })).length}
+                  /{conditions.length} match
+                </span>
+              </div>
+              <ConditionChips
+                conditions={conditions}
+                onChange={setConditions}
+                stockQty={stockQty}
+                activeEvent={activeEvent}
+              />
             </div>
           </div>
         </div>

@@ -29,44 +29,59 @@ const weatherCtx: Record<Weather, string> = {
   cloud: "ciel nuageux",
 };
 
-/** Génère le message final selon Ton + Météo + Produit + Discount */
+/** Génère le message final selon Ton + Météo + Produit + Discount + conditions */
 export const generateMessage = (
   tone: Tone,
   weather: Weather,
   product: string,
   discount: number,
+  extras?: { stockHigh?: { quantity: number } | null; activeEvent?: string | null; timeWindow?: { from: number; to: number } | null; day?: string | null },
 ): string => {
   const p = product.toLowerCase();
   const w = weather;
 
+  let base: string;
   if (tone === "Amical") {
     if (w === "rain")
-      return `Envie d'une petite pause ? Venez vous mettre au sec autour d'un ${p} à -${discount}% ☔`;
-    if (w === "sun")
-      return `Le soleil vous tend les bras ! Notre ${p} est à -${discount}% sur la terrasse 🌞`;
-    if (w === "snow")
-      return `Au chaud ça tente ? Un ${p} réconfortant à -${discount}% vous attend ❄️`;
-    return `Envie d'une petite pause ? Venez nous voir, ${p} à -${discount}% 😊`;
-  }
-
-  if (tone === "Élégant") {
+      base = `Envie d'une petite pause ? Venez vous mettre au sec autour d'un ${p} à -${discount}% ☔`;
+    else if (w === "sun")
+      base = `Le soleil vous tend les bras ! Notre ${p} est à -${discount}% sur la terrasse 🌞`;
+    else if (w === "snow")
+      base = `Au chaud ça tente ? Un ${p} réconfortant à -${discount}% vous attend ❄️`;
+    else base = `Envie d'une petite pause ? Venez nous voir, ${p} à -${discount}% 😊`;
+  } else if (tone === "Élégant") {
     if (w === "rain")
-      return `Une parenthèse raffinée à l'abri de la pluie. Notre ${p} signature à -${discount}%.`;
-    if (w === "sun")
-      return `Une expérience caféinée d'exception vous attend en terrasse. ${p} -${discount}%.`;
-    if (w === "snow")
-      return `L'art du ${p} dans un écrin chaleureux. Sélection signature -${discount}%.`;
-    return `Une expérience caféinée d'exception vous attend. ${p} signature -${discount}%.`;
+      base = `Une parenthèse raffinée à l'abri de la pluie. Notre ${p} signature à -${discount}%.`;
+    else if (w === "sun")
+      base = `Une expérience caféinée d'exception vous attend en terrasse. ${p} -${discount}%.`;
+    else if (w === "snow")
+      base = `L'art du ${p} dans un écrin chaleureux. Sélection signature -${discount}%.`;
+    else base = `Une expérience caféinée d'exception vous attend. ${p} signature -${discount}%.`;
+  } else {
+    if (w === "rain")
+      base = `⚡ FLASH 30 MIN : ${p} -${discount}% pendant l'averse. Foncez !`;
+    else if (w === "sun")
+      base = `⚡ HAPPY HOUR : ${p} -${discount}% — uniquement maintenant !`;
+    else if (w === "snow")
+      base = `⚡ OFFRE EXPRESS : ${p} chaud -${discount}% — limité aux 20 prochains !`;
+    else base = `⚡ OFFRE FLASH : ${p} -${discount}% — c'est maintenant !`;
   }
+  return appendExtras(base, extras, product);
+};
 
-  // Urgent
-  if (w === "rain")
-    return `⚡ FLASH 30 MIN : ${p} -${discount}% pendant l'averse. Foncez !`;
-  if (w === "sun")
-    return `⚡ HAPPY HOUR : ${p} -${discount}% — uniquement maintenant !`;
-  if (w === "snow")
-    return `⚡ OFFRE EXPRESS : ${p} chaud -${discount}% — limité aux 20 prochains !`;
-  return `⚡ OFFRE FLASH : ${p} -${discount}% — c'est maintenant !`;
+const appendExtras = (
+  base: string,
+  extras: Parameters<typeof generateMessage>[4] | undefined,
+  product: string,
+): string => {
+  if (!extras) return base;
+  const parts: string[] = [];
+  if (extras.timeWindow) parts.push(`de ${extras.timeWindow.from}h à ${extras.timeWindow.to}h`);
+  if (extras.day) parts.push(`spécial ${extras.day}`);
+  if (extras.stockHigh) parts.push(`${extras.stockHigh.quantity} ${product.toLowerCase()}s en stock`);
+  if (extras.activeEvent && extras.activeEvent !== "Aucun") parts.push(`pendant ${extras.activeEvent}`);
+  if (parts.length === 0) return base;
+  return `${base} (${parts.join(" · ")})`;
 };
 
 /** Pensée IA — affichée dans la zone "Prompt Logic" */
@@ -76,9 +91,12 @@ export const generateThought = (
   product: string,
   trafficLow: boolean,
   temperatureC: number | null,
+  extraConditions?: string[],
 ): string => {
   const ctx = weatherCtx[weather];
   const traffic = trafficLow ? "Faible Fréquentation" : "Fréquentation normale";
   const temp = temperatureC !== null ? `${temperatureC}°C, ` : "";
-  return `Génération d'un message [${tone}] pour un contexte [${temp}${ctx}] + [${traffic}] sur ${product}…`;
+  const extras = extraConditions && extraConditions.length > 0 ? ` + [${extraConditions.join(" · ")}]` : "";
+  return `Génération d'un message [${tone}] pour un contexte [${temp}${ctx}] + [${traffic}]${extras} sur ${product}…`;
 };
+
