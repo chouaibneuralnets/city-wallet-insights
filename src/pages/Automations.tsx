@@ -1,16 +1,31 @@
 import { useCallback, useState } from "react";
-import { Brain } from "lucide-react";
+import { Brain, Plus } from "lucide-react";
 import { RuleBuilder } from "@/components/dashboard/RuleBuilder";
 import { IPhonePreview, type Weather } from "@/components/dashboard/IPhonePreview";
 import { Module2Signals } from "@/components/dashboard/Module2Signals";
 import { AiStrategyLog } from "@/components/dashboard/AiStrategyLog";
+import { Button } from "@/components/ui/button";
 import type { Tone } from "@/lib/aiGenerator";
 
+type OfferRule = {
+  id: string;
+  title: string;
+  discount: number;
+  active: boolean;
+};
+
+const uid = () => Math.random().toString(36).slice(2, 9);
+
 const Automations = () => {
-  const [discount, setDiscount] = useState(20);
   const [weather, setWeather] = useState<Weather>("cloud");
   const [trafficLow, setTrafficLow] = useState(true);
-  const [ruleActive, setRuleActive] = useState(true);
+
+  // Multiple offer rules — each with its own If-Then card.
+  const [offers, setOffers] = useState<OfferRule[]>([
+    { id: uid(), title: "Offre principale", discount: 20, active: true },
+  ]);
+
+  // The iPhone preview mirrors the FIRST active offer (or the first one if none active).
   const [generation, setGeneration] = useState<{ product: string; tone: Tone; message: string }>({
     product: "Café",
     tone: "Amical",
@@ -32,6 +47,31 @@ const Automations = () => {
       setLiveState(s),
     [],
   );
+
+  const updateOffer = (id: string, patch: Partial<OfferRule>) => {
+    setOffers((prev) => prev.map((o) => (o.id === id ? { ...o, ...patch } : o)));
+  };
+
+  const addOffer = () => {
+    setOffers((prev) => [
+      ...prev,
+      {
+        id: uid(),
+        title: `Offre #${prev.length + 1}`,
+        discount: 15,
+        active: false,
+      },
+    ]);
+  };
+
+  const removeOffer = (id: string) => {
+    setOffers((prev) => (prev.length > 1 ? prev.filter((o) => o.id !== id) : prev));
+  };
+
+  // For AiStrategyLog: rule is "active" if any offer is active.
+  const anyActive = offers.some((o) => o.active);
+  // Use the first offer as the lead for KPI display.
+  const leadOffer = offers[0];
 
   return (
     <>
@@ -55,26 +95,41 @@ const Automations = () => {
         onWeatherDetected={setWeather}
         onTrafficLowDetected={setTrafficLow}
         ruleWeather={weather}
-        ruleActive={ruleActive}
+        ruleActive={anyActive}
         onLiveStateChange={handleLiveStateChange}
       />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
-          <RuleBuilder
-            discount={discount}
-            onDiscountChange={setDiscount}
-            weather={weather}
-            trafficLow={trafficLow}
-            onGenerationChange={handleGenerationChange}
-            active={ruleActive}
-            onActiveChange={setRuleActive}
-          />
+          {offers.map((offer, idx) => (
+            <RuleBuilder
+              key={offer.id}
+              title={offer.title}
+              discount={offer.discount}
+              onDiscountChange={(v) => updateOffer(offer.id, { discount: v })}
+              weather={weather}
+              trafficLow={trafficLow}
+              // Only the first card drives the iPhone preview to keep it simple.
+              onGenerationChange={idx === 0 ? handleGenerationChange : undefined}
+              active={offer.active}
+              onActiveChange={(v) => updateOffer(offer.id, { active: v })}
+              onRemove={offers.length > 1 ? () => removeOffer(offer.id) : undefined}
+            />
+          ))}
+
+          <Button
+            variant="outline"
+            onClick={addOffer}
+            className="w-full h-14 gap-2 border-dashed border-primary/40 text-primary hover:bg-primary-soft hover:text-primary"
+          >
+            <Plus className="size-4" />
+            Ajouter une offre (If-Then)
+          </Button>
         </div>
         <div className="xl:col-span-1">
           <IPhonePreview
             weather={weather}
-            discount={discount}
+            discount={leadOffer?.discount ?? 20}
             product={generation.product}
             tone={generation.tone}
             message={generation.message}
@@ -89,8 +144,8 @@ const Automations = () => {
         weatherLabel={liveState.weatherLabel}
         message={generation.message}
         product={generation.product}
-        discount={discount}
-        ruleActive={ruleActive}
+        discount={leadOffer?.discount ?? 20}
+        ruleActive={anyActive}
       />
     </>
   );
