@@ -76,8 +76,10 @@ const conditionLibrary = [
 type Props = {
   discount: number;
   onDiscountChange: (v: number) => void;
+  /** Driven automatically from the live OpenWeather signal. */
   weather: Weather;
-  onWeatherChange: (w: Weather) => void;
+  /** Driven automatically from the live Payone density gauge (<35%). */
+  trafficLow: boolean;
   /** Bubble up product, tone, message so the iPhone preview stays in sync */
   onGenerationChange?: (g: { product: string; tone: Tone; message: string }) => void;
 };
@@ -86,11 +88,10 @@ export const RuleBuilder = ({
   discount,
   onDiscountChange,
   weather,
-  onWeatherChange,
+  trafficLow,
   onGenerationChange,
 }: Props) => {
   const { temperatureC } = useSignals();
-  const [trafficLow, setTrafficLow] = useState(true);
   const [actions] = useState(initialActions);
   const [active, setActive] = useState(true);
   const [product, setProduct] = useState<string>("Café");
@@ -183,62 +184,40 @@ export const RuleBuilder = ({
 
           <div className="flex-1 pb-6">
             <div className="flex flex-wrap gap-2 items-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="inline-flex items-center gap-2 pl-3 pr-2.5 py-1.5 rounded-full bg-primary-soft border border-primary/20 text-sm hover:bg-primary/10 transition-colors">
-                    <WeatherIcon className="size-3.5 text-primary" />
-                    <span className="font-medium text-foreground">Météo</span>
-                    <span className="text-muted-foreground">=</span>
-                    <span className="font-semibold text-primary">{weatherMeta[weather].label}</span>
-                    <ChevronDown className="size-3 text-muted-foreground" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-36">
-                  {(Object.keys(weatherMeta) as Weather[]).map((w) => {
-                    const I = weatherMeta[w].icon;
-                    return (
-                      <DropdownMenuItem
-                        key={w}
-                        onClick={() => onWeatherChange(w)}
-                        className={cn(
-                          "gap-2 cursor-pointer",
-                          w === weather && "bg-primary-soft text-primary font-medium",
-                        )}
-                      >
-                        <I className="size-4" /> {weatherMeta[w].label}
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="inline-flex items-center gap-2 pl-3 pr-3 py-1.5 rounded-full bg-primary-soft border border-primary/20 text-sm">
+                <WeatherIcon className="size-3.5 text-primary" />
+                <span className="font-medium text-foreground">Météo</span>
+                <span className="text-muted-foreground">=</span>
+                <span className="font-semibold text-primary">{weatherMeta[weather].label}</span>
+                <span className="ml-1 inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-success">
+                  <span className="size-1.5 rounded-full bg-success animate-pulse" />
+                  live
+                </span>
+              </div>
 
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1.5">
                 AND
               </span>
 
-              {trafficLow ? (
-                <div className="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full bg-primary-soft border border-primary/20 text-sm">
-                  <Users className="size-3.5 text-primary" />
-                  <span className="font-medium text-foreground">Fréquentation</span>
-                  <span className="text-muted-foreground">=</span>
-                  <span className="font-semibold text-primary">Basse</span>
-                  <button
-                    onClick={() => setTrafficLow(false)}
-                    className="ml-1 size-5 rounded-full hover:bg-primary/10 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
-                  >
-                    <X className="size-3" />
-                  </button>
-                </div>
-              ) : null}
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-full h-8 gap-1 border-dashed"
-                onClick={() => setTrafficLow(true)}
+              <div
+                className={cn(
+                  "inline-flex items-center gap-2 pl-3 pr-3 py-1.5 rounded-full border text-sm",
+                  trafficLow
+                    ? "bg-primary-soft border-primary/20"
+                    : "bg-secondary/60 border-border/60",
+                )}
               >
-                <Plus className="size-3.5" /> Ajouter
-              </Button>
+                <Users className={cn("size-3.5", trafficLow ? "text-primary" : "text-muted-foreground")} />
+                <span className="font-medium text-foreground">Densité</span>
+                <span className="text-muted-foreground">{"<"}</span>
+                <span className={cn("font-semibold", trafficLow ? "text-primary" : "text-muted-foreground")}>
+                  35%
+                </span>
+                <span className="ml-1 inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-success">
+                  <span className="size-1.5 rounded-full bg-success animate-pulse" />
+                  {trafficLow ? "match" : "idle"}
+                </span>
+              </div>
             </div>
 
             <div className="mt-3 flex flex-wrap gap-1.5">
