@@ -503,29 +503,54 @@ export const RuleBuilder = ({
 
       {/* Big deploy button */}
       <div className="mt-6 pt-6 border-t border-border">
-        <Button
-          onClick={handlePublish}
-          disabled={publishing || !active}
-          size="lg"
-          className="w-full gap-2 h-14 text-base font-semibold bg-gradient-primary hover:opacity-90 transition-opacity shadow-elegant"
-        >
-          {publishing ? (
-            <Loader2 className="size-5 animate-spin" />
-          ) : (
-            <Rocket className="size-5" />
-          )}
-          {publishing ? "Déploiement en cours…" : "Déployer sur le réseau Payone"}
-        </Button>
-        <div className="text-[11px] text-muted-foreground text-center mt-2">
-          {lastPublishedAt ? (
-            <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="size-3 text-success" />
-              Dernière offre déployée à {lastPublishedAt.toLocaleTimeString("fr-FR", { timeZone: "Europe/Berlin" })}
-            </span>
-          ) : (
-            <span>L'offre finalisée sera propagée à tous les commerçants partenaires.</span>
-          )}
-        </div>
+        {(() => {
+          const locked = !!(active && lockUntil && Date.now() < lockUntil);
+          return (
+            <>
+              <Button
+                onClick={handlePublish}
+                disabled={publishing || !active || locked}
+                size="lg"
+                className="w-full gap-2 h-14 text-base font-semibold bg-gradient-primary hover:opacity-90 transition-opacity shadow-elegant"
+              >
+                {publishing ? (
+                  <Loader2 className="size-5 animate-spin" />
+                ) : locked ? (
+                  <LockIcon className="size-5" />
+                ) : (
+                  <Rocket className="size-5" />
+                )}
+                {publishing
+                  ? "Déploiement en cours…"
+                  : !active
+                    ? "Règle inactive — envois bloqués"
+                    : locked
+                      ? "Verrouillé — 1 offre/session (15 min)"
+                      : "Déployer sur le réseau Payone"}
+              </Button>
+              <div className="text-[11px] text-muted-foreground text-center mt-2">
+                {!active ? (
+                  <span className="inline-flex items-center gap-1.5 text-warning">
+                    <ShieldAlert className="size-3" />
+                    Activez la règle pour déclencher l'envoi automatique vers Mia.
+                  </span>
+                ) : locked ? (
+                  <span className="inline-flex items-center gap-1.5 text-warning">
+                    <LockIcon className="size-3" />
+                    Désactivez puis réactivez la règle pour renvoyer une offre.
+                  </span>
+                ) : lastPublishedAt ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="size-3 text-success" />
+                    Dernière offre déployée à {lastPublishedAt.toLocaleTimeString("fr-FR", { timeZone: "Europe/Berlin" })}
+                  </span>
+                ) : (
+                  <span>L'offre finalisée sera propagée à tous les commerçants partenaires.</span>
+                )}
+              </div>
+            </>
+          );
+        })()}
       </div>
     </Card>
   );
