@@ -94,6 +94,10 @@ export const CompositeState = () => {
     const weatherKey = isRain ? "rain" : weather?.weather ?? "cloud";
     const sector = `${product}|${weatherKey}|${discount}`;
     const now = Date.now();
+    // Self-heal stale HMR state where the ref might still hold a number.
+    if (typeof lastDispatchRef.current !== "object" || lastDispatchRef.current === null) {
+      lastDispatchRef.current = {};
+    }
     const last = lastDispatchRef.current[sector] ?? 0;
     if (now - last < THROTTLE_MS) return;
     lastDispatchRef.current[sector] = now;
