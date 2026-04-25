@@ -1,66 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Coffee, MapPin, Radar } from "lucide-react";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-
-type Wallet = { id: string; x: number; y: number; isMia?: boolean };
-
-const randomWallet = (id: string, isMia = false): Wallet => {
-  // points within unit circle (radius 0.85 to keep margin)
-  const r = Math.sqrt(Math.random()) * 0.85;
-  const a = Math.random() * Math.PI * 2;
-  return { id, x: 0.5 + (r * Math.cos(a)) / 2, y: 0.5 + (r * Math.sin(a)) / 2, isMia };
-};
+import { useSignals } from "@/context/SignalsContext";
 
 export const ProximityMap = () => {
-  const [wallets, setWallets] = useState<Wallet[]>([
-    randomWallet("w1"),
-    randomWallet("w2"),
-    randomWallet("w3"),
-  ]);
-  const [miaDetected, setMiaDetected] = useState(false);
-
-  // Trigger Mia detection when an offer is inserted (Project 2 simulator)
-  useEffect(() => {
-    const channel = supabase
-      .channel("proximity-map-mia")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "offers_config" },
-        () => {
-          setMiaDetected(true);
-          setWallets((prev) => {
-            const without = prev.filter((w) => !w.isMia);
-            return [...without, randomWallet(`mia-${Date.now()}`, true)];
-          });
-          // Mia disappears after 15s of inactivity
-          setTimeout(() => setMiaDetected(false), 15000);
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  // Other wallets drift slightly for "alive" feel
-  useEffect(() => {
-    const id = setInterval(() => {
-      setWallets((prev) =>
-        prev.map((w) =>
-          w.isMia
-            ? w
-            : {
-                ...w,
-                x: Math.min(0.92, Math.max(0.08, w.x + (Math.random() - 0.5) * 0.02)),
-                y: Math.min(0.92, Math.max(0.08, w.y + (Math.random() - 0.5) * 0.02)),
-              }
-        )
-      );
-    }, 2500);
-    return () => clearInterval(id);
-  }, []);
+  const { wallets, miaDetected, proximityCount } = useSignals();
 
   return (
     <Card className="p-0 shadow-sm-elegant border-border/70 overflow-hidden">
