@@ -40,35 +40,32 @@ export const generateMessage = (
   const p = product.toLowerCase();
   const w = weather;
 
+  let base: string;
   if (tone === "Amical") {
     if (w === "rain")
-      return `Envie d'une petite pause ? Venez vous mettre au sec autour d'un ${p} à -${discount}% ☔`;
-    if (w === "sun")
-      return `Le soleil vous tend les bras ! Notre ${p} est à -${discount}% sur la terrasse 🌞`;
-    if (w === "snow")
-      return `Au chaud ça tente ? Un ${p} réconfortant à -${discount}% vous attend ❄️`;
-    return `Envie d'une petite pause ? Venez nous voir, ${p} à -${discount}% 😊`;
-  }
-
-  if (tone === "Élégant") {
+      base = `Envie d'une petite pause ? Venez vous mettre au sec autour d'un ${p} à -${discount}% ☔`;
+    else if (w === "sun")
+      base = `Le soleil vous tend les bras ! Notre ${p} est à -${discount}% sur la terrasse 🌞`;
+    else if (w === "snow")
+      base = `Au chaud ça tente ? Un ${p} réconfortant à -${discount}% vous attend ❄️`;
+    else base = `Envie d'une petite pause ? Venez nous voir, ${p} à -${discount}% 😊`;
+  } else if (tone === "Élégant") {
     if (w === "rain")
-      return `Une parenthèse raffinée à l'abri de la pluie. Notre ${p} signature à -${discount}%.`;
-    if (w === "sun")
-      return `Une expérience caféinée d'exception vous attend en terrasse. ${p} -${discount}%.`;
-    if (w === "snow")
-      return `L'art du ${p} dans un écrin chaleureux. Sélection signature -${discount}%.`;
-    return `Une expérience caféinée d'exception vous attend. ${p} signature -${discount}%.`;
+      base = `Une parenthèse raffinée à l'abri de la pluie. Notre ${p} signature à -${discount}%.`;
+    else if (w === "sun")
+      base = `Une expérience caféinée d'exception vous attend en terrasse. ${p} -${discount}%.`;
+    else if (w === "snow")
+      base = `L'art du ${p} dans un écrin chaleureux. Sélection signature -${discount}%.`;
+    else base = `Une expérience caféinée d'exception vous attend. ${p} signature -${discount}%.`;
+  } else {
+    if (w === "rain")
+      base = `⚡ FLASH 30 MIN : ${p} -${discount}% pendant l'averse. Foncez !`;
+    else if (w === "sun")
+      base = `⚡ HAPPY HOUR : ${p} -${discount}% — uniquement maintenant !`;
+    else if (w === "snow")
+      base = `⚡ OFFRE EXPRESS : ${p} chaud -${discount}% — limité aux 20 prochains !`;
+    else base = `⚡ OFFRE FLASH : ${p} -${discount}% — c'est maintenant !`;
   }
-
-  // Urgent
-  let base: string;
-  if (w === "rain")
-    base = `⚡ FLASH 30 MIN : ${p} -${discount}% pendant l'averse. Foncez !`;
-  else if (w === "sun")
-    base = `⚡ HAPPY HOUR : ${p} -${discount}% — uniquement maintenant !`;
-  else if (w === "snow")
-    base = `⚡ OFFRE EXPRESS : ${p} chaud -${discount}% — limité aux 20 prochains !`;
-  else base = `⚡ OFFRE FLASH : ${p} -${discount}% — c'est maintenant !`;
   return appendExtras(base, extras, product);
 };
 
@@ -86,10 +83,6 @@ const appendExtras = (
   if (parts.length === 0) return base;
   return `${base} (${parts.join(" · ")})`;
 };
-
-// Note: 3 of the 4 tone branches above use early returns. We patch them with a wrapper:
-const _origGenerate = generateMessage;
-// (Wrapper kept for backward compat — not used; primary path returns through Urgent branch.)
 
 /** Pensée IA — affichée dans la zone "Prompt Logic" */
 export const generateThought = (
