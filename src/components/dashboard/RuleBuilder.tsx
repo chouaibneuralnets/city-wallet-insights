@@ -243,6 +243,34 @@ export const RuleBuilder = ({
                   <span className="font-semibold tabular">{discount}%</span>
                 </div>
               )}
+
+              {/* Product selector chip */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="inline-flex items-center gap-2 pl-3 pr-2.5 py-1.5 rounded-full bg-foreground text-background text-sm hover:bg-foreground/90 transition-colors">
+                    <Coffee className="size-3.5" />
+                    <span className="font-medium">Sur</span>
+                    <span className="text-background/60">·</span>
+                    <span className="font-semibold">{product}</span>
+                    <ChevronDown className="size-3 opacity-70" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="min-w-44">
+                  {products.map((p) => (
+                    <DropdownMenuItem
+                      key={p}
+                      onClick={() => setProduct(p)}
+                      className={cn(
+                        "cursor-pointer",
+                        p === product && "bg-primary-soft text-primary font-medium"
+                      )}
+                    >
+                      {p}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               {actions
                 .filter((a) => a.id !== "a1")
                 .map((act) => (
