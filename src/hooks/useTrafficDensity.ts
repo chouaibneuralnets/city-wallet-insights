@@ -39,7 +39,7 @@ export const useTrafficDensity = () => {
     const id = setInterval(compute, 15000);
 
     const channel = supabase
-      .channel("traffic-density-redemptions")
+      .channel(`traffic-density-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "redemptions" },
