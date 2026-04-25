@@ -1,10 +1,12 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Brain, Plus } from "lucide-react";
 import { RuleBuilder } from "@/components/dashboard/RuleBuilder";
 import { IPhonePreview, type Weather } from "@/components/dashboard/IPhonePreview";
 import { Module2Signals } from "@/components/dashboard/Module2Signals";
 import { AiStrategyLog } from "@/components/dashboard/AiStrategyLog";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { setRuleActiveValue } from "@/lib/ruleActiveStore";
 import type { Tone } from "@/lib/aiGenerator";
 
 type OfferRule = {
