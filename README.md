@@ -1,6 +1,6 @@
 # 🚀 MIA: Context-Aware Retail Engine
 
-> **Note:** For a complete strategic overview, download our [Executive Summary (PDF)](./MIA_Project_Summary.pdf).
+> **Note:** For a complete strategic overview, download our [[Executive Summary (PDF)](./MIA_Project_Summary.pdf)](https://drive.google.com/file/d/1tUAbCLmMwwsKvj959JQJ-fwPdRqYE9mg/view?usp=sharing).
 
 **MIA** is a real-time, context-aware retail engine built for Stuttgart's independent merchants. [cite_start]It combines IoT signals—such as weather, foot traffic, and local events—with a **Local-First AI** strategist to convert off-peak hours into revenue without compromising customer privacy[cite: 13, 14].
 
