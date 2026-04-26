@@ -263,11 +263,11 @@ export const RuleBuilder = ({
   const customConditionsMatch = useMemo(
     () =>
       conditions.every((c) =>
-        evaluateCondition(c, { now: new Date(), stockQty, activeEvent }),
+        evaluateCondition(c, { now: new Date(), stockQty, activeEvent, weather }),
       ),
-    [conditions, stockQty, activeEvent],
+    [conditions, stockQty, activeEvent, weather],
   );
-  const baseConditionsMatch = weather === "sun" && trafficLow;
+  const baseConditionsMatch = proximityCount >= 1 && trafficLow;
   const conditionsMatch = baseConditionsMatch && customConditionsMatch;
   const conditionsMatchRef = useRef(conditionsMatch);
   useEffect(() => {
