@@ -186,6 +186,19 @@ export const RuleBuilder = ({
       });
       return;
     }
+    // Hard gate: every custom condition must match too. The base météo +
+    // densité signals are validated upstream; here we re-evaluate user-defined
+    // conditions at dispatch time so manual clicks honor the same rule as the
+    // auto-trigger.
+    const ctx = { now: new Date(), stockQty, activeEvent };
+    const failing = conditions.filter((c) => !evaluateCondition(c, ctx));
+    if (failing.length > 0) {
+      toast.error("Conditions personnalisées non remplies", {
+        description: `${failing.length}/${conditions.length} condition(s) ne correspondent pas — ajustez ou patientez.`,
+        icon: <ShieldAlert className="size-4 text-warning" />,
+      });
+      return;
+    }
     setPublishing(true);
     try {
       // 1) Flip the global kill-switch ON FIRST so Project 2 is in
@@ -222,10 +235,19 @@ export const RuleBuilder = ({
 
   const handlePublish = () => dispatchOffer({ auto: false });
 
-  // Auto-trigger: ONLY on the OFF → ON transition, and only if conditions
-  // already match at that moment. Changing remise/conditions while ON does
-  // NOT re-send. To resend, user must toggle OFF then ON again.
-  const conditionsMatch = weather === "sun" && trafficLow;
+  // Auto-trigger: ONLY on the OFF → ON transition, and only if ALL conditions
+  // (base météo + densité AND every custom condition) match at that moment.
+  // Changing remise/conditions while ON does NOT re-send. To resend, user must
+  // toggle OFF then ON again.
+  const customConditionsMatch = useMemo(
+    () =>
+      conditions.every((c) =>
+        evaluateCondition(c, { now: new Date(), stockQty, activeEvent }),
+      ),
+    [conditions, stockQty, activeEvent],
+  );
+  const baseConditionsMatch = weather === "sun" && trafficLow;
+  const conditionsMatch = baseConditionsMatch && customConditionsMatch;
   const conditionsMatchRef = useRef(conditionsMatch);
   useEffect(() => {
     conditionsMatchRef.current = conditionsMatch;
@@ -527,7 +549,7 @@ export const RuleBuilder = ({
       <div className="mt-6 pt-6 border-t border-border">
         <Button
           onClick={handlePublish}
-          disabled={publishing || !active}
+          disabled={publishing || !active || !customConditionsMatch}
           size="lg"
           className="w-full gap-2 h-14 text-base font-semibold bg-gradient-primary hover:opacity-90 transition-opacity shadow-elegant"
         >
@@ -542,9 +564,11 @@ export const RuleBuilder = ({
             ? "Déploiement en cours…"
             : !active
               ? "Règle inactive — envois bloqués"
-              : justDeployed
-                ? "Offre en ligne ✓"
-                : "Déployer sur le réseau Payone"}
+              : !customConditionsMatch
+                ? "Conditions personnalisées non remplies"
+                : justDeployed
+                  ? "Offre en ligne ✓"
+                  : "Déployer sur le réseau Payone"}
         </Button>
         <div className="text-[11px] text-muted-foreground text-center mt-2">
           {!active ? (
