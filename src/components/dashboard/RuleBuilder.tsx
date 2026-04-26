@@ -129,6 +129,7 @@ export const RuleBuilder = ({
   // Seeded with two sensible defaults so the "x/y match" counter is meaningful
   // out of the box. Users can remove or add more freely.
   const [conditions, setConditions] = useState<Condition[]>(() => [
+    { id: Math.random().toString(36).slice(2, 9), type: "Weather", value: "sun" },
     { id: Math.random().toString(36).slice(2, 9), type: "Time", from: 14, to: 17 },
     { id: Math.random().toString(36).slice(2, 9), type: "Day", value: "Weekday" },
   ]);
