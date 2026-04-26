@@ -188,12 +188,17 @@ export const RuleBuilder = ({
     }
     setPublishing(true);
     try {
+      // 1) Flip the global kill-switch ON FIRST so Project 2 is in
+      //    "listening" mode before the offer row arrives.
+      await setRuleActiveValue(true);
+
+      // 2) Then push the generated offer to the offers table with active=true.
       const { error } = await supabase.from("offers_config").insert({
         weather,
         discount_percent: discount,
         product,
         traffic_condition: trafficLow ? "low" : "normal",
-        active,
+        active: true,
         tone,
         message,
         // Canonical text shipped to Mia's wallet app + read back by Magic Preview
@@ -201,7 +206,9 @@ export const RuleBuilder = ({
       });
       if (error) throw error;
       setLastPublishedAt(new Date());
-      toast.success(opts.auto ? "Règle déclenchée — offre envoyée à Mia" : "Offre déployée sur le réseau Payone", {
+      setJustDeployed(true);
+      window.setTimeout(() => setJustDeployed(false), 4000);
+      toast.success(opts.auto ? "Règle déclenchée — offre envoyée à Mia" : "Offre en ligne sur le réseau Payone", {
         description: `"${message.slice(0, 80)}${message.length > 80 ? "…" : ""}"`,
         icon: <CheckCircle2 className="size-4 text-success" />,
       });
