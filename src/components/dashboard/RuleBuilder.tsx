@@ -184,18 +184,6 @@ export const RuleBuilder = ({
       });
       return;
     }
-    // 15-min lock: don't fire again for the same activation cycle until expiry.
-    const now = Date.now();
-    if (lockUntil && now < lockUntil) {
-      const remaining = Math.ceil((lockUntil - now) / 1000);
-      const min = Math.floor(remaining / 60);
-      const sec = remaining % 60;
-      toast.warning("Verrou actif — une seule offre par session", {
-        description: `Désactivez puis réactivez la règle, ou attendez ${min}m${sec.toString().padStart(2, "0")}s.`,
-        icon: <LockIcon className="size-4 text-warning" />,
-      });
-      return;
-    }
     setPublishing(true);
     try {
       const { error } = await supabase.from("offers_config").insert({
@@ -211,8 +199,6 @@ export const RuleBuilder = ({
       });
       if (error) throw error;
       setLastPublishedAt(new Date());
-      sessionDispatchedRef.current = true;
-      setLockUntil(Date.now() + LOCK_DURATION_MS);
       toast.success(opts.auto ? "Règle déclenchée — offre envoyée à Mia" : "Offre déployée sur le réseau Payone", {
         description: `"${message.slice(0, 80)}${message.length > 80 ? "…" : ""}"`,
         icon: <CheckCircle2 className="size-4 text-success" />,
@@ -239,19 +225,9 @@ export const RuleBuilder = ({
   const wasActiveRef = useRef(active);
   useEffect(() => {
     const prev = wasActiveRef.current;
-    if (prev && !active) {
-      // ON → OFF : reset session lock so next activation can re-send.
-      sessionDispatchedRef.current = false;
-      setLockUntil(null);
-    } else if (!prev && active) {
-      // OFF → ON : if conditions already match and no active 15-min lock, send once.
-      if (
-        conditionsMatchRef.current &&
-        !sessionDispatchedRef.current &&
-        !(lockUntil && Date.now() < lockUntil)
-      ) {
-        dispatchOffer({ auto: true });
-      }
+    if (!prev && active && conditionsMatchRef.current) {
+      // OFF → ON : if conditions already match, send once on activation.
+      dispatchOffer({ auto: true });
     }
     wasActiveRef.current = active;
     // eslint-disable-next-line react-hooks/exhaustive-deps
