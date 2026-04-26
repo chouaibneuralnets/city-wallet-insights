@@ -222,10 +222,19 @@ export const RuleBuilder = ({
 
   const handlePublish = () => dispatchOffer({ auto: false });
 
-  // Auto-trigger: ONLY on the OFF → ON transition, and only if conditions
-  // already match at that moment. Changing remise/conditions while ON does
-  // NOT re-send. To resend, user must toggle OFF then ON again.
-  const conditionsMatch = weather === "sun" && trafficLow;
+  // Auto-trigger: ONLY on the OFF → ON transition, and only if ALL conditions
+  // (base météo + densité AND every custom condition) match at that moment.
+  // Changing remise/conditions while ON does NOT re-send. To resend, user must
+  // toggle OFF then ON again.
+  const customConditionsMatch = useMemo(
+    () =>
+      conditions.every((c) =>
+        evaluateCondition(c, { now: new Date(), stockQty, activeEvent }),
+      ),
+    [conditions, stockQty, activeEvent],
+  );
+  const baseConditionsMatch = weather === "sun" && trafficLow;
+  const conditionsMatch = baseConditionsMatch && customConditionsMatch;
   const conditionsMatchRef = useRef(conditionsMatch);
   useEffect(() => {
     conditionsMatchRef.current = conditionsMatch;
