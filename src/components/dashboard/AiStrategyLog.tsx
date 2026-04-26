@@ -138,60 +138,21 @@ export const AiStrategyLog = ({
     lastSatisfiedRef.current = ruleSatisfied;
   }, [ruleSatisfied]);
 
-  // Autopilot: when ON + conditions satisfied → auto-deploy every 25s max
+  // NOTE: Auto-deploy a été retiré.
+  // Règle métier : 1 offre activée = 1 seul message envoyé à Mia.
+  // L'envoi se fait uniquement quand l'utilisateur active une offre
+  // (transition OFF → ON) ou clique manuellement sur "Déployer".
+  // Le pilote auto ne fait plus que journaliser l'état — pas d'INSERT.
   useEffect(() => {
-    if (!autopilot || !ruleSatisfied || !message) return;
-    if (!ruleActive) return; // master kill-switch
-    const tick = async () => {
-      const now = Date.now();
-      if (now - lastAutoPushRef.current < 25000) return;
-
-      // Anti-spam: skip if an identical offer was sent < 5 min ago for the
-      // same "secteur" (product × weather × discount signature).
-      const sector = `${product}|sun|${discount}`;
-      const lastSig = lastSignatureDispatchRef.current[sector] ?? 0;
-      const remainingMs = THROTTLE_MS - (now - lastSig);
-      if (remainingMs > 0) {
-        const remainingSec = Math.ceil(remainingMs / 1000);
-        push({
-          level: "throttle",
-          message: `Anti-spam · offre identique [${product} -${discount}%] déjà envoyée pour ce secteur (réessai dans ${remainingSec}s)`,
-          icon: <ShieldAlert className="size-3.5" />,
-        });
-        lastAutoPushRef.current = now;
-        return;
-      }
-
-      lastAutoPushRef.current = now;
-      lastSignatureDispatchRef.current[sector] = now;
-      push({
-        level: "send",
-        message: `Envoi auto vers Supabase · "${message.slice(0, 60)}${message.length > 60 ? "…" : ""}"`,
-        icon: <Send className="size-3.5" />,
-      });
-      const { error } = await supabase.from("offers_config").insert({
-        weather: "sun",
-        discount_percent: discount,
-        product,
-        traffic_condition: trafficPct < 35 ? "low" : "normal",
-        active: true,
-        tone: "Amical",
-        message,
-        generated_text: message,
-      });
-      if (error) {
-        push({
-          level: "idle",
-          message: `Erreur d'envoi auto : ${error.message}`,
-          icon: <AlertCircle className="size-3.5" />,
-        });
-        // Free the throttle slot on error so user isn't blocked.
-        delete lastSignatureDispatchRef.current[sector];
-      }
-    };
-    tick();
-    const id = setInterval(tick, 25000);
-    return () => clearInterval(id);
+    if (!autopilot || !ruleSatisfied || !message || !ruleActive) return;
+    const now = Date.now();
+    if (now - lastAutoPushRef.current < 25000) return;
+    lastAutoPushRef.current = now;
+    push({
+      level: "scan",
+      message: `Pilote auto · conditions OK · offre déjà déployée — pas de renvoi (1 offre = 1 message)`,
+      icon: <ShieldAlert className="size-3.5" />,
+    });
   }, [autopilot, ruleSatisfied, message, product, discount, trafficPct, ruleActive]);
 
   // When autopilot is OFF and conditions become satisfied → suggest manual
