@@ -34,10 +34,10 @@ const Automations = () => {
     message: "",
   });
   const [liveState, setLiveState] = useState<{
-    ruleSatisfied: boolean;
     trafficPct: number;
     weatherLabel: string;
-  }>({ ruleSatisfied: false, trafficPct: 0, weatherLabel: "—" });
+  }>({ trafficPct: 0, weatherLabel: "—" });
+  const [ruleMatches, setRuleMatches] = useState<Record<string, boolean>>({});
 
   const handleGenerationChange = useCallback(
     (g: { product: string; tone: Tone; message: string }) => setGeneration(g),
@@ -45,10 +45,13 @@ const Automations = () => {
   );
 
   const handleLiveStateChange = useCallback(
-    (s: { ruleSatisfied: boolean; trafficPct: number; weatherLabel: string }) =>
-      setLiveState(s),
+    (s: { trafficPct: number; weatherLabel: string }) => setLiveState(s),
     [],
   );
+
+  const handleRuleSatisfiedChange = useCallback((id: string, matched: boolean) => {
+    setRuleMatches((prev) => (prev[id] === matched ? prev : { ...prev, [id]: matched }));
+  }, []);
 
   const updateOffer = (id: string, patch: Partial<OfferRule>) => {
     setOffers((prev) => prev.map((o) => (o.id === id ? { ...o, ...patch } : o)));
@@ -68,10 +71,16 @@ const Automations = () => {
 
   const removeOffer = (id: string) => {
     setOffers((prev) => (prev.length > 1 ? prev.filter((o) => o.id !== id) : prev));
+    setRuleMatches((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   };
 
   // For AiStrategyLog: rule is "active" if any offer is active.
   const anyActive = offers.some((o) => o.active);
+  const anyRuleSatisfied = offers.some((o) => ruleMatches[o.id]);
   // Use the first offer as the lead for KPI display.
   const leadOffer = offers[0];
 
@@ -114,8 +123,6 @@ const Automations = () => {
       <Module2Signals
         onWeatherDetected={setWeather}
         onTrafficLowDetected={setTrafficLow}
-        ruleWeather={weather}
-        ruleActive={anyActive}
         onLiveStateChange={handleLiveStateChange}
       />
 
@@ -134,6 +141,7 @@ const Automations = () => {
               active={offer.active}
               onActiveChange={(v) => updateOffer(offer.id, { active: v })}
               onRemove={offers.length > 1 ? () => removeOffer(offer.id) : undefined}
+              onRuleSatisfiedChange={(matched) => handleRuleSatisfiedChange(offer.id, matched)}
             />
           ))}
 
@@ -159,7 +167,7 @@ const Automations = () => {
 
       {/* AI Strategy Log — autonomous console + autopilot toggle */}
       <AiStrategyLog
-        ruleSatisfied={liveState.ruleSatisfied}
+        ruleSatisfied={anyRuleSatisfied}
         trafficPct={liveState.trafficPct}
         weatherLabel={liveState.weatherLabel}
         message={generation.message}
