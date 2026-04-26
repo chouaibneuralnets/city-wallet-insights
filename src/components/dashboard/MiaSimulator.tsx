@@ -29,7 +29,7 @@ export const MiaSimulator = () => {
       if (error) throw error;
 
       // When Mia accepts: drop a ping inside the geofence so the proximity
-      // map + counter light up in real-time (within ~50m of Café Müller).
+      // map + counter light up in real-time (within ~50m of Müller Coffee).
       if (status === "accepted") {
         const r = Math.sqrt(Math.random()) * 0.0005;
         const a = Math.random() * Math.PI * 2;

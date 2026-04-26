@@ -45,7 +45,7 @@ export const AppHeader = () => {
             CM
           </div>
           <div className="text-xs">
-            <div className="font-semibold text-foreground leading-tight">Café Müller</div>
+            <div className="font-semibold text-foreground leading-tight">Müller Coffee</div>
             <div className="text-[10px] text-muted-foreground">Stuttgart Zentrum</div>
           </div>
         </div>

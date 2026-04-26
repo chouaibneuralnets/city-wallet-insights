@@ -200,7 +200,7 @@ export const Module2Signals = ({
                 {proximityCount}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                active wallets around Café Müller
+                active wallets around Müller Coffee
               </div>
             </div>
           </div>

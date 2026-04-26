@@ -165,7 +165,7 @@ export const AppSidebar = () => {
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-xs font-medium text-sidebar-foreground truncate">Maria Garcia</div>
-              <div className="text-[10px] text-muted-foreground truncate">Café Müller</div>
+              <div className="text-[10px] text-muted-foreground truncate">Müller Coffee</div>
             </div>
           </div>
         )}
