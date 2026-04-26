@@ -549,7 +549,7 @@ export const RuleBuilder = ({
       <div className="mt-6 pt-6 border-t border-border">
         <Button
           onClick={handlePublish}
-          disabled={publishing || !active}
+          disabled={publishing || !active || !customConditionsMatch}
           size="lg"
           className="w-full gap-2 h-14 text-base font-semibold bg-gradient-primary hover:opacity-90 transition-opacity shadow-elegant"
         >
@@ -564,9 +564,11 @@ export const RuleBuilder = ({
             ? "Déploiement en cours…"
             : !active
               ? "Règle inactive — envois bloqués"
-              : justDeployed
-                ? "Offre en ligne ✓"
-                : "Déployer sur le réseau Payone"}
+              : !customConditionsMatch
+                ? "Conditions personnalisées non remplies"
+                : justDeployed
+                  ? "Offre en ligne ✓"
+                  : "Déployer sur le réseau Payone"}
         </Button>
         <div className="text-[11px] text-muted-foreground text-center mt-2">
           {!active ? (
