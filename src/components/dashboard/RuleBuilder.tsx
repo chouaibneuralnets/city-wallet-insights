@@ -192,16 +192,16 @@ export const RuleBuilder = ({
     }
     if (!baseConditionsMatch) {
       toast.error("IF conditions not met", {
-        description: "Weather and density must match the rule before sending to Mia.",
+        description: "At least 1 customer nearby AND density < 35% are required before sending to Mia.",
         icon: <ShieldAlert className="size-4 text-warning" />,
       });
       return;
     }
-    // Hard gate: every custom condition must match too. The base weather +
+    // Hard gate: every custom condition must match too. The base customer +
     // density signals are validated upstream; here we re-evaluate user-defined
     // conditions at dispatch time so manual clicks honor the same rule as the
     // auto-trigger.
-    const ctx = { now: new Date(), stockQty, activeEvent };
+    const ctx = { now: new Date(), stockQty, activeEvent, weather };
     const failing = conditions.filter((c) => !evaluateCondition(c, ctx));
     if (failing.length > 0) {
       toast.error("Custom conditions not met", {
