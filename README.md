@@ -58,6 +58,11 @@
 2. **Install dependencies**
 Using npm (Node Package Manager), install all required libraries defined in package.json:
 
+4. **Environment Variables**
+MIA requires connection strings for Supabase. Create a .env file in the root directory:
+
+4.**Run development server**
+Start the local development server with Vite
 
 
 
@@ -72,8 +77,4 @@ Sparkasse: Powers the City-Wallet identity layer and secure anonymous interactio
 
 
 DSV: Contributes logistics signals and environmental context for the detection engine.
-3. **Environment Variables**
-MIA requires connection strings for Supabase. Create a .env file in the root directory:
 
-4.**Run development server**
-Start the local development server with Vite:
