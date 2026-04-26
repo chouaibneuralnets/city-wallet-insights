@@ -186,6 +186,19 @@ export const RuleBuilder = ({
       });
       return;
     }
+    // Hard gate: every custom condition must match too. The base météo +
+    // densité signals are validated upstream; here we re-evaluate user-defined
+    // conditions at dispatch time so manual clicks honor the same rule as the
+    // auto-trigger.
+    const ctx = { now: new Date(), stockQty, activeEvent };
+    const failing = conditions.filter((c) => !evaluateCondition(c, ctx));
+    if (failing.length > 0) {
+      toast.error("Conditions personnalisées non remplies", {
+        description: `${failing.length}/${conditions.length} condition(s) ne correspondent pas — ajustez ou patientez.`,
+        icon: <ShieldAlert className="size-4 text-warning" />,
+      });
+      return;
+    }
     setPublishing(true);
     try {
       // 1) Flip the global kill-switch ON FIRST so Project 2 is in
