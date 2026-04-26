@@ -93,6 +93,8 @@ type Props = {
   title?: string;
   /** When provided, renders a small remove button in the header. */
   onRemove?: () => void;
+  /** Reports the full IF match state for this specific offer rule. */
+  onRuleSatisfiedChange?: (matched: boolean) => void;
 };
 
 
@@ -107,6 +109,7 @@ export const RuleBuilder = ({
   onActiveChange,
   title,
   onRemove,
+  onRuleSatisfiedChange,
 }: Props) => {
   const { temperatureC } = useSignals();
   const [actions] = useState(initialActions);
@@ -186,6 +189,13 @@ export const RuleBuilder = ({
       });
       return;
     }
+    if (!baseConditionsMatch) {
+      toast.error("Conditions IF non remplies", {
+        description: "La météo et la densité doivent correspondre à la règle avant l'envoi vers Mia.",
+        icon: <ShieldAlert className="size-4 text-warning" />,
+      });
+      return;
+    }
     // Hard gate: every custom condition must match too. The base météo +
     // densité signals are validated upstream; here we re-evaluate user-defined
     // conditions at dispatch time so manual clicks honor the same rule as the
@@ -251,7 +261,8 @@ export const RuleBuilder = ({
   const conditionsMatchRef = useRef(conditionsMatch);
   useEffect(() => {
     conditionsMatchRef.current = conditionsMatch;
-  }, [conditionsMatch]);
+    onRuleSatisfiedChange?.(conditionsMatch);
+  }, [conditionsMatch, onRuleSatisfiedChange]);
 
   const wasActiveRef = useRef(active);
   useEffect(() => {
@@ -549,7 +560,7 @@ export const RuleBuilder = ({
       <div className="mt-6 pt-6 border-t border-border">
         <Button
           onClick={handlePublish}
-          disabled={publishing || !active || !customConditionsMatch}
+          disabled={publishing || !active || !conditionsMatch}
           size="lg"
           className="w-full gap-2 h-14 text-base font-semibold bg-gradient-primary hover:opacity-90 transition-opacity shadow-elegant"
         >
@@ -564,8 +575,8 @@ export const RuleBuilder = ({
             ? "Déploiement en cours…"
             : !active
               ? "Règle inactive — envois bloqués"
-              : !customConditionsMatch
-                ? "Conditions personnalisées non remplies"
+              : !conditionsMatch
+                ? "Conditions IF non remplies"
                 : justDeployed
                   ? "Offre en ligne ✓"
                   : "Déployer sur le réseau Payone"}

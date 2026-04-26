@@ -9,8 +9,6 @@ import {
   Wind,
   Loader2,
   Users,
-  CheckCircle2,
-  AlertCircle,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -52,13 +50,8 @@ type Props = {
   onWeatherDetected: (w: Weather) => void;
   /** Push live "trafficLow" (density < 35%) so the rule auto-validates. */
   onTrafficLowDetected: (low: boolean) => void;
-  /** Currently selected weather in the rule (for the validation badge). */
-  ruleWeather: Weather;
-  /** Master switch — when OFF, the green "génération active" banner stays hidden. */
-  ruleActive?: boolean;
-  /** Notify parent about the live derived state (used by the AI Strategy Log). */
+  /** Notify parent about live signals (used by the AI Strategy Log display). */
   onLiveStateChange?: (state: {
-    ruleSatisfied: boolean;
     trafficPct: number;
     weatherLabel: string;
   }) => void;
@@ -72,8 +65,6 @@ type Props = {
 export const Module2Signals = ({
   onWeatherDetected,
   onTrafficLowDetected,
-  ruleWeather,
-  ruleActive = true,
   onLiveStateChange,
 }: Props) => {
   const { weather, weatherLoading, temperatureC, proximityCount } = useSignals();
@@ -91,19 +82,13 @@ export const Module2Signals = ({
     onTrafficLowDetected(trafficLow);
   }, [trafficLow, onTrafficLowDetected]);
 
-  // Rule validation — does the live state match the active rule?
-  const weatherMatches = ruleWeather === liveWeather;
-  const trafficMatches = trafficLow; // rule = "Densité < 35%"
-  const ruleSatisfied = weatherMatches && trafficMatches;
-
-  // Notify parent (Automations) so the AI Strategy Log can react.
+  // Notify parent (Automations) so the AI Strategy Log can display live context.
   useEffect(() => {
     onLiveStateChange?.({
-      ruleSatisfied,
       trafficPct,
       weatherLabel: weatherLabel(liveWeather),
     });
-  }, [ruleSatisfied, trafficPct, liveWeather, onLiveStateChange]);
+  }, [trafficPct, liveWeather, onLiveStateChange]);
 
 
   const WIcon = weatherIcon(liveWeather);
@@ -225,66 +210,6 @@ export const Module2Signals = ({
         </div>
       </div>
 
-      {/* Rule validation strip */}
-      <div
-        className={cn(
-          "px-5 py-3 border-t flex items-center gap-3 transition-colors",
-          ruleSatisfied && ruleActive
-            ? "bg-success/10 border-success/30"
-            : ruleSatisfied && !ruleActive
-              ? "bg-warning/10 border-warning/30"
-              : "bg-secondary/40 border-border/60",
-        )}
-      >
-        {ruleSatisfied && ruleActive ? (
-          <>
-            <CheckCircle2 className="size-5 text-success shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-success leading-tight">
-                Conditions remplies — Génération Active
-              </div>
-              <div className="text-[11px] text-success/80 mt-0.5 font-mono">
-                IF [{weatherLabel(liveWeather)}] AND [Densité {trafficPct}% &lt; 35%] → règle déclenchée
-              </div>
-            </div>
-            <Badge className="bg-success text-success-foreground hover:bg-success animate-pulse">
-              ACTIVE
-            </Badge>
-          </>
-        ) : ruleSatisfied && !ruleActive ? (
-          <>
-            <AlertCircle className="size-5 text-warning shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-warning leading-tight">
-                Conditions OK — En attente d'activation
-              </div>
-              <div className="text-[11px] text-warning/80 mt-0.5 font-mono">
-                Basculez « Règle active » sur ON pour déclencher l'envoi vers Mia.
-              </div>
-            </div>
-            <Badge variant="outline" className="border-warning/40 text-warning">
-              STANDBY
-            </Badge>
-          </>
-        ) : (
-          <>
-            <AlertCircle className="size-5 text-muted-foreground shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-foreground leading-tight">
-                Conditions non remplies — En veille
-              </div>
-              <div className="text-[11px] text-muted-foreground mt-0.5 font-mono">
-                Météo {weatherMatches ? "✓" : "✗"} ({weatherLabel(liveWeather)} vs règle {weatherLabel(ruleWeather)})
-                {" · "}
-                Densité {trafficMatches ? "✓" : "✗"} ({trafficPct}%)
-              </div>
-            </div>
-            <Badge variant="outline" className="border-border">
-              IDLE
-            </Badge>
-          </>
-        )}
-      </div>
     </Card>
   );
 };

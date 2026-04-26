@@ -6,7 +6,7 @@ import { Module2Signals } from "@/components/dashboard/Module2Signals";
 import { AiStrategyLog } from "@/components/dashboard/AiStrategyLog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { setRuleActiveValue } from "@/lib/ruleActiveStore";
+import { setRuleActiveValue, useRuleActive } from "@/lib/ruleActiveStore";
 import type { Tone } from "@/lib/aiGenerator";
 
 type OfferRule = {
@@ -26,6 +26,7 @@ const Automations = () => {
   const [offers, setOffers] = useState<OfferRule[]>([
     { id: uid(), title: "Offre principale", discount: 20, active: false },
   ]);
+  const globalRuleActive = useRuleActive();
 
   // The iPhone preview mirrors the FIRST active offer (or the first one if none active).
   const [generation, setGeneration] = useState<{ product: string; tone: Tone; message: string }>({
@@ -34,10 +35,10 @@ const Automations = () => {
     message: "",
   });
   const [liveState, setLiveState] = useState<{
-    ruleSatisfied: boolean;
     trafficPct: number;
     weatherLabel: string;
-  }>({ ruleSatisfied: false, trafficPct: 0, weatherLabel: "—" });
+  }>({ trafficPct: 0, weatherLabel: "—" });
+  const [ruleMatches, setRuleMatches] = useState<Record<string, boolean>>({});
 
   const handleGenerationChange = useCallback(
     (g: { product: string; tone: Tone; message: string }) => setGeneration(g),
@@ -45,10 +46,13 @@ const Automations = () => {
   );
 
   const handleLiveStateChange = useCallback(
-    (s: { ruleSatisfied: boolean; trafficPct: number; weatherLabel: string }) =>
-      setLiveState(s),
+    (s: { trafficPct: number; weatherLabel: string }) => setLiveState(s),
     [],
   );
+
+  const handleRuleSatisfiedChange = useCallback((id: string, matched: boolean) => {
+    setRuleMatches((prev) => (prev[id] === matched ? prev : { ...prev, [id]: matched }));
+  }, []);
 
   const updateOffer = (id: string, patch: Partial<OfferRule>) => {
     setOffers((prev) => prev.map((o) => (o.id === id ? { ...o, ...patch } : o)));
@@ -68,19 +72,44 @@ const Automations = () => {
 
   const removeOffer = (id: string) => {
     setOffers((prev) => (prev.length > 1 ? prev.filter((o) => o.id !== id) : prev));
+    setRuleMatches((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   };
 
   // For AiStrategyLog: rule is "active" if any offer is active.
   const anyActive = offers.some((o) => o.active);
+  const anyRuleSatisfied = offers.some((o) => ruleMatches[o.id]);
   // Use the first offer as the lead for KPI display.
   const leadOffer = offers[0];
 
   // Mirror the global "rule active" flag so all background tickers (Module 01
   // LiveOpportunities, autopilot, …) honor the same kill-switch — even from
   // other pages.
+  useEffect(() => {
+    setOffers((prev) => {
+      const hasActive = prev.some((o) => o.active);
+      if (globalRuleActive && !hasActive) {
+        return prev.map((o, idx) => (idx === 0 ? { ...o, active: true } : o));
+      }
+      if (!globalRuleActive && hasActive) {
+        return prev.map((o) => (o.active ? { ...o, active: false } : o));
+      }
+      return prev;
+    });
+  }, [globalRuleActive]);
+
+  const didMountMirrorRef = useRef(false);
   const wasActiveRef = useRef(anyActive);
   useEffect(() => {
-    setRuleActiveValue(anyActive);
+    if (!didMountMirrorRef.current) {
+      didMountMirrorRef.current = true;
+      wasActiveRef.current = anyActive;
+      return;
+    }
+    void setRuleActiveValue(anyActive).catch(() => undefined);
     const wasActive = wasActiveRef.current;
     wasActiveRef.current = anyActive;
     if (wasActive && !anyActive) {
@@ -114,8 +143,6 @@ const Automations = () => {
       <Module2Signals
         onWeatherDetected={setWeather}
         onTrafficLowDetected={setTrafficLow}
-        ruleWeather={weather}
-        ruleActive={anyActive}
         onLiveStateChange={handleLiveStateChange}
       />
 
@@ -134,6 +161,7 @@ const Automations = () => {
               active={offer.active}
               onActiveChange={(v) => updateOffer(offer.id, { active: v })}
               onRemove={offers.length > 1 ? () => removeOffer(offer.id) : undefined}
+              onRuleSatisfiedChange={(matched) => handleRuleSatisfiedChange(offer.id, matched)}
             />
           ))}
 
@@ -159,7 +187,7 @@ const Automations = () => {
 
       {/* AI Strategy Log — autonomous console + autopilot toggle */}
       <AiStrategyLog
-        ruleSatisfied={liveState.ruleSatisfied}
+        ruleSatisfied={anyRuleSatisfied}
         trafficPct={liveState.trafficPct}
         weatherLabel={liveState.weatherLabel}
         message={generation.message}
