@@ -119,9 +119,6 @@ export const RuleBuilder = ({
   const [tone, setTone] = useState<Tone>("Amical");
   const [publishing, setPublishing] = useState(false);
   const [lastPublishedAt, setLastPublishedAt] = useState<Date | null>(null);
-  // Lock: stores timestamp of last auto-dispatch within current activation cycle.
-  const [lockUntil, setLockUntil] = useState<number | null>(null);
-  const sessionDispatchedRef = useRef(false);
 
   // Dynamic conditions (Heure, Jour, Stock, Événement) — fully editable.
   // Seeded with two sensible defaults so the "x/y match" counter is meaningful
