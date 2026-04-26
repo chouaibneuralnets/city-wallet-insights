@@ -1,21 +1,34 @@
-import { TrendingUp, TrendingDown, ArrowUpRight, Sparkles, ShieldCheck, Zap, Loader2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { TrendingUp, TrendingDown, ArrowUpRight, ShieldCheck, Zap, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useKpiMetrics } from "@/hooks/useKpiMetrics";
 import { useEffect, useRef, useState } from "react";
 
-type Accent = "primary" | "success" | "warning";
+type Accent = "primary" | "mint" | "peach";
 
-const accentMap: Record<Accent, string> = {
-  primary: "bg-primary-soft text-primary",
-  success: "bg-success/10 text-success",
-  warning: "bg-warning/10 text-warning",
+const accentMap: Record<Accent, { bg: string; ring: string; glow: string; text: string }> = {
+  primary: {
+    bg: "bg-gradient-primary",
+    ring: "ring-primary/20",
+    glow: "shadow-glow",
+    text: "text-primary",
+  },
+  mint: {
+    bg: "bg-gradient-mint",
+    ring: "ring-accent/20",
+    glow: "shadow-glow-mint",
+    text: "text-accent-foreground",
+  },
+  peach: {
+    bg: "bg-gradient-peach",
+    ring: "ring-peach/20",
+    glow: "shadow-glow-peach",
+    text: "text-foreground",
+  },
 };
 
 const formatEuro = (n: number) =>
-  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(n);
+  new Intl.NumberFormat("en-GB", { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(n);
 
-// Hook to detect value changes and trigger a flash animation
 const useFlashOnChange = (value: number) => {
   const prev = useRef(value);
   const [flash, setFlash] = useState(false);
@@ -47,88 +60,99 @@ export const KpiCards = () => {
     icon: React.ComponentType<{ className?: string }>;
     accent: Accent;
     flash?: boolean;
-    live?: boolean;
   }> = [
     {
-      label: "CA sauvé",
+      label: "Revenue saved",
       value: formatEuro(revenueSaved),
-      sub: `${offersAccepted} paiements acceptés`,
+      sub: `${offersAccepted} accepted payments`,
       delta: offersAccepted > 0 ? `+${offersAccepted}` : "—",
       trend: "up",
       icon: ShieldCheck,
       accent: "primary",
       flash: flashRevenue,
-      live: true,
     },
     {
-      label: "Taux de conversion",
+      label: "Conversion rate",
       value: `${conversionRate.toFixed(1)}%`,
-      sub: `${offersAccepted} acceptées / ${offersSent} envoyées`,
-      delta: conversionRate >= 25 ? "Excellent" : conversionRate > 0 ? "En cours" : "—",
+      sub: `${offersAccepted} of ${offersSent} sent`,
+      delta: conversionRate >= 25 ? "Excellent" : conversionRate > 0 ? "Active" : "—",
       trend: conversionRate >= 25 ? "up" : "down",
       icon: Zap,
-      accent: "success",
+      accent: "mint",
       flash: flashConv,
-      live: true,
     },
     {
-      label: "Volume Payone total",
+      label: "Payone volume",
       value: formatEuro(payoneVolume),
-      sub: "Transactions sécurisées",
+      sub: "Secure transactions today",
       delta: payoneVolume > 0 ? "Live" : "—",
       trend: "up",
       icon: ArrowUpRight,
-      accent: "primary",
+      accent: "peach",
       flash: flashPayone,
-      live: true,
     },
   ];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      {cards.map((kpi) => (
-        <Card
-          key={kpi.label}
-          className={cn(
-            "p-5 shadow-sm-elegant hover:shadow-md-elegant transition-all border-border/70 relative overflow-hidden",
-            kpi.flash && "ring-2 ring-primary/60 shadow-md-elegant"
-          )}
-        >
-          {kpi.live && (
-            <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[10px] font-semibold text-success">
-              <span className="relative flex size-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
-                <span className="relative inline-flex rounded-full size-1.5 bg-success" />
-              </span>
-              LIVE
-            </span>
-          )}
-          <div className="flex items-start justify-between mb-4">
-            <div className={cn("size-9 rounded-lg flex items-center justify-center", accentMap[kpi.accent])}>
-              <kpi.icon className="size-4" />
-            </div>
+      {cards.map((kpi, idx) => {
+        const a = accentMap[kpi.accent];
+        return (
+          <div
+            key={kpi.label}
+            className={cn(
+              "group relative overflow-hidden rounded-2xl glass-strong p-5 shadow-sm-elegant hover:shadow-md-elegant transition-all duration-300 animate-slide-up",
+              kpi.flash && cn("ring-2", a.ring, a.glow)
+            )}
+            style={{ animationDelay: `${idx * 80}ms` }}
+          >
+            {/* Decorative blob */}
             <div
               className={cn(
-                "flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md mt-4",
-                kpi.trend === "up" ? "text-success bg-success/10" : "text-muted-foreground bg-muted"
+                "absolute -top-12 -right-12 size-32 rounded-full blur-3xl opacity-30 group-hover:opacity-50 transition-opacity",
+                a.bg
               )}
-            >
-              {kpi.trend === "up" ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
-              {kpi.delta}
+            />
+
+            <div className="relative">
+              <div className="flex items-start justify-between mb-5">
+                <div
+                  className={cn(
+                    "size-11 rounded-2xl flex items-center justify-center text-white shadow-md-elegant",
+                    a.bg
+                  )}
+                >
+                  <kpi.icon className="size-5" />
+                </div>
+                <div
+                  className={cn(
+                    "flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full",
+                    kpi.trend === "up"
+                      ? "bg-accent-soft text-accent-foreground"
+                      : "bg-secondary text-muted-foreground"
+                  )}
+                >
+                  {kpi.trend === "up" ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+                  {kpi.delta}
+                </div>
+              </div>
+
+              <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground font-semibold mb-1.5">
+                {kpi.label}
+              </div>
+              <div
+                className={cn(
+                  "text-[28px] font-bold text-foreground tabular tracking-tight leading-none transition-colors",
+                  kpi.flash && "gradient-text"
+                )}
+              >
+                {loading ? <Loader2 className="size-5 animate-spin text-muted-foreground" /> : kpi.value}
+              </div>
+              <div className="text-xs text-muted-foreground mt-2">{kpi.sub}</div>
             </div>
           </div>
-          <div className="text-xs text-muted-foreground font-medium mb-1">{kpi.label}</div>
-          <div
-            className={cn(
-              "text-2xl font-bold text-foreground tabular tracking-tight transition-colors",
-              kpi.flash && "text-primary"
-            )}
-          >
-            {loading ? <Loader2 className="size-5 animate-spin text-muted-foreground" /> : kpi.value}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">{kpi.sub}</div>
-        </Card>
-      ))}
+        );
+      })}
     </div>
   );
 };
