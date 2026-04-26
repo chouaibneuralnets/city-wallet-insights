@@ -58,10 +58,10 @@ export const ProximityMap = () => {
       <div className="px-5 py-3 border-b border-border/60 flex items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
         <div className="flex items-center gap-2">
           <Radar className="size-4 text-primary" />
-          <h3 className="text-sm font-semibold tracking-tight">Mini-carte de proximité</h3>
+          <h3 className="text-sm font-semibold tracking-tight">Proximity mini-map</h3>
         </div>
         <Badge variant="outline" className="gap-1.5 font-mono text-[10px] border-border/60">
-          rayon 200m
+          200m radius
         </Badge>
       </div>
 
@@ -147,15 +147,15 @@ export const ProximityMap = () => {
         <div className="mt-4 grid grid-cols-3 gap-2 text-[10px]">
           <div className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-primary" />
-            <span className="text-muted-foreground">Boutique</span>
+            <span className="text-muted-foreground">Shop</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-muted-foreground/70" />
-            <span className="text-muted-foreground">Wallets actifs</span>
+            <span className="text-muted-foreground">Active wallets</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-success" />
-            <span className="text-muted-foreground">Mia détectée</span>
+            <span className="text-muted-foreground">Mia detected</span>
           </div>
         </div>
 
@@ -166,10 +166,10 @@ export const ProximityMap = () => {
           {miaDetected ? (
             <span className="font-semibold text-success flex items-center gap-1.5">
               <span className="size-1.5 rounded-full bg-success animate-pulse" />
-              Mia dans le geofence
+              Mia inside geofence
             </span>
           ) : (
-            <span className="text-muted-foreground">{proximityCount} client{proximityCount > 1 ? "s" : ""} à proximité</span>
+            <span className="text-muted-foreground">{proximityCount} customer{proximityCount > 1 ? "s" : ""} nearby</span>
           )}
         </div>
       </div>

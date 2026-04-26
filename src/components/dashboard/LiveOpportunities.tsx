@@ -46,7 +46,7 @@ type Opportunity = {
 };
 
 const fmtTime = (d: Date) =>
-  d.toLocaleTimeString("fr-FR", {
+  d.toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
@@ -127,43 +127,43 @@ const RANDOM_OPPS: Array<{
   source: string;
 }> = [
   {
-    profile: "Profil Commuter — quartier S-Bahn",
-    action: "Café & croissant -15%",
+    profile: "Commuter profile — S-Bahn district",
+    action: "Coffee & croissant -15%",
     status: "sending",
     segment: "commuters",
     source: "ai-scan",
   },
   {
-    profile: "Nouveau passant détecté (1ère fois)",
+    profile: "New passerby detected (1st time)",
     action: "Welcome offer Cappuccino",
     status: "scanning",
     segment: "newcomers",
     source: "ai-scan",
   },
   {
-    profile: "Loyal — historique 30j positif",
-    action: "Pré-commande prioritaire",
+    profile: "Loyal — positive 30d history",
+    action: "Priority pre-order",
     status: "sending",
     segment: "loyals",
     source: "ai-scan",
   },
   {
-    profile: "Pic météo détecté — 4 wallets proches",
-    action: "Offre boisson chaude groupée",
+    profile: "Weather peak detected — 4 nearby wallets",
+    action: "Group hot drink offer",
     status: "sending",
     segment: "commuters",
     source: "weather-trigger",
   },
   {
-    profile: "Étudiant proche campus — pause 14h",
-    action: "Cookie + café -20%",
+    profile: "Student near campus — 2pm break",
+    action: "Cookie + coffee -20%",
     status: "scanning",
     segment: "newcomers",
     source: "ai-scan",
   },
   {
-    profile: "Alerte fréquentation -30%",
-    action: "Extension géo-fence → 500m",
+    profile: "Traffic alert -30%",
+    action: "Geo-fence extension → 500m",
     status: "sending",
     segment: "newcomers",
     source: "geo-trigger",
@@ -203,24 +203,24 @@ export const LiveOpportunities = () => {
         const now = Date.now();
         const seed = [
           {
-            profile: "Travailleur matinal détecté",
-            action: "Envoi offre Espresso rapide",
+            profile: "Early commuter detected",
+            action: "Sending quick Espresso offer",
             status: "sending",
             segment: "commuters",
             source: "ai-scan",
             occurred_at: new Date(now - 35000).toISOString(),
           },
           {
-            profile: "Étudiant détecté sous la pluie",
-            action: "Offre Cappuccino +25%",
+            profile: "Student detected in the rain",
+            action: "Cappuccino offer +25%",
             status: "scanning",
             segment: "newcomers",
             source: "weather-trigger",
             occurred_at: new Date(now - 22000).toISOString(),
           },
           {
-            profile: "Client fidèle (12 visites/mois)",
-            action: "Push pré-réservation",
+            profile: "Loyal customer (12 visits/month)",
+            action: "Pre-booking push",
             status: "converted",
             segment: "loyals",
             source: "ai-scan",
@@ -303,14 +303,14 @@ export const LiveOpportunities = () => {
 
       const isRain = weather?.weather === "rain";
       const action = isRain
-        ? "Pluie — Cappuccino +25% envoyé"
-        : "Pause étudiante — Cappuccino +20%";
+        ? "Rain — Cappuccino +25% sent"
+        : "Student break — Cappuccino +20%";
 
       // 1. Insert the Mia opportunity (sending)
       const { data: log } = await supabase
         .from("activity_logs")
         .insert({
-          profile: "Profil Mia détecté · étudiante, zone campus",
+          profile: "Mia profile detected · student, campus area",
           action,
           status: "sending",
           segment: "newcomers",
@@ -378,10 +378,10 @@ export const LiveOpportunities = () => {
           </div>
           <div>
             <h2 className="text-base font-semibold tracking-tight leading-tight">
-              Opportunités détectées en direct
+              Live detected opportunities
             </h2>
             <p className="text-[11px] text-muted-foreground font-mono">
-              IA · scan continu · {total} profils analysés (live)
+              AI · continuous scan · {total} profiles analyzed (live)
             </p>
           </div>
         </div>
@@ -400,11 +400,11 @@ export const LiveOpportunities = () => {
           <div className="max-h-[380px] overflow-y-auto">
             {loading && opps.length === 0 ? (
               <div className="px-5 py-10 text-center text-[12px] text-muted-foreground font-mono">
-                Connexion au flux temps réel…
+                Connecting to real-time stream…
               </div>
             ) : opps.length === 0 ? (
               <div className="px-5 py-10 text-center text-[12px] text-muted-foreground font-mono">
-                En attente du premier scan IA…
+                Waiting for first AI scan…
               </div>
             ) : (
               <ul className="divide-y divide-border/50">
@@ -479,16 +479,16 @@ export const LiveOpportunities = () => {
         <div className="lg:col-span-2 p-5 bg-secondary/30">
           <div className="flex items-center justify-between mb-3 gap-2">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Segmentation audience
+              Audience segmentation
             </h3>
-            <span className="font-mono text-[10px] text-muted-foreground">{total} offres</span>
+            <span className="font-mono text-[10px] text-muted-foreground">{total}  offers</span>
           </div>
           <Badge
             variant="outline"
             className="mb-3 gap-1.5 font-mono text-[10px] border-primary/40 bg-primary/5 text-primary"
           >
             <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-            {stuttgart.dayNameFr} · cible du jour : {segmentHintLabel}
+            {stuttgart.dayNameFr} · today's target: {segmentHintLabel}
           </Badge>
 
           <div className="h-[160px] -mx-2">
@@ -546,7 +546,7 @@ export const LiveOpportunities = () => {
           <div className="mt-4 pt-4 border-t border-border/60">
             <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-mono">
               <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-              Modèle ML actif · stream Realtime · latence 42ms
+              ML model active · Realtime stream · 42ms latency
             </div>
           </div>
         </div>
