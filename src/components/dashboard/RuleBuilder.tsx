@@ -94,7 +94,7 @@ type Props = {
   onRemove?: () => void;
 };
 
-const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
 
 export const RuleBuilder = ({
   discount,
