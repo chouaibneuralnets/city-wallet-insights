@@ -27,13 +27,14 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { getStuttgartParts } from "@/lib/stuttgartTime";
 
-export type ConditionType = "Time" | "Day" | "Stock" | "Event";
+export type ConditionType = "Time" | "Day" | "Stock" | "Event" | "Weather";
 
 export type Condition =
   | { id: string; type: "Time"; from: number; to: number }
   | { id: string; type: "Day"; value: string }
   | { id: string; type: "Stock"; operator: ">" | "<"; quantity: number }
-  | { id: string; type: "Event"; value: string };
+  | { id: string; type: "Event"; value: string }
+  | { id: string; type: "Weather"; value: "sun" | "rain" | "snow" | "cloud" };
 
 const typeMeta: Record<
   ConditionType,
@@ -43,6 +44,7 @@ const typeMeta: Record<
   Day: { icon: Calendar, color: "text-violet-600" },
   Stock: { icon: Tag, color: "text-amber-600" },
   Event: { icon: PartyPopper, color: "text-rose-600" },
+  Weather: { icon: CloudSun, color: "text-indigo-600" },
 };
 
 const dayOptions = [
