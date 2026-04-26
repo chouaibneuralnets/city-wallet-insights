@@ -46,7 +46,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export const TransactionChart = () => {
-  const [range, setRange] = useState<(typeof ranges)[number]>("7j");
+  const [range, setRange] = useState<(typeof ranges)[number]>("7d");
   const [view, setView] = useState<"area" | "bar">("area");
 
   const total = data.reduce((s, d) => s + d.total, 0);
