@@ -272,11 +272,6 @@ export const RuleBuilder = ({
               </button>
             )}
           </div>
-          {active && lockUntil && (
-            <span className="inline-flex items-center gap-1 text-[10px] text-warning font-medium">
-              <LockIcon className="size-3" /> Verrou 15 min — 1 offre/session
-            </span>
-          )}
         </div>
       </div>
 
