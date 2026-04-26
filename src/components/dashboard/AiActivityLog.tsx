@@ -31,7 +31,7 @@ const SEED: Omit<LogEntry, "id" | "time">[] = [
   },
   {
     level: "info",
-    message: "Offer generated for 1 nearby user (Café Müller, -20%)",
+    message: "Offer generated for 1 nearby user (Müller Coffee, -20%)",
     icon: <Users className="size-3.5" />,
   },
   {

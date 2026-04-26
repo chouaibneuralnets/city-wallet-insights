@@ -112,7 +112,7 @@ export const ProximityMap = () => {
             </div>
           ))}
 
-          {/* Café Müller marker (center) */}
+          {/* Müller Coffee marker (center) */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
             <div className="relative">
               <span className="absolute inset-0 size-8 -translate-x-1.5 -translate-y-1.5 rounded-full bg-primary/30 animate-pulse" />
@@ -120,7 +120,7 @@ export const ProximityMap = () => {
                 <Coffee className="size-3" />
               </div>
               <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-bold text-foreground whitespace-nowrap bg-card/90 px-1.5 py-0.5 rounded border border-border">
-                Café Müller
+                Müller Coffee
               </span>
             </div>
           </div>

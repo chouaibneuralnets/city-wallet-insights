@@ -1,6 +1,6 @@
 /**
  * Stuttgart time utilities — single source of truth for "what time is it
- * for Café Müller" regardless of where the browser/jury is located.
+ * for Müller Coffee" regardless of where the browser/jury is located.
  *
  * Uses Intl.DateTimeFormat with timeZone: "Europe/Berlin" so DST (CEST/CET)
  * is handled automatically.

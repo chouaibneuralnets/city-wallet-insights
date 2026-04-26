@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Live proximity tracker — counts City-Wallet pings within 200m of the
- * Café Müller (48.7758° N, 9.1829° E) over the last 5 minutes.
+ * Müller Coffee (48.7758° N, 9.1829° E) over the last 5 minutes.
  *
  * Backed by the `wallet_pings` Supabase table + Realtime channel so the
  * counter updates instantly whenever a wallet moves into the geofence.

@@ -27,7 +27,7 @@ type SignalsContextValue = {
   temperatureC: number | null;
   /** Live wall-clock — updates every second (UTC instant) */
   now: Date;
-  /** Stuttgart-localized clock parts (hour/minute/day/tzAbbr). Single source of truth for "what time is it at Café Müller". */
+  /** Stuttgart-localized clock parts (hour/minute/day/tzAbbr). Single source of truth for "what time is it at Müller Coffee". */
   stuttgart: StuttgartParts;
   /** Real wallet pings from Supabase */
   pings: ProximityPing[];
@@ -48,7 +48,7 @@ const LAT_RANGE = 0.0036;
 const LNG_RANGE = 0.0054;
 
 const pingToWallet = (p: ProximityPing): Wallet => {
-  // Normalize geo coords → 0..1 viewport coords (centered on Café Müller)
+  // Normalize geo coords → 0..1 viewport coords (centered on Müller Coffee)
   const dx = (p.lng - CAFE_LNG) / LNG_RANGE;
   const dy = (CAFE_LAT - p.lat) / LAT_RANGE; // flip Y for screen coords
 
@@ -92,14 +92,14 @@ export const SignalsProvider = ({ children }: { children: ReactNode }) => {
 
   // Keep the geofence "alive" — if fewer than 5 fresh pings, insert a new
   // anonymous wallet ping every ~30s. Simulates real foot-traffic around
-  // Café Müller and feeds the realtime channel.
+  // Müller Coffee and feeds the realtime channel.
   useEffect(() => {
     const id = setInterval(async () => {
       if (Date.now() - lastPingRef.current < 25_000) return;
       if (count >= 5) return;
       lastPingRef.current = Date.now();
 
-      // Random GPS within ~150m of Café Müller (48.7758, 9.1829)
+      // Random GPS within ~150m of Müller Coffee (48.7758, 9.1829)
       const r = Math.sqrt(Math.random()) * 0.0014;
       const a = Math.random() * Math.PI * 2;
       const lat = CAFE_LAT + r * Math.cos(a);

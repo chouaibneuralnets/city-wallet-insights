@@ -25,8 +25,8 @@ const scenarios: Record<
     label: "Rain",
     emoji: "🌧️",
     icon: CloudRain,
-    title: "Café Müller",
-    body: (d) => `Raining? 🌧️ Your table is ready at Café Müller. -${d}% off coffees!`,
+    title: "Müller Coffee",
+    body: (d) => `Raining? 🌧️ Your table is ready at Müller Coffee. -${d}% off coffees!`,
     wallpaper:
       "radial-gradient(at 20% 10%, hsl(220 60% 35%) 0%, transparent 50%), radial-gradient(at 80% 20%, hsl(210 70% 25%) 0%, transparent 55%), radial-gradient(at 50% 90%, hsl(230 50% 18%) 0%, transparent 60%), linear-gradient(180deg, hsl(220 50% 22%), hsl(225 60% 12%))",
     accent: "from-blue-500/40 to-indigo-600/40",
@@ -35,8 +35,8 @@ const scenarios: Record<
     label: "Sun",
     emoji: "☀️",
     icon: Sun,
-    title: "Café Müller",
-    body: (d) => `☀️ Beautiful day! A terrace awaits at Café Müller. -${d}% on cold drinks.`,
+    title: "Müller Coffee",
+    body: (d) => `☀️ Beautiful day! A terrace awaits at Müller Coffee. -${d}% on cold drinks.`,
     wallpaper:
       "radial-gradient(at 70% 15%, hsl(35 95% 65%) 0%, transparent 55%), radial-gradient(at 20% 80%, hsl(20 90% 55%) 0%, transparent 50%), radial-gradient(at 50% 50%, hsl(15 85% 50%) 0%, transparent 60%), linear-gradient(180deg, hsl(25 90% 60%), hsl(15 85% 40%))",
     accent: "from-amber-500/40 to-orange-600/40",
@@ -45,7 +45,7 @@ const scenarios: Record<
     label: "Snow",
     emoji: "❄️",
     icon: Snowflake,
-    title: "Café Müller",
+    title: "Müller Coffee",
     body: (d) => `❄️ Cozy at Müller's: Viennese hot chocolates and pastries at -${d}%. Just steps away!`,
     wallpaper:
       "radial-gradient(at 30% 20%, hsl(210 50% 80%) 0%, transparent 55%), radial-gradient(at 80% 70%, hsl(220 40% 70%) 0%, transparent 50%), linear-gradient(180deg, hsl(210 45% 75%), hsl(220 40% 50%))",
@@ -55,8 +55,8 @@ const scenarios: Record<
     label: "Cloudy",
     emoji: "☁️",
     icon: Cloud,
-    title: "Café Müller",
-    body: (d) => `☁️ Cozy little break? Café Müller offers you -${d}% on today's menu.`,
+    title: "Müller Coffee",
+    body: (d) => `☁️ Cozy little break? Müller Coffee offers you -${d}% on today's menu.`,
     wallpaper:
       "radial-gradient(at 25% 25%, hsl(240 20% 40%) 0%, transparent 55%), radial-gradient(at 75% 75%, hsl(220 25% 30%) 0%, transparent 55%), linear-gradient(180deg, hsl(230 22% 38%), hsl(230 25% 20%))",
     accent: "from-slate-400/40 to-slate-600/40",
