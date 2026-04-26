@@ -9,20 +9,20 @@ export const AppLayout = () => {
   return (
     <SignalsProvider>
     <SidebarProvider defaultOpen>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full">
         <AppSidebar />
-        <SidebarInset className="flex-1 flex flex-col min-w-0">
+        <SidebarInset className="flex-1 flex flex-col min-w-0 bg-transparent">
           <AppHeader />
-          <main className="flex-1 p-4 lg:p-6 xl:p-8 space-y-6">
+          <main className="flex-1 p-4 lg:p-6 xl:p-8 space-y-6 animate-slide-up">
             <Outlet />
           </main>
-          <footer className="border-t border-border/60 bg-card/50 px-4 lg:px-6 xl:px-8 py-3">
+          <footer className="border-t border-border/40 glass px-4 lg:px-6 xl:px-8 py-3">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[11px] text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Lock className="size-3 text-success" />
                 <span>
-                  Données clients traitées via <strong className="text-foreground font-semibold">Local-First SLM</strong>.
-                  Conformité RGPD assurée par l'architecture City-Wallet.
+                  Customer data processed via <strong className="text-foreground font-semibold">Local-First SLM</strong>.
+                  GDPR-compliant by City-Wallet architecture.
                 </span>
               </div>
               <div className="flex items-center gap-3 font-mono">

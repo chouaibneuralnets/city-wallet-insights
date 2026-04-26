@@ -7,17 +7,20 @@ import { LiveAnalytics } from "@/components/dashboard/LiveAnalytics";
 const Transactions = () => {
   return (
     <>
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary/10 text-primary">
+      <div className="animate-slide-up">
+        <div className="inline-flex items-center gap-2 mb-3">
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] px-2.5 py-1 rounded-full bg-peach-soft text-peach font-mono">
+            <Wallet className="size-3" />
             Module 03
           </span>
-          <span className="text-xs text-muted-foreground font-medium">Seamless Checkout — The Outcome</span>
+          <span className="text-xs text-muted-foreground font-medium">Seamless Checkout — Outcome</span>
         </div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
-          <Wallet className="size-5 text-primary" />
+        <h1 className="text-3xl font-bold tracking-tight text-foreground font-serif">
           Finance & Payone
         </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Accepted offers convert into seamless Payone payments — no friction, no apps to download.
+        </p>
       </div>
 
       <KpiCards />

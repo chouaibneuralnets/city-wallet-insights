@@ -124,19 +124,22 @@ const Automations = () => {
 
   return (
     <>
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary/10 text-primary">
+      <div className="animate-slide-up">
+        <div className="inline-flex items-center gap-2 mb-3">
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] px-2.5 py-1 rounded-full bg-accent-soft text-accent-foreground font-mono">
+            <Brain className="size-3" />
             Module 02
           </span>
           <span className="text-xs text-muted-foreground font-medium">
-            Generative Offer Engine — The Configuration
+            Generative Offer Engine — Configuration
           </span>
         </div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
-          <Brain className="size-5 text-primary" />
+        <h1 className="text-3xl font-bold tracking-tight text-foreground font-serif">
           AI Strategist
         </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Translate live context into personalized offers, deployed to Mia in seconds.
+        </p>
       </div>
 
       {/* Mirror of Module 01 — same live sources, drives the rule automatically */}
@@ -168,10 +171,10 @@ const Automations = () => {
           <Button
             variant="outline"
             onClick={addOffer}
-            className="w-full h-14 gap-2 border-dashed border-primary/40 text-primary hover:bg-primary-soft hover:text-primary"
+            className="w-full h-14 gap-2 rounded-2xl border-dashed border-primary/40 bg-white/40 backdrop-blur text-primary hover:bg-primary-soft hover:text-primary hover:border-primary/60 transition-all"
           >
             <Plus className="size-4" />
-            Add an offer (If-Then)
+            Add another offer (If-Then)
           </Button>
         </div>
         <div className="xl:col-span-1">

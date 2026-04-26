@@ -14,16 +14,27 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['Instrument Serif', 'Georgia', 'serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
+        'gradient-mint': 'var(--gradient-mint)',
+        'gradient-peach': 'var(--gradient-peach)',
         'gradient-soft': 'var(--gradient-soft)',
+        'gradient-mesh': 'var(--gradient-mesh)',
+        'gradient-aurora': 'var(--gradient-aurora)',
       },
       boxShadow: {
+        'xs-elegant': 'var(--shadow-xs)',
         'sm-elegant': 'var(--shadow-sm)',
         'md-elegant': 'var(--shadow-md)',
+        'lg-elegant': 'var(--shadow-lg)',
         'glow': 'var(--shadow-glow)',
+        'glow-mint': 'var(--shadow-glow-mint)',
+        'glow-peach': 'var(--shadow-glow-peach)',
+        'inset-soft': 'var(--shadow-inset)',
       },
       colors: {
         border: "hsl(var(--border))",
@@ -60,6 +71,15 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          soft: "hsl(var(--accent-soft))",
+        },
+        peach: {
+          DEFAULT: "hsl(var(--peach))",
+          soft: "hsl(var(--peach-soft))",
+        },
+        lemon: {
+          DEFAULT: "hsl(var(--lemon))",
+          soft: "hsl(var(--lemon-soft))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
