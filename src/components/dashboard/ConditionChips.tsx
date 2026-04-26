@@ -158,7 +158,10 @@ export const ConditionChips = ({ conditions, onChange, stockQty, activeEvent, we
     return () => clearInterval(t);
   }, []);
 
-  const ctx = useMemo(() => ({ now, stockQty, activeEvent }), [now, stockQty, activeEvent]);
+  const ctx = useMemo(
+    () => ({ now, stockQty, activeEvent, weather }),
+    [now, stockQty, activeEvent, weather],
+  );
 
   const addCondition = (type: ConditionType) => {
     onChange([...conditions, defaultCondition(type)]);
