@@ -111,7 +111,7 @@ export const RuleBuilder = ({
   onRemove,
   onRuleSatisfiedChange,
 }: Props) => {
-  const { temperatureC } = useSignals();
+  const { temperatureC, proximityCount } = useSignals();
   const [actions] = useState(initialActions);
   const [activeLocal, setActiveLocal] = useState(true);
   const active = activeProp ?? activeLocal;
