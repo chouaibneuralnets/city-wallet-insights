@@ -66,6 +66,13 @@ const eventOptions = [
   "None",
 ];
 
+const weatherOptions: Array<{ value: "sun" | "rain" | "snow" | "cloud"; label: string }> = [
+  { value: "sun", label: "Sun" },
+  { value: "rain", label: "Rain" },
+  { value: "snow", label: "Snow" },
+  { value: "cloud", label: "Cloudy" },
+];
+
 // English weekday names matching getStuttgartParts output (we'll translate from FR)
 const FR_TO_EN_DAY: Record<string, string> = {
   Lundi: "Monday",
