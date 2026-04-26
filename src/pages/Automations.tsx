@@ -6,7 +6,7 @@ import { Module2Signals } from "@/components/dashboard/Module2Signals";
 import { AiStrategyLog } from "@/components/dashboard/AiStrategyLog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { setRuleActiveValue } from "@/lib/ruleActiveStore";
+import { setRuleActiveValue, useRuleActive } from "@/lib/ruleActiveStore";
 import type { Tone } from "@/lib/aiGenerator";
 
 type OfferRule = {
@@ -26,6 +26,7 @@ const Automations = () => {
   const [offers, setOffers] = useState<OfferRule[]>([
     { id: uid(), title: "Offre principale", discount: 20, active: false },
   ]);
+  const globalRuleActive = useRuleActive();
 
   // The iPhone preview mirrors the FIRST active offer (or the first one if none active).
   const [generation, setGeneration] = useState<{ product: string; tone: Tone; message: string }>({
@@ -87,9 +88,28 @@ const Automations = () => {
   // Mirror the global "rule active" flag so all background tickers (Module 01
   // LiveOpportunities, autopilot, …) honor the same kill-switch — even from
   // other pages.
+  useEffect(() => {
+    setOffers((prev) => {
+      const hasActive = prev.some((o) => o.active);
+      if (globalRuleActive && !hasActive) {
+        return prev.map((o, idx) => (idx === 0 ? { ...o, active: true } : o));
+      }
+      if (!globalRuleActive && hasActive) {
+        return prev.map((o) => (o.active ? { ...o, active: false } : o));
+      }
+      return prev;
+    });
+  }, [globalRuleActive]);
+
+  const didMountMirrorRef = useRef(false);
   const wasActiveRef = useRef(anyActive);
   useEffect(() => {
-    setRuleActiveValue(anyActive);
+    if (!didMountMirrorRef.current) {
+      didMountMirrorRef.current = true;
+      wasActiveRef.current = anyActive;
+      return;
+    }
+    void setRuleActiveValue(anyActive).catch(() => undefined);
     const wasActive = wasActiveRef.current;
     wasActiveRef.current = anyActive;
     if (wasActive && !anyActive) {
