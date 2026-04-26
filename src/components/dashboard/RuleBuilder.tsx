@@ -189,6 +189,13 @@ export const RuleBuilder = ({
       });
       return;
     }
+    if (!baseConditionsMatch) {
+      toast.error("Conditions IF non remplies", {
+        description: "La météo et la densité doivent correspondre à la règle avant l'envoi vers Mia.",
+        icon: <ShieldAlert className="size-4 text-warning" />,
+      });
+      return;
+    }
     // Hard gate: every custom condition must match too. The base météo +
     // densité signals are validated upstream; here we re-evaluate user-defined
     // conditions at dispatch time so manual clicks honor the same rule as the
@@ -255,7 +262,7 @@ export const RuleBuilder = ({
   useEffect(() => {
     conditionsMatchRef.current = conditionsMatch;
     onRuleSatisfiedChange?.(conditionsMatch);
-  }, [conditionsMatch]);
+  }, [conditionsMatch, onRuleSatisfiedChange]);
 
   const wasActiveRef = useRef(active);
   useEffect(() => {
@@ -553,7 +560,7 @@ export const RuleBuilder = ({
       <div className="mt-6 pt-6 border-t border-border">
         <Button
           onClick={handlePublish}
-          disabled={publishing || !active || !customConditionsMatch}
+          disabled={publishing || !active || !conditionsMatch}
           size="lg"
           className="w-full gap-2 h-14 text-base font-semibold bg-gradient-primary hover:opacity-90 transition-opacity shadow-elegant"
         >
@@ -568,8 +575,8 @@ export const RuleBuilder = ({
             ? "Déploiement en cours…"
             : !active
               ? "Règle inactive — envois bloqués"
-              : !customConditionsMatch
-                ? "Conditions personnalisées non remplies"
+              : !conditionsMatch
+                ? "Conditions IF non remplies"
                 : justDeployed
                   ? "Offre en ligne ✓"
                   : "Déployer sur le réseau Payone"}
