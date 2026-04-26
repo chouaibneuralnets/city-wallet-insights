@@ -9,10 +9,10 @@ import { cn } from "@/lib/utils";
 
 const META: Record<string, { eyebrow: string; title: string }> = {
   "/": { eyebrow: "Overview", title: "Dashboard" },
-  "/automations": { eyebrow: "Le cerveau IA", title: "Automations" },
-  "/offers": { eyebrow: "Catalogue", title: "Offers" },
-  "/transactions": { eyebrow: "Activité Payone", title: "Transactions" },
-  "/analytics": { eyebrow: "Rapports", title: "Analytics" },
+  "/automations": { eyebrow: "AI Brain", title: "Automations" },
+  "/offers": { eyebrow: "Catalog", title: "Offers" },
+  "/transactions": { eyebrow: "Payone Activity", title: "Transactions" },
+  "/analytics": { eyebrow: "Reports", title: "Analytics" },
   "/settings": { eyebrow: "Configuration", title: "Settings" },
   "/help": { eyebrow: "Support", title: "Help" },
 };
@@ -22,7 +22,7 @@ export const AppHeader = () => {
   const meta = META[location.pathname] ?? { eyebrow: "Workspace", title: "City-Wallet" };
   const { data, error } = useStuttgartWeather();
   const { stuttgart } = useSignals();
-  const operational = !error && (!!data || true); // optimiste tant qu'aucune erreur n'est remontée
+  const operational = !error && (!!data || true); // optimistic until an error is reported
 
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-md">
@@ -64,7 +64,7 @@ export const AppHeader = () => {
           {/* Stuttgart timezone clock — proves the system is locked on the merchant's TZ */}
           <div
             className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold border bg-primary/10 border-primary/30 text-primary"
-            title={`Horloge calée sur Europe/Berlin (${stuttgart.tzAbbr}) — heure officielle du commerçant`}
+            title={`Clock locked to Europe/Berlin (${stuttgart.tzAbbr}) — official merchant time`}
           >
             <Clock className="size-3.5" />
             <span className="tabular-nums">{stuttgart.hms}</span>
@@ -81,7 +81,7 @@ export const AppHeader = () => {
                 ? "bg-success/10 border-success/30 text-success hover:bg-success/15"
                 : "bg-warning/10 border-warning/30 text-warning hover:bg-warning/15"
             )}
-            title="Statut backend, edge functions et intégrations"
+            title="Backend, edge functions and integrations status"
           >
             <span className="relative flex size-2">
               <span
@@ -93,7 +93,7 @@ export const AppHeader = () => {
               <span className={cn("relative inline-flex size-2 rounded-full", operational ? "bg-success" : "bg-warning")} />
             </span>
             <CheckCircle2 className="size-3.5" />
-            <span className="hidden sm:inline">Système : Opérationnel</span>
+            <span className="hidden sm:inline">System: Operational</span>
             <span className="sm:hidden">OK</span>
           </button>
 

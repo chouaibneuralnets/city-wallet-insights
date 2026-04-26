@@ -26,13 +26,13 @@ type Item = {
 
 const coreItems: Item[] = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard, end: true, badge: "M01", caption: "Context Sensing" },
-  { title: "IA Strategist", url: "/automations", icon: Brain, badge: "M02", caption: "Generative Engine" },
+  { title: "AI Strategist", url: "/automations", icon: Brain, badge: "M02", caption: "Generative Engine" },
   { title: "Finance & Payone", url: "/transactions", icon: Wallet, badge: "M03", caption: "Seamless Checkout" },
 ];
 
 const toolItems: Item[] = [
-  { title: "Offres actives", url: "/offers", icon: Tag },
-  { title: "Analytics avancées", url: "/analytics", icon: BarChart3 },
+  { title: "Active offers", url: "/offers", icon: Tag },
+  { title: "Advanced analytics", url: "/analytics", icon: BarChart3 },
 ];
 
 const bottomItems: Item[] = [
@@ -62,7 +62,7 @@ export const AppSidebar = () => {
 
       <SidebarContent>
         <SidebarGroup>
-          {!collapsed && <SidebarGroupLabel>Cahier des charges DSV</SidebarGroupLabel>}
+          {!collapsed && <SidebarGroupLabel>DSV Specification</SidebarGroupLabel>}
           <SidebarGroupContent>
             <SidebarMenu>
               {coreItems.map((item) => (
@@ -101,7 +101,7 @@ export const AppSidebar = () => {
         </SidebarGroup>
 
         <SidebarGroup>
-          {!collapsed && <SidebarGroupLabel>Outils</SidebarGroupLabel>}
+          {!collapsed && <SidebarGroupLabel>Tools</SidebarGroupLabel>}
           <SidebarGroupContent>
             <SidebarMenu>
               {toolItems.map((item) => (
@@ -132,7 +132,7 @@ export const AppSidebar = () => {
                   <span className="text-[10px] font-bold uppercase tracking-wider text-primary">AI Boost</span>
                 </div>
                 <div className="text-xs text-foreground font-medium leading-snug">
-                  +57% revenu sur heures creuses cette semaine
+                  +57% revenue during off-peak hours this week
                 </div>
               </div>
             </SidebarGroupContent>
