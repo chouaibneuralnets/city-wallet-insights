@@ -24,14 +24,14 @@ const Automations = () => {
 
   // Multiple offer rules — each with its own If-Then card.
   const [offers, setOffers] = useState<OfferRule[]>([
-    { id: uid(), title: "Offre principale", discount: 20, active: false },
+    { id: uid(), title: "Main Offer", discount: 20, active: false },
   ]);
   const globalRuleActive = useRuleActive();
 
   // The iPhone preview mirrors the FIRST active offer (or the first one if none active).
   const [generation, setGeneration] = useState<{ product: string; tone: Tone; message: string }>({
-    product: "Café",
-    tone: "Amical",
+    product: "Coffee",
+    tone: "Friendly",
     message: "",
   });
   const [liveState, setLiveState] = useState<{
@@ -63,7 +63,7 @@ const Automations = () => {
       ...prev,
       {
         id: uid(),
-        title: `Offre #${prev.length + 1}`,
+        title: `Offer #${prev.length + 1}`,
         discount: 15,
         active: false,
       },
@@ -130,12 +130,12 @@ const Automations = () => {
             Module 02
           </span>
           <span className="text-xs text-muted-foreground font-medium">
-            Generative Offer Engine — La Configuration
+            Generative Offer Engine — The Configuration
           </span>
         </div>
         <h1 className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
           <Brain className="size-5 text-primary" />
-          IA Strategist
+          AI Strategist
         </h1>
       </div>
 
@@ -171,7 +171,7 @@ const Automations = () => {
             className="w-full h-14 gap-2 border-dashed border-primary/40 text-primary hover:bg-primary-soft hover:text-primary"
           >
             <Plus className="size-4" />
-            Ajouter une offre (If-Then)
+            Add an offer (If-Then)
           </Button>
         </div>
         <div className="xl:col-span-1">
