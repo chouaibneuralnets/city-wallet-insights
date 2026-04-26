@@ -119,6 +119,7 @@ export const RuleBuilder = ({
   const [product, setProduct] = useState<string>("Café");
   const [tone, setTone] = useState<Tone>("Amical");
   const [publishing, setPublishing] = useState(false);
+  const [justDeployed, setJustDeployed] = useState(false);
   const [lastPublishedAt, setLastPublishedAt] = useState<Date | null>(null);
 
   // Dynamic conditions (Heure, Jour, Stock, Événement) — fully editable.
