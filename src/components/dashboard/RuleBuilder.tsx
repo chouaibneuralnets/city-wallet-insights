@@ -93,6 +93,8 @@ type Props = {
   title?: string;
   /** When provided, renders a small remove button in the header. */
   onRemove?: () => void;
+  /** Reports the full IF match state for this specific offer rule. */
+  onRuleSatisfiedChange?: (matched: boolean) => void;
 };
 
 
@@ -107,6 +109,7 @@ export const RuleBuilder = ({
   onActiveChange,
   title,
   onRemove,
+  onRuleSatisfiedChange,
 }: Props) => {
   const { temperatureC } = useSignals();
   const [actions] = useState(initialActions);
@@ -251,6 +254,7 @@ export const RuleBuilder = ({
   const conditionsMatchRef = useRef(conditionsMatch);
   useEffect(() => {
     conditionsMatchRef.current = conditionsMatch;
+    onRuleSatisfiedChange?.(conditionsMatch);
   }, [conditionsMatch]);
 
   const wasActiveRef = useRef(active);
