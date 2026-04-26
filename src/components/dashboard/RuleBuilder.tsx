@@ -49,15 +49,7 @@ import { useSignals } from "@/context/SignalsContext";
 import { ConditionChips, conditionLabel, evaluateCondition, type Condition } from "./ConditionChips";
 import { setRuleActiveValue } from "@/lib/ruleActiveStore";
 
-const weatherMeta: Record<
-  Weather,
-  { icon: React.ComponentType<{ className?: string }>; label: string }
-> = {
-  rain: { icon: CloudRain, label: "Rain" },
-  sun: { icon: Sun, label: "Sun" },
-  snow: { icon: Snowflake, label: "Snow" },
-  cloud: { icon: Cloud, label: "Cloudy" },
-};
+// (Weather is now configured as a Custom condition — no top-level chip in IF block.)
 
 type Action = {
   id: string;
