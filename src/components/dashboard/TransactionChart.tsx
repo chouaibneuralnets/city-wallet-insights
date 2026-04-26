@@ -37,7 +37,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           <div key={p.dataKey} className="flex items-center gap-2 text-sm">
             <span className="size-2 rounded-sm" style={{ background: p.color }} />
             <span className="text-muted-foreground capitalize">{p.dataKey}</span>
-            <span className="ml-auto font-semibold tabular text-foreground">€{p.value.toLocaleString("fr-FR")}</span>
+            <span className="ml-auto font-semibold tabular text-foreground">€{p.value.toLocaleString("en-US")}</span>
           </div>
         ))}
       </div>
@@ -56,11 +56,11 @@ export const TransactionChart = () => {
     <Card className="p-6 shadow-sm-elegant border-border/70">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-foreground tracking-tight mb-1">Volume de transactions Payone</h2>
+          <h2 className="text-lg font-semibold text-foreground tracking-tight mb-1">Payone transaction volume</h2>
           <div className="flex items-baseline gap-3">
-            <span className="text-3xl font-bold text-foreground tabular">€{total.toLocaleString("fr-FR")}</span>
+            <span className="text-3xl font-bold text-foreground tabular">€{total.toLocaleString("en-US")}</span>
             <span className="text-sm text-success font-semibold">+18.2%</span>
-            <span className="text-xs text-muted-foreground">vs période précédente</span>
+            <span className="text-xs text-muted-foreground">vs previous period</span>
           </div>
           <div className="mt-2 flex items-center gap-4 text-xs">
             <div className="flex items-center gap-1.5">
@@ -70,7 +70,7 @@ export const TransactionChart = () => {
             <div className="flex items-center gap-1.5">
               <span className="size-2 rounded-sm" style={{ background: "hsl(var(--chart-3))" }} />
               <span className="text-muted-foreground">
-                Offres contextuelles · <span className="font-semibold text-foreground">€{contextual.toLocaleString("fr-FR")}</span>
+                Contextual offers · <span className="font-semibold text-foreground">€{contextual.toLocaleString("en-US")}</span>
               </span>
             </div>
           </div>
@@ -87,7 +87,7 @@ export const TransactionChart = () => {
                   view === v ? "bg-card text-foreground shadow-sm-elegant" : "text-muted-foreground"
                 )}
               >
-                {v === "area" ? "Aire" : "Barres"}
+                {v === "area" ? "Area" : "Bars"}
               </button>
             ))}
           </div>
