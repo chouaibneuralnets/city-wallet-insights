@@ -215,7 +215,17 @@ export const RuleBuilder = ({
       //    "listening" mode before the offer row arrives.
       await setRuleActiveValue(true);
 
-      // 2) Then push the generated offer to the offers table with active=true.
+      // 2) IMPORTANT — désactiver toutes les offres actuellement actives
+      //    AVANT d'insérer la nouvelle. Sans ça chaque activation empile
+      //    une ligne `active=true` de plus dans offers_config (bug
+      //    historique : 350+ doublons accumulés). Règle métier : à tout
+      //    instant, au plus 1 offre active = 1 message visible chez Mia.
+      await supabase
+        .from("offers_config")
+        .update({ active: false })
+        .eq("active", true);
+
+      // 3) Puis pousser la nouvelle offre (la seule active désormais).
       const { error } = await supabase.from("offers_config").insert({
         weather,
         discount_percent: discount,
