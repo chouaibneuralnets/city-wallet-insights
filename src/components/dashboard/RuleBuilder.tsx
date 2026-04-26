@@ -47,6 +47,7 @@ import {
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { useSignals } from "@/context/SignalsContext";
 import { ConditionChips, conditionLabel, evaluateCondition, type Condition } from "./ConditionChips";
+import { setRuleActiveValue } from "@/lib/ruleActiveStore";
 
 const weatherMeta: Record<
   Weather,
@@ -118,6 +119,7 @@ export const RuleBuilder = ({
   const [product, setProduct] = useState<string>("Café");
   const [tone, setTone] = useState<Tone>("Amical");
   const [publishing, setPublishing] = useState(false);
+  const [justDeployed, setJustDeployed] = useState(false);
   const [lastPublishedAt, setLastPublishedAt] = useState<Date | null>(null);
 
   // Dynamic conditions (Heure, Jour, Stock, Événement) — fully editable.
@@ -186,12 +188,17 @@ export const RuleBuilder = ({
     }
     setPublishing(true);
     try {
+      // 1) Flip the global kill-switch ON FIRST so Project 2 is in
+      //    "listening" mode before the offer row arrives.
+      await setRuleActiveValue(true);
+
+      // 2) Then push the generated offer to the offers table with active=true.
       const { error } = await supabase.from("offers_config").insert({
         weather,
         discount_percent: discount,
         product,
         traffic_condition: trafficLow ? "low" : "normal",
-        active,
+        active: true,
         tone,
         message,
         // Canonical text shipped to Mia's wallet app + read back by Magic Preview
@@ -199,7 +206,9 @@ export const RuleBuilder = ({
       });
       if (error) throw error;
       setLastPublishedAt(new Date());
-      toast.success(opts.auto ? "Règle déclenchée — offre envoyée à Mia" : "Offre déployée sur le réseau Payone", {
+      setJustDeployed(true);
+      window.setTimeout(() => setJustDeployed(false), 4000);
+      toast.success(opts.auto ? "Règle déclenchée — offre envoyée à Mia" : "Offre en ligne sur le réseau Payone", {
         description: `"${message.slice(0, 80)}${message.length > 80 ? "…" : ""}"`,
         icon: <CheckCircle2 className="size-4 text-success" />,
       });
@@ -522,12 +531,20 @@ export const RuleBuilder = ({
           size="lg"
           className="w-full gap-2 h-14 text-base font-semibold bg-gradient-primary hover:opacity-90 transition-opacity shadow-elegant"
         >
-          {publishing ? <Loader2 className="size-5 animate-spin" /> : <Rocket className="size-5" />}
+          {publishing ? (
+            <Loader2 className="size-5 animate-spin" />
+          ) : justDeployed ? (
+            <CheckCircle2 className="size-5" />
+          ) : (
+            <Rocket className="size-5" />
+          )}
           {publishing
             ? "Déploiement en cours…"
             : !active
               ? "Règle inactive — envois bloqués"
-              : "Déployer sur le réseau Payone"}
+              : justDeployed
+                ? "Offre en ligne ✓"
+                : "Déployer sur le réseau Payone"}
         </Button>
         <div className="text-[11px] text-muted-foreground text-center mt-2">
           {!active ? (
