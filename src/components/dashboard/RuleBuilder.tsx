@@ -47,6 +47,7 @@ import {
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { useSignals } from "@/context/SignalsContext";
 import { ConditionChips, conditionLabel, evaluateCondition, type Condition } from "./ConditionChips";
+import { setRuleActiveValue } from "@/lib/ruleActiveStore";
 
 const weatherMeta: Record<
   Weather,
