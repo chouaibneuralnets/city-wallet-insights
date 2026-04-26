@@ -16,16 +16,16 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const data = [
-  { day: "Lun", payone: 4200, contextuel: 1100, total: 5300 },
-  { day: "Mar", payone: 3800, contextuel: 1450, total: 5250 },
-  { day: "Mer", payone: 5100, contextuel: 1820, total: 6920 },
-  { day: "Jeu", payone: 4700, contextuel: 2100, total: 6800 },
-  { day: "Ven", payone: 6800, contextuel: 2950, total: 9750 },
-  { day: "Sam", payone: 8200, contextuel: 3400, total: 11600 },
-  { day: "Dim", payone: 5400, contextuel: 2200, total: 7600 },
+  { day: "Mon", payone: 4200, contextuel: 1100, total: 5300 },
+  { day: "Tue", payone: 3800, contextuel: 1450, total: 5250 },
+  { day: "Wed", payone: 5100, contextuel: 1820, total: 6920 },
+  { day: "Thu", payone: 4700, contextuel: 2100, total: 6800 },
+  { day: "Fri", payone: 6800, contextuel: 2950, total: 9750 },
+  { day: "Sat", payone: 8200, contextuel: 3400, total: 11600 },
+  { day: "Sun", payone: 5400, contextuel: 2200, total: 7600 },
 ];
 
-const ranges = ["7j", "30j", "90j"] as const;
+const ranges = ["7d", "30d", "90d"] as const;
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;

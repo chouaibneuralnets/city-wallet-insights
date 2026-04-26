@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 
-// Données inspirées du PDF City-Wallet : heures creuses (10h, 14h-16h) qui deviennent rentables grâce à l'IA
+// Data inspired by City-Wallet PDF: off-peak hours (10am, 2-4pm) that become profitable thanks to AI
 const HOURLY = [
   { hour: "08h", baseline: 420, boosted: 480, peak: false },
   { hour: "09h", baseline: 380, boosted: 460, peak: false },
@@ -45,13 +45,13 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <div className="space-y-1.5 text-sm">
         <div className="flex items-center justify-between gap-3">
           <span className="flex items-center gap-2 text-muted-foreground">
-            <span className="size-2 rounded-sm bg-muted-foreground/60" /> Sans IA
+            <span className="size-2 rounded-sm bg-muted-foreground/60" /> Without AI
           </span>
           <span className="tabular font-semibold text-foreground">€{base}</span>
         </div>
         <div className="flex items-center justify-between gap-3">
           <span className="flex items-center gap-2 text-muted-foreground">
-            <span className="size-2 rounded-sm bg-primary" /> Avec City-Wallet
+            <span className="size-2 rounded-sm bg-primary" /> With City-Wallet
           </span>
           <span className="tabular font-semibold text-primary">€{boost}</span>
         </div>
@@ -71,10 +71,10 @@ export const RevenueComparison = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Sparkles className="size-4 text-primary" />
-            <h2 className="text-base font-semibold tracking-tight">Performance — Sans IA vs City-Wallet (IA Boosted)</h2>
+            <h2 className="text-base font-semibold tracking-tight">Performance — Without AI vs City-Wallet (AI Boosted)</h2>
           </div>
           <p className="text-xs text-muted-foreground">
-            Les <span className="font-semibold text-foreground">heures creuses</span> (zones surlignées) deviennent rentables grâce aux offres contextuelles
+            Les <span className="font-semibold text-foreground">off-peak hours</span> (highlighted zones) become profitable thanks to contextual offers
           </p>
         </div>
       </div>
@@ -82,19 +82,19 @@ export const RevenueComparison = () => {
       {/* KPI columns */}
       <div className="grid grid-cols-2 gap-3 mb-5">
         <div className="rounded-lg border border-border/60 bg-secondary/40 p-4">
-          <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Revenu sans IA</div>
-          <div className="text-2xl font-bold tabular text-foreground">€{totalBaseline.toLocaleString("fr-FR")}</div>
-          <div className="text-[11px] text-muted-foreground mt-1">Baseline POS classique · journée</div>
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Revenue without AI</div>
+          <div className="text-2xl font-bold tabular text-foreground">€{totalBaseline.toLocaleString("en-US")}</div>
+          <div className="text-[11px] text-muted-foreground mt-1">Standard POS baseline · day</div>
         </div>
         <div className="rounded-lg border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4 relative overflow-hidden">
           <div className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5">
             <ArrowUpRight className="size-3 text-success" />
             <span className="text-[10px] font-bold text-success tabular">+{upliftPct}%</span>
           </div>
-          <div className="text-[10px] uppercase tracking-widest text-primary/80 mb-1">Avec City-Wallet (IA)</div>
-          <div className="text-2xl font-bold tabular text-foreground">€{totalBoosted.toLocaleString("fr-FR")}</div>
+          <div className="text-[10px] uppercase tracking-widest text-primary/80 mb-1">With City-Wallet (AI)</div>
+          <div className="text-2xl font-bold tabular text-foreground">€{totalBoosted.toLocaleString("en-US")}</div>
           <div className="text-[11px] text-muted-foreground mt-1">
-            Uplift : <span className="font-semibold text-success">+€{uplift.toLocaleString("fr-FR")}</span> sur la journée
+            Uplift: <span className="font-semibold text-success">+€{uplift.toLocaleString("en-US")}</span> over the day
           </div>
         </div>
       </div>
@@ -118,12 +118,12 @@ export const RevenueComparison = () => {
               wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
               formatter={(v) => <span className="text-muted-foreground">{v}</span>}
             />
-            <Bar dataKey="baseline" name="Sans IA" radius={[3, 3, 0, 0]}>
+            <Bar dataKey="baseline" name="Without AI" radius={[3, 3, 0, 0]}>
               {HOURLY.map((d, i) => (
                 <Cell key={i} fill="hsl(var(--muted-foreground) / 0.4)" />
               ))}
             </Bar>
-            <Bar dataKey="boosted" name="Avec City-Wallet" radius={[3, 3, 0, 0]}>
+            <Bar dataKey="boosted" name="With City-Wallet" radius={[3, 3, 0, 0]}>
               {HOURLY.map((d, i) => (
                 <Cell key={i} fill={d.peak ? "hsl(var(--success))" : "hsl(var(--primary))"} />
               ))}
@@ -135,15 +135,15 @@ export const RevenueComparison = () => {
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground border-t border-border/60 pt-3">
         <div className="flex items-center gap-1.5">
           <span className="size-2 rounded-sm bg-muted-foreground/40" />
-          <span>Sans IA</span>
+          <span>Without AI</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="size-2 rounded-sm bg-primary" />
-          <span>Avec City-Wallet</span>
+          <span>With City-Wallet</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="size-2 rounded-sm bg-success" />
-          <span>Heures creuses re-monétisées</span>
+          <span>Off-peak hours re-monetized</span>
         </div>
       </div>
     </Card>
