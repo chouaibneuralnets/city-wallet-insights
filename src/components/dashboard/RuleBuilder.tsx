@@ -137,7 +137,7 @@ export const RuleBuilder = ({
   const stockQty = 28;
   const activeEvent = "Christmas Market";
 
-  const WeatherIcon = weatherMeta[weather].icon;
+  void weather; // weather is propagated to ConditionChips + message generator
   const discountAction = actions.find((a) => a.id === "a1");
 
   const products = Object.keys(productMeta);
