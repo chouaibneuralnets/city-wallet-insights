@@ -531,12 +531,20 @@ export const RuleBuilder = ({
           size="lg"
           className="w-full gap-2 h-14 text-base font-semibold bg-gradient-primary hover:opacity-90 transition-opacity shadow-elegant"
         >
-          {publishing ? <Loader2 className="size-5 animate-spin" /> : <Rocket className="size-5" />}
+          {publishing ? (
+            <Loader2 className="size-5 animate-spin" />
+          ) : justDeployed ? (
+            <CheckCircle2 className="size-5" />
+          ) : (
+            <Rocket className="size-5" />
+          )}
           {publishing
             ? "Déploiement en cours…"
             : !active
               ? "Règle inactive — envois bloqués"
-              : "Déployer sur le réseau Payone"}
+              : justDeployed
+                ? "Offre en ligne ✓"
+                : "Déployer sur le réseau Payone"}
         </Button>
         <div className="text-[11px] text-muted-foreground text-center mt-2">
           {!active ? (
