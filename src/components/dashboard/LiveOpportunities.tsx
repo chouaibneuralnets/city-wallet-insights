@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useStuttgartWeather } from "@/hooks/useStuttgartWeather";
 import { useSignals } from "@/context/SignalsContext";
-import { isRuleActive } from "@/lib/ruleActiveStore";
+// isRuleActive plus utilisé ici : on n'envoie plus d'offre depuis ce ticker.
 
 type OpportunityStatus = "scanning" | "sending" | "converted";
 type Segment = "loyals" | "newcomers" | "commuters";
