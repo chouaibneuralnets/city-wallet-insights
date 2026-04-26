@@ -401,7 +401,7 @@ export const RuleBuilder = ({
                   Custom conditions
                 </span>
                 <span className="text-[10px] text-muted-foreground">
-                  {conditions.filter((c) => evaluateCondition(c, { now: new Date(), stockQty, activeEvent })).length}
+                  {conditions.filter((c) => evaluateCondition(c, { now: new Date(), stockQty, activeEvent, weather })).length}
                   /{conditions.length} match
                 </span>
               </div>
@@ -411,6 +411,7 @@ export const RuleBuilder = ({
                   onChange={setConditions}
                   stockQty={stockQty}
                   activeEvent={activeEvent}
+                  weather={weather}
                 />
               </div>
             </div>
