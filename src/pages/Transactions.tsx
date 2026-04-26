@@ -12,7 +12,7 @@ const Transactions = () => {
           <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary/10 text-primary">
             Module 03
           </span>
-          <span className="text-xs text-muted-foreground font-medium">Seamless Checkout — Le Résultat</span>
+          <span className="text-xs text-muted-foreground font-medium">Seamless Checkout — The Outcome</span>
         </div>
         <h1 className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
           <Wallet className="size-5 text-primary" />
