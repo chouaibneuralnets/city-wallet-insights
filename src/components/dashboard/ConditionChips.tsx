@@ -97,6 +97,8 @@ const defaultCondition = (type: ConditionType): Condition => {
       return { id, type, operator: ">", quantity: 20 };
     case "Event":
       return { id, type, value: "Christmas Market" };
+    case "Weather":
+      return { id, type, value: "sun" };
   }
 };
 
@@ -104,7 +106,7 @@ const defaultCondition = (type: ConditionType): Condition => {
  *  Time/day checks always use Stuttgart (Europe/Berlin), never the browser TZ. */
 export const evaluateCondition = (
   c: Condition,
-  ctx: { now: Date; stockQty: number; activeEvent: string },
+  ctx: { now: Date; stockQty: number; activeEvent: string; weather?: string },
 ): boolean => {
   const stg = getStuttgartParts(ctx.now);
   if (c.type === "Time") {
@@ -123,6 +125,9 @@ export const evaluateCondition = (
   if (c.type === "Event") {
     return ctx.activeEvent === c.value;
   }
+  if (c.type === "Weather") {
+    return ctx.weather === c.value;
+  }
   return false;
 };
 
@@ -132,6 +137,7 @@ export const conditionLabel = (c: Condition): string => {
   if (c.type === "Day") return c.value;
   if (c.type === "Stock") return `Stock ${c.operator} ${c.quantity}`;
   if (c.type === "Event") return c.value;
+  if (c.type === "Weather") return `Weather ${c.value}`;
   return "";
 };
 
@@ -141,9 +147,11 @@ type Props = {
   /** Live world state used to compute MATCH/idle badges. */
   stockQty: number;
   activeEvent: string;
+  /** Live weather signal (sun/rain/snow/cloud) for Weather conditions. */
+  weather?: string;
 };
 
-export const ConditionChips = ({ conditions, onChange, stockQty, activeEvent }: Props) => {
+export const ConditionChips = ({ conditions, onChange, stockQty, activeEvent, weather }: Props) => {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 30_000);
