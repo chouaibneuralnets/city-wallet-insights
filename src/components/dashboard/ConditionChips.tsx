@@ -287,6 +287,26 @@ export const ConditionChips = ({ conditions, onChange, stockQty, activeEvent, we
                     </Select>
                   )}
 
+                  {c.type === "Weather" && (
+                    <Select
+                      value={c.value}
+                      onValueChange={(v) =>
+                        updateCondition(c.id, { value: v as "sun" | "rain" | "snow" | "cloud" })
+                      }
+                    >
+                      <SelectTrigger className="h-6 px-2 py-0 text-xs border-0 bg-transparent shadow-none w-auto gap-1 focus:ring-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {weatherOptions.map((w) => (
+                          <SelectItem key={w.value} value={w.value} className="text-xs">
+                            {w.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+
                   {/* MATCH badge */}
                   <span
                     className={cn(
