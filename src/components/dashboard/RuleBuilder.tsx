@@ -340,14 +340,33 @@ export const RuleBuilder = ({
 
           <div className="flex-1 pb-6">
             <div className="flex flex-wrap gap-2 items-center">
-              <div className="inline-flex items-center gap-2 pl-3 pr-3 py-1.5 rounded-full bg-primary-soft border border-primary/20 text-sm">
-                <WeatherIcon className="size-3.5 text-primary" />
-                <span className="font-medium text-foreground">Weather</span>
-                <span className="text-muted-foreground">=</span>
-                <span className="font-semibold text-primary">{weatherMeta[weather].label}</span>
+              <div
+                className={cn(
+                  "inline-flex items-center gap-2 pl-3 pr-3 py-1.5 rounded-full border text-sm",
+                  proximityCount >= 1
+                    ? "bg-primary-soft border-primary/20"
+                    : "bg-secondary/60 border-border/60",
+                )}
+              >
+                <Users
+                  className={cn(
+                    "size-3.5",
+                    proximityCount >= 1 ? "text-primary" : "text-muted-foreground",
+                  )}
+                />
+                <span className="font-medium text-foreground">Customers</span>
+                <span className="text-muted-foreground">≥</span>
+                <span
+                  className={cn(
+                    "font-semibold",
+                    proximityCount >= 1 ? "text-primary" : "text-muted-foreground",
+                  )}
+                >
+                  1
+                </span>
                 <span className="ml-1 inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-success">
                   <span className="size-1.5 rounded-full bg-success animate-pulse" />
-                  live
+                  {proximityCount >= 1 ? `${proximityCount} nearby` : "idle"}
                 </span>
               </div>
 
