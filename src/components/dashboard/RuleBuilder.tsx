@@ -49,15 +49,7 @@ import { useSignals } from "@/context/SignalsContext";
 import { ConditionChips, conditionLabel, evaluateCondition, type Condition } from "./ConditionChips";
 import { setRuleActiveValue } from "@/lib/ruleActiveStore";
 
-const weatherMeta: Record<
-  Weather,
-  { icon: React.ComponentType<{ className?: string }>; label: string }
-> = {
-  rain: { icon: CloudRain, label: "Rain" },
-  sun: { icon: Sun, label: "Sun" },
-  snow: { icon: Snowflake, label: "Snow" },
-  cloud: { icon: Cloud, label: "Cloudy" },
-};
+// (Weather is now configured as a Custom condition — no top-level chip in IF block.)
 
 type Action = {
   id: string;
@@ -111,7 +103,7 @@ export const RuleBuilder = ({
   onRemove,
   onRuleSatisfiedChange,
 }: Props) => {
-  const { temperatureC } = useSignals();
+  const { temperatureC, proximityCount } = useSignals();
   const [actions] = useState(initialActions);
   const [activeLocal, setActiveLocal] = useState(true);
   const active = activeProp ?? activeLocal;
@@ -129,6 +121,7 @@ export const RuleBuilder = ({
   // Seeded with two sensible defaults so the "x/y match" counter is meaningful
   // out of the box. Users can remove or add more freely.
   const [conditions, setConditions] = useState<Condition[]>(() => [
+    { id: Math.random().toString(36).slice(2, 9), type: "Weather", value: "sun" },
     { id: Math.random().toString(36).slice(2, 9), type: "Time", from: 14, to: 17 },
     { id: Math.random().toString(36).slice(2, 9), type: "Day", value: "Weekday" },
   ]);
@@ -136,7 +129,7 @@ export const RuleBuilder = ({
   const stockQty = 28;
   const activeEvent = "Christmas Market";
 
-  const WeatherIcon = weatherMeta[weather].icon;
+  // weather is propagated to ConditionChips + message generator
   const discountAction = actions.find((a) => a.id === "a1");
 
   const products = Object.keys(productMeta);
@@ -191,16 +184,16 @@ export const RuleBuilder = ({
     }
     if (!baseConditionsMatch) {
       toast.error("IF conditions not met", {
-        description: "Weather and density must match the rule before sending to Mia.",
+        description: "At least 1 customer nearby AND density < 35% are required before sending to Mia.",
         icon: <ShieldAlert className="size-4 text-warning" />,
       });
       return;
     }
-    // Hard gate: every custom condition must match too. The base weather +
+    // Hard gate: every custom condition must match too. The base customer +
     // density signals are validated upstream; here we re-evaluate user-defined
     // conditions at dispatch time so manual clicks honor the same rule as the
     // auto-trigger.
-    const ctx = { now: new Date(), stockQty, activeEvent };
+    const ctx = { now: new Date(), stockQty, activeEvent, weather };
     const failing = conditions.filter((c) => !evaluateCondition(c, ctx));
     if (failing.length > 0) {
       toast.error("Custom conditions not met", {
@@ -262,11 +255,11 @@ export const RuleBuilder = ({
   const customConditionsMatch = useMemo(
     () =>
       conditions.every((c) =>
-        evaluateCondition(c, { now: new Date(), stockQty, activeEvent }),
+        evaluateCondition(c, { now: new Date(), stockQty, activeEvent, weather }),
       ),
-    [conditions, stockQty, activeEvent],
+    [conditions, stockQty, activeEvent, weather],
   );
-  const baseConditionsMatch = weather === "sun" && trafficLow;
+  const baseConditionsMatch = proximityCount >= 1 && trafficLow;
   const conditionsMatch = baseConditionsMatch && customConditionsMatch;
   const conditionsMatchRef = useRef(conditionsMatch);
   useEffect(() => {
@@ -339,14 +332,33 @@ export const RuleBuilder = ({
 
           <div className="flex-1 pb-6">
             <div className="flex flex-wrap gap-2 items-center">
-              <div className="inline-flex items-center gap-2 pl-3 pr-3 py-1.5 rounded-full bg-primary-soft border border-primary/20 text-sm">
-                <WeatherIcon className="size-3.5 text-primary" />
-                <span className="font-medium text-foreground">Weather</span>
-                <span className="text-muted-foreground">=</span>
-                <span className="font-semibold text-primary">{weatherMeta[weather].label}</span>
+              <div
+                className={cn(
+                  "inline-flex items-center gap-2 pl-3 pr-3 py-1.5 rounded-full border text-sm",
+                  proximityCount >= 1
+                    ? "bg-primary-soft border-primary/20"
+                    : "bg-secondary/60 border-border/60",
+                )}
+              >
+                <Users
+                  className={cn(
+                    "size-3.5",
+                    proximityCount >= 1 ? "text-primary" : "text-muted-foreground",
+                  )}
+                />
+                <span className="font-medium text-foreground">Customers</span>
+                <span className="text-muted-foreground">≥</span>
+                <span
+                  className={cn(
+                    "font-semibold",
+                    proximityCount >= 1 ? "text-primary" : "text-muted-foreground",
+                  )}
+                >
+                  1
+                </span>
                 <span className="ml-1 inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-success">
                   <span className="size-1.5 rounded-full bg-success animate-pulse" />
-                  live
+                  {proximityCount >= 1 ? `${proximityCount} nearby` : "idle"}
                 </span>
               </div>
 
@@ -381,7 +393,7 @@ export const RuleBuilder = ({
                   Custom conditions
                 </span>
                 <span className="text-[10px] text-muted-foreground">
-                  {conditions.filter((c) => evaluateCondition(c, { now: new Date(), stockQty, activeEvent })).length}
+                  {conditions.filter((c) => evaluateCondition(c, { now: new Date(), stockQty, activeEvent, weather })).length}
                   /{conditions.length} match
                 </span>
               </div>
@@ -391,6 +403,7 @@ export const RuleBuilder = ({
                   onChange={setConditions}
                   stockQty={stockQty}
                   activeEvent={activeEvent}
+                  weather={weather}
                 />
               </div>
             </div>

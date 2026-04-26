@@ -8,6 +8,7 @@ import {
   X,
   CheckCircle2,
   ChevronDown,
+  CloudSun,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -26,13 +27,14 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { getStuttgartParts } from "@/lib/stuttgartTime";
 
-export type ConditionType = "Time" | "Day" | "Stock" | "Event";
+export type ConditionType = "Time" | "Day" | "Stock" | "Event" | "Weather";
 
 export type Condition =
   | { id: string; type: "Time"; from: number; to: number }
   | { id: string; type: "Day"; value: string }
   | { id: string; type: "Stock"; operator: ">" | "<"; quantity: number }
-  | { id: string; type: "Event"; value: string };
+  | { id: string; type: "Event"; value: string }
+  | { id: string; type: "Weather"; value: "sun" | "rain" | "snow" | "cloud" };
 
 const typeMeta: Record<
   ConditionType,
@@ -42,6 +44,7 @@ const typeMeta: Record<
   Day: { icon: Calendar, color: "text-violet-600" },
   Stock: { icon: Tag, color: "text-amber-600" },
   Event: { icon: PartyPopper, color: "text-rose-600" },
+  Weather: { icon: CloudSun, color: "text-indigo-600" },
 };
 
 const dayOptions = [
@@ -61,6 +64,13 @@ const eventOptions = [
   "VfB Stuttgart Match",
   "Music Festival",
   "None",
+];
+
+const weatherOptions: Array<{ value: "sun" | "rain" | "snow" | "cloud"; label: string }> = [
+  { value: "sun", label: "Sun" },
+  { value: "rain", label: "Rain" },
+  { value: "snow", label: "Snow" },
+  { value: "cloud", label: "Cloudy" },
 ];
 
 // English weekday names matching getStuttgartParts output (we'll translate from FR)
@@ -87,6 +97,8 @@ const defaultCondition = (type: ConditionType): Condition => {
       return { id, type, operator: ">", quantity: 20 };
     case "Event":
       return { id, type, value: "Christmas Market" };
+    case "Weather":
+      return { id, type, value: "sun" };
   }
 };
 
@@ -94,7 +106,7 @@ const defaultCondition = (type: ConditionType): Condition => {
  *  Time/day checks always use Stuttgart (Europe/Berlin), never the browser TZ. */
 export const evaluateCondition = (
   c: Condition,
-  ctx: { now: Date; stockQty: number; activeEvent: string },
+  ctx: { now: Date; stockQty: number; activeEvent: string; weather?: string },
 ): boolean => {
   const stg = getStuttgartParts(ctx.now);
   if (c.type === "Time") {
@@ -113,6 +125,9 @@ export const evaluateCondition = (
   if (c.type === "Event") {
     return ctx.activeEvent === c.value;
   }
+  if (c.type === "Weather") {
+    return ctx.weather === c.value;
+  }
   return false;
 };
 
@@ -122,6 +137,7 @@ export const conditionLabel = (c: Condition): string => {
   if (c.type === "Day") return c.value;
   if (c.type === "Stock") return `Stock ${c.operator} ${c.quantity}`;
   if (c.type === "Event") return c.value;
+  if (c.type === "Weather") return `Weather ${c.value}`;
   return "";
 };
 
@@ -131,16 +147,21 @@ type Props = {
   /** Live world state used to compute MATCH/idle badges. */
   stockQty: number;
   activeEvent: string;
+  /** Live weather signal (sun/rain/snow/cloud) for Weather conditions. */
+  weather?: string;
 };
 
-export const ConditionChips = ({ conditions, onChange, stockQty, activeEvent }: Props) => {
+export const ConditionChips = ({ conditions, onChange, stockQty, activeEvent, weather }: Props) => {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(t);
   }, []);
 
-  const ctx = useMemo(() => ({ now, stockQty, activeEvent }), [now, stockQty, activeEvent]);
+  const ctx = useMemo(
+    () => ({ now, stockQty, activeEvent, weather }),
+    [now, stockQty, activeEvent, weather],
+  );
 
   const addCondition = (type: ConditionType) => {
     onChange([...conditions, defaultCondition(type)]);
@@ -260,6 +281,26 @@ export const ConditionChips = ({ conditions, onChange, stockQty, activeEvent }: 
                         {eventOptions.map((d) => (
                           <SelectItem key={d} value={d} className="text-xs">
                             {d}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+
+                  {c.type === "Weather" && (
+                    <Select
+                      value={c.value}
+                      onValueChange={(v) =>
+                        updateCondition(c.id, { value: v as "sun" | "rain" | "snow" | "cloud" })
+                      }
+                    >
+                      <SelectTrigger className="h-6 px-2 py-0 text-xs border-0 bg-transparent shadow-none w-auto gap-1 focus:ring-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {weatherOptions.map((w) => (
+                          <SelectItem key={w.value} value={w.value} className="text-xs">
+                            {w.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
