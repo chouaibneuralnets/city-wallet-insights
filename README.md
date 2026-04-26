@@ -58,6 +58,20 @@
 2. **Install dependencies**
 Using npm (Node Package Manager), install all required libraries defined in package.json:
 
+
+
+
+## 🤝 Strategic Partners
+MIA is a collaborative ecosystem. Each partner is wired into a distinct module:
+
+
+Payone: Provides anonymized payment density telemetry to identify low-traffic windows.
+
+
+Sparkasse: Powers the City-Wallet identity layer and secure anonymous interactions.
+
+
+DSV: Contributes logistics signals and environmental context for the detection engine.
 3. **Environment Variables**
 MIA requires connection strings for Supabase. Create a .env file in the root directory:
 
