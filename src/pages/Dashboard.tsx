@@ -12,11 +12,11 @@ const Dashboard = () => {
             Module 01
           </span>
           <span className="text-xs text-muted-foreground font-medium">
-            Context Sensing — Capture des signaux IoT
+            Context Sensing — IoT signal capture
           </span>
         </div>
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          Centre de détection
+          Detection Center
         </h1>
       </div>
 

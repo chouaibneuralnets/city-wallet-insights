@@ -53,10 +53,10 @@ const weatherMeta: Record<
   Weather,
   { icon: React.ComponentType<{ className?: string }>; label: string }
 > = {
-  rain: { icon: CloudRain, label: "Pluie" },
-  sun: { icon: Sun, label: "Soleil" },
-  snow: { icon: Snowflake, label: "Neige" },
-  cloud: { icon: Cloud, label: "Nuageux" },
+  rain: { icon: CloudRain, label: "Rain" },
+  sun: { icon: Sun, label: "Sun" },
+  snow: { icon: Snowflake, label: "Snow" },
+  cloud: { icon: Cloud, label: "Cloudy" },
 };
 
 type Action = {
@@ -67,14 +67,14 @@ type Action = {
 };
 
 const initialActions: Action[] = [
-  { id: "a1", icon: Percent, label: "Générer offre", detail: "Max 25%" },
-  { id: "a2", icon: Bell, label: "Push notification", detail: "Clients à <500m" },
+  { id: "a1", icon: Percent, label: "Generate offer", detail: "Max 25%" },
+  { id: "a2", icon: Bell, label: "Push notification", detail: "Customers <500m" },
 ];
 
 const conditionLibrary = [
-  { icon: Clock, field: "Heure", operator: "entre", value: "14h - 17h" },
-  { icon: Calendar, field: "Jour", operator: "=", value: "Mardi" },
-  { icon: Tag, field: "Stock", operator: ">", value: "20 unités" },
+  { icon: Clock, field: "Time", operator: "between", value: "2pm - 5pm" },
+  { icon: Calendar, field: "Day", operator: "=", value: "Tuesday" },
+  { icon: Tag, field: "Stock", operator: ">", value: "20 units" },
 ];
 
 type Props = {
@@ -119,22 +119,22 @@ export const RuleBuilder = ({
     setActiveLocal(v);
     onActiveChange?.(v);
   };
-  const [product, setProduct] = useState<string>("Café");
-  const [tone, setTone] = useState<Tone>("Amical");
+  const [product, setProduct] = useState<string>("Coffee");
+  const [tone, setTone] = useState<Tone>("Friendly");
   const [publishing, setPublishing] = useState(false);
   const [justDeployed, setJustDeployed] = useState(false);
   const [lastPublishedAt, setLastPublishedAt] = useState<Date | null>(null);
 
-  // Dynamic conditions (Heure, Jour, Stock, Événement) — fully editable.
+  // Dynamic conditions (Time, Day, Stock, Event) — fully editable.
   // Seeded with two sensible defaults so the "x/y match" counter is meaningful
   // out of the box. Users can remove or add more freely.
   const [conditions, setConditions] = useState<Condition[]>(() => [
-    { id: Math.random().toString(36).slice(2, 9), type: "Heure", from: 14, to: 17 },
-    { id: Math.random().toString(36).slice(2, 9), type: "Jour", value: "Semaine" },
+    { id: Math.random().toString(36).slice(2, 9), type: "Time", from: 14, to: 17 },
+    { id: Math.random().toString(36).slice(2, 9), type: "Day", value: "Weekday" },
   ]);
   // Simulated live world state for validation badges (in real app, these come from inventory + events APIs)
   const stockQty = 28;
-  const activeEvent = "Marché de Noël";
+  const activeEvent = "Christmas Market";
 
   const WeatherIcon = weatherMeta[weather].icon;
   const discountAction = actions.find((a) => a.id === "a1");
@@ -143,16 +143,16 @@ export const RuleBuilder = ({
 
   // Build extras for the AI message based on current conditions
   const extras = useMemo(() => {
-    const time = conditions.find((c) => c.type === "Heure");
-    const day = conditions.find((c) => c.type === "Jour");
+    const time = conditions.find((c) => c.type === "Time");
+    const day = conditions.find((c) => c.type === "Day");
     const stock = conditions.find((c) => c.type === "Stock");
-    const evt = conditions.find((c) => c.type === "Événement");
+    const evt = conditions.find((c) => c.type === "Event");
     return {
-      timeWindow: time && time.type === "Heure" ? { from: time.from, to: time.to } : null,
-      day: day && day.type === "Jour" ? day.value : null,
+      timeWindow: time && time.type === "Time" ? { from: time.from, to: time.to } : null,
+      day: day && day.type === "Day" ? day.value : null,
       stockHigh:
         stock && stock.type === "Stock" && stock.operator === ">" ? { quantity: stock.quantity } : null,
-      activeEvent: evt && evt.type === "Événement" ? evt.value : null,
+      activeEvent: evt && evt.type === "Event" ? evt.value : null,
     };
   }, [conditions]);
 
@@ -183,28 +183,28 @@ export const RuleBuilder = ({
 
   const dispatchOffer = async (opts: { auto: boolean }) => {
     if (!active) {
-      toast.error("Règle inactive", {
-        description: "Activez la règle pour autoriser l'envoi vers Mia.",
+      toast.error("Rule inactive", {
+        description: "Activate the rule to allow sending to Mia.",
         icon: <ShieldAlert className="size-4 text-warning" />,
       });
       return;
     }
     if (!baseConditionsMatch) {
-      toast.error("Conditions IF non remplies", {
-        description: "La météo et la densité doivent correspondre à la règle avant l'envoi vers Mia.",
+      toast.error("IF conditions not met", {
+        description: "Weather and density must match the rule before sending to Mia.",
         icon: <ShieldAlert className="size-4 text-warning" />,
       });
       return;
     }
-    // Hard gate: every custom condition must match too. The base météo +
-    // densité signals are validated upstream; here we re-evaluate user-defined
+    // Hard gate: every custom condition must match too. The base weather +
+    // density signals are validated upstream; here we re-evaluate user-defined
     // conditions at dispatch time so manual clicks honor the same rule as the
     // auto-trigger.
     const ctx = { now: new Date(), stockQty, activeEvent };
     const failing = conditions.filter((c) => !evaluateCondition(c, ctx));
     if (failing.length > 0) {
-      toast.error("Conditions personnalisées non remplies", {
-        description: `${failing.length}/${conditions.length} condition(s) ne correspondent pas — ajustez ou patientez.`,
+      toast.error("Custom conditions not met", {
+        description: `${failing.length}/${conditions.length} condition(s) do not match — adjust or wait.`,
         icon: <ShieldAlert className="size-4 text-warning" />,
       });
       return;
@@ -215,17 +215,17 @@ export const RuleBuilder = ({
       //    "listening" mode before the offer row arrives.
       await setRuleActiveValue(true);
 
-      // 2) IMPORTANT — désactiver toutes les offres actuellement actives
-      //    AVANT d'insérer la nouvelle. Sans ça chaque activation empile
-      //    une ligne `active=true` de plus dans offers_config (bug
-      //    historique : 350+ doublons accumulés). Règle métier : à tout
-      //    instant, au plus 1 offre active = 1 message visible chez Mia.
+      // 2) IMPORTANT — deactivate all currently active offers BEFORE inserting
+      //    the new one. Without this, every activation stacks an extra
+      //    `active=true` row in offers_config (historical bug: 350+ duplicates
+      //    accumulated). Business rule: at any moment, at most 1 active offer
+      //    = 1 message visible to Mia.
       await supabase
         .from("offers_config")
         .update({ active: false })
         .eq("active", true);
 
-      // 3) Puis pousser la nouvelle offre (la seule active désormais).
+      // 3) Then push the new offer (the only active one now).
       const { error } = await supabase.from("offers_config").insert({
         weather,
         discount_percent: discount,
@@ -241,13 +241,13 @@ export const RuleBuilder = ({
       setLastPublishedAt(new Date());
       setJustDeployed(true);
       window.setTimeout(() => setJustDeployed(false), 4000);
-      toast.success(opts.auto ? "Règle déclenchée — offre envoyée à Mia" : "Offre en ligne sur le réseau Payone", {
+      toast.success(opts.auto ? "Rule triggered — offer sent to Mia" : "Offer live on the Payone network", {
         description: `"${message.slice(0, 80)}${message.length > 80 ? "…" : ""}"`,
         icon: <CheckCircle2 className="size-4 text-success" />,
       });
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Erreur inconnue";
-      toast.error("Impossible de déployer l'offre", { description: msg });
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      toast.error("Could not deploy offer", { description: msg });
     } finally {
       setPublishing(false);
     }
@@ -256,8 +256,8 @@ export const RuleBuilder = ({
   const handlePublish = () => dispatchOffer({ auto: false });
 
   // Auto-trigger: ONLY on the OFF → ON transition, and only if ALL conditions
-  // (base météo + densité AND every custom condition) match at that moment.
-  // Changing remise/conditions while ON does NOT re-send. To resend, user must
+  // (base weather + density AND every custom condition) match at that moment.
+  // Changing discount/conditions while ON does NOT re-send. To resend, user must
   // toggle OFF then ON again.
   const customConditionsMatch = useMemo(
     () =>
@@ -291,7 +291,7 @@ export const RuleBuilder = ({
         <div>
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <h2 className="text-lg font-semibold text-foreground tracking-tight">
-              {title ?? "Constructeur de règle"}
+              {title ?? "Rule Builder"}
             </h2>
             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary-soft text-primary">
               If-Then
@@ -301,7 +301,7 @@ export const RuleBuilder = ({
             </span>
           </div>
           <p className="text-sm text-muted-foreground">
-            L'IA traduit vos conditions contextuelles en offres personnalisées selon le ton de la marque.
+            The AI translates your contextual conditions into personalized offers matching the brand tone.
           </p>
         </div>
         <div className="flex flex-col items-end gap-1">
@@ -310,14 +310,14 @@ export const RuleBuilder = ({
               "text-xs font-medium",
               active ? "text-success" : "text-muted-foreground",
             )}>
-              {active ? "Règle active" : "Règle inactive — envois bloqués"}
+              {active ? "Rule active" : "Rule inactive — sending blocked"}
             </span>
             <Switch checked={active} onCheckedChange={setActive} />
             {onRemove && (
               <button
                 type="button"
                 onClick={onRemove}
-                aria-label="Supprimer cette offre"
+                aria-label="Remove this offer"
                 className="ml-1 size-7 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
               >
                 <X className="size-4" />
@@ -341,7 +341,7 @@ export const RuleBuilder = ({
             <div className="flex flex-wrap gap-2 items-center">
               <div className="inline-flex items-center gap-2 pl-3 pr-3 py-1.5 rounded-full bg-primary-soft border border-primary/20 text-sm">
                 <WeatherIcon className="size-3.5 text-primary" />
-                <span className="font-medium text-foreground">Météo</span>
+                <span className="font-medium text-foreground">Weather</span>
                 <span className="text-muted-foreground">=</span>
                 <span className="font-semibold text-primary">{weatherMeta[weather].label}</span>
                 <span className="ml-1 inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-success">
@@ -363,7 +363,7 @@ export const RuleBuilder = ({
                 )}
               >
                 <Users className={cn("size-3.5", trafficLow ? "text-primary" : "text-muted-foreground")} />
-                <span className="font-medium text-foreground">Densité</span>
+                <span className="font-medium text-foreground">Density</span>
                 <span className="text-muted-foreground">{"<"}</span>
                 <span className={cn("font-semibold", trafficLow ? "text-primary" : "text-muted-foreground")}>
                   35%
@@ -378,7 +378,7 @@ export const RuleBuilder = ({
             <div className="mt-4 pt-4 border-t border-dashed border-border/60">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
-                  Conditions personnalisées
+                  Custom conditions
                 </span>
                 <span className="text-[10px] text-muted-foreground">
                   {conditions.filter((c) => evaluateCondition(c, { now: new Date(), stockQty, activeEvent })).length}
@@ -432,7 +432,7 @@ export const RuleBuilder = ({
                     )}
                   >
                     <span className="text-base leading-none">{productMeta[product]?.emoji ?? "☕"}</span>
-                    <span className="font-medium">Sur</span>
+                    <span className="font-medium">On</span>
                     <span className="text-background/60">·</span>
                     <span className="font-semibold">{product}</span>
                     <ChevronDown className="size-3 opacity-70" />
@@ -480,10 +480,10 @@ export const RuleBuilder = ({
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Sparkles className="size-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">Remise maximale autorisée</span>
+            <span className="text-sm font-medium text-foreground">Maximum allowed discount</span>
             {active && (
               <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-warning">
-                <LockIcon className="size-3" /> figé
+                <LockIcon className="size-3" /> locked
               </span>
             )}
           </div>
@@ -504,13 +504,13 @@ export const RuleBuilder = ({
         </div>
       </div>
 
-      {/* Tone selector — Amical, Élégant, Urgent */}
+      {/* Tone selector — Friendly, Elegant, Urgent */}
       <div className="mt-6 pt-6 border-t border-border">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Sparkles className="size-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">Ton de la marque</span>
-            <span className="text-[10px] text-muted-foreground font-mono">SLM local</span>
+            <span className="text-sm font-medium text-foreground">Brand tone</span>
+            <span className="text-[10px] text-muted-foreground font-mono">local SLM</span>
           </div>
         </div>
         <div className={cn("grid grid-cols-3 gap-2", active && "opacity-60")}>
@@ -553,7 +553,7 @@ export const RuleBuilder = ({
           <div className="flex items-center gap-1.5 mb-1.5">
             <Brain className="size-3.5 text-primary" />
             <span className="text-[10px] uppercase tracking-wider font-bold text-primary">
-              Pensée de l'IA
+              AI thought
             </span>
             {!typed.done && (
               <span className="size-1.5 rounded-full bg-primary animate-pulse ml-auto" />
@@ -582,28 +582,28 @@ export const RuleBuilder = ({
             <Rocket className="size-5" />
           )}
           {publishing
-            ? "Déploiement en cours…"
+            ? "Deploying…"
             : !active
-              ? "Règle inactive — envois bloqués"
+              ? "Rule inactive — sending blocked"
               : !conditionsMatch
-                ? "Conditions IF non remplies"
+                ? "IF conditions not met"
                 : justDeployed
-                  ? "Offre en ligne ✓"
-                  : "Déployer sur le réseau Payone"}
+                  ? "Offer live ✓"
+                  : "Deploy to Payone network"}
         </Button>
         <div className="text-[11px] text-muted-foreground text-center mt-2">
           {!active ? (
             <span className="inline-flex items-center gap-1.5 text-warning">
               <ShieldAlert className="size-3" />
-              Activez la règle pour déclencher l'envoi automatique vers Mia.
+              Activate the rule to trigger automatic sending to Mia.
             </span>
           ) : lastPublishedAt ? (
             <span className="inline-flex items-center gap-1.5">
               <CheckCircle2 className="size-3 text-success" />
-              Dernière offre déployée à {lastPublishedAt.toLocaleTimeString("fr-FR", { timeZone: "Europe/Berlin" })}
+              Last offer deployed at {lastPublishedAt.toLocaleTimeString("en-GB", { timeZone: "Europe/Berlin" })}
             </span>
           ) : (
-            <span>L'offre finalisée sera propagée à tous les commerçants partenaires.</span>
+            <span>The finalized offer will be propagated to all partner merchants.</span>
           )}
         </div>
       </div>

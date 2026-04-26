@@ -26,58 +26,67 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { getStuttgartParts } from "@/lib/stuttgartTime";
 
-export type ConditionType = "Heure" | "Jour" | "Stock" | "Événement";
+export type ConditionType = "Time" | "Day" | "Stock" | "Event";
 
 export type Condition =
-  | { id: string; type: "Heure"; from: number; to: number }
-  | { id: string; type: "Jour"; value: string }
+  | { id: string; type: "Time"; from: number; to: number }
+  | { id: string; type: "Day"; value: string }
   | { id: string; type: "Stock"; operator: ">" | "<"; quantity: number }
-  | { id: string; type: "Événement"; value: string };
+  | { id: string; type: "Event"; value: string };
 
 const typeMeta: Record<
   ConditionType,
   { icon: React.ComponentType<{ className?: string }>; color: string }
 > = {
-  Heure: { icon: Clock, color: "text-sky-600" },
-  Jour: { icon: Calendar, color: "text-violet-600" },
+  Time: { icon: Clock, color: "text-sky-600" },
+  Day: { icon: Calendar, color: "text-violet-600" },
   Stock: { icon: Tag, color: "text-amber-600" },
-  Événement: { icon: PartyPopper, color: "text-rose-600" },
+  Event: { icon: PartyPopper, color: "text-rose-600" },
 };
 
 const dayOptions = [
-  "Lundi",
-  "Mardi",
-  "Mercredi",
-  "Jeudi",
-  "Vendredi",
-  "Samedi",
-  "Dimanche",
-  "Week-end",
-  "Semaine",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+  "Weekend",
+  "Weekday",
 ];
 
 const eventOptions = [
-  "Marché de Noël",
-  "Match VfB Stuttgart",
-  "Festival Musique",
-  "Aucun",
+  "Christmas Market",
+  "VfB Stuttgart Match",
+  "Music Festival",
+  "None",
 ];
 
-const dayIndexFR = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+// English weekday names matching getStuttgartParts output (we'll translate from FR)
+const FR_TO_EN_DAY: Record<string, string> = {
+  Lundi: "Monday",
+  Mardi: "Tuesday",
+  Mercredi: "Wednesday",
+  Jeudi: "Thursday",
+  Vendredi: "Friday",
+  Samedi: "Saturday",
+  Dimanche: "Sunday",
+};
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 const defaultCondition = (type: ConditionType): Condition => {
   const id = uid();
   switch (type) {
-    case "Heure":
+    case "Time":
       return { id, type, from: 14, to: 17 };
-    case "Jour":
-      return { id, type, value: "Jeudi" };
+    case "Day":
+      return { id, type, value: "Thursday" };
     case "Stock":
       return { id, type, operator: ">", quantity: 20 };
-    case "Événement":
-      return { id, type, value: "Marché de Noël" };
+    case "Event":
+      return { id, type, value: "Christmas Market" };
   }
 };
 
@@ -88,31 +97,31 @@ export const evaluateCondition = (
   ctx: { now: Date; stockQty: number; activeEvent: string },
 ): boolean => {
   const stg = getStuttgartParts(ctx.now);
-  if (c.type === "Heure") {
+  if (c.type === "Time") {
     const h = stg.hour;
     return h >= c.from && h < c.to;
   }
-  if (c.type === "Jour") {
-    const today = stg.dayNameFr;
-    if (c.value === "Week-end") return today === "Samedi" || today === "Dimanche";
-    if (c.value === "Semaine") return today !== "Samedi" && today !== "Dimanche";
+  if (c.type === "Day") {
+    const today = FR_TO_EN_DAY[stg.dayNameFr] ?? stg.dayNameFr;
+    if (c.value === "Weekend") return today === "Saturday" || today === "Sunday";
+    if (c.value === "Weekday") return today !== "Saturday" && today !== "Sunday";
     return today === c.value;
   }
   if (c.type === "Stock") {
     return c.operator === ">" ? ctx.stockQty > c.quantity : ctx.stockQty < c.quantity;
   }
-  if (c.type === "Événement") {
+  if (c.type === "Event") {
     return ctx.activeEvent === c.value;
   }
   return false;
 };
 
-/** Short human label for the AI prompt context (e.g. "Jeudi", "14h-17h"). */
+/** Short human label for the AI prompt context (e.g. "Thursday", "14h-17h"). */
 export const conditionLabel = (c: Condition): string => {
-  if (c.type === "Heure") return `${c.from}h–${c.to}h`;
-  if (c.type === "Jour") return c.value;
+  if (c.type === "Time") return `${c.from}h–${c.to}h`;
+  if (c.type === "Day") return c.value;
   if (c.type === "Stock") return `Stock ${c.operator} ${c.quantity}`;
-  if (c.type === "Événement") return c.value;
+  if (c.type === "Event") return c.value;
   return "";
 };
 
@@ -173,7 +182,7 @@ export const ConditionChips = ({ conditions, onChange, stockQty, activeEvent }: 
                   <span className="text-muted-foreground">=</span>
 
                   {/* Inline editor per type */}
-                  {c.type === "Heure" && (
+                  {c.type === "Time" && (
                     <div className="inline-flex items-center gap-1">
                       <Input
                         type="number"
@@ -200,7 +209,7 @@ export const ConditionChips = ({ conditions, onChange, stockQty, activeEvent }: 
                     </div>
                   )}
 
-                  {c.type === "Jour" && (
+                  {c.type === "Day" && (
                     <Select value={c.value} onValueChange={(v) => updateCondition(c.id, { value: v })}>
                       <SelectTrigger className="h-6 px-2 py-0 text-xs border-0 bg-transparent shadow-none w-auto gap-1 focus:ring-0">
                         <SelectValue />
@@ -242,7 +251,7 @@ export const ConditionChips = ({ conditions, onChange, stockQty, activeEvent }: 
                     </div>
                   )}
 
-                  {c.type === "Événement" && (
+                  {c.type === "Event" && (
                     <Select value={c.value} onValueChange={(v) => updateCondition(c.id, { value: v })}>
                       <SelectTrigger className="h-6 px-2 py-0 text-xs border-0 bg-transparent shadow-none w-auto gap-1 focus:ring-0">
                         <SelectValue />
@@ -276,7 +285,7 @@ export const ConditionChips = ({ conditions, onChange, stockQty, activeEvent }: 
                   <button
                     type="button"
                     onClick={() => removeCondition(c.id)}
-                    aria-label="Supprimer la condition"
+                    aria-label="Remove condition"
                     className="ml-0.5 size-5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
                   >
                     <X className="size-3" />
@@ -292,7 +301,7 @@ export const ConditionChips = ({ conditions, onChange, stockQty, activeEvent }: 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-dashed border-primary/40 text-xs text-primary hover:bg-primary-soft transition-colors">
-            <Plus className="size-3.5" /> Ajouter une condition
+            <Plus className="size-3.5" /> Add a condition
             <ChevronDown className="size-3 opacity-60" />
           </button>
         </DropdownMenuTrigger>
