@@ -15,14 +15,14 @@ import { cn } from "@/lib/utils";
 
 type Bucket = { time: string; accepted: number; revenue: number };
 
-const SLOTS = 12; // 12 buckets affichés (~1 minute si tick = 5s)
+const SLOTS = 12; // 12 buckets shown (~1 minute if tick = 5s)
 
 const seed = (): Bucket[] => {
   const now = Date.now();
   return Array.from({ length: SLOTS }, (_, i) => {
     const t = new Date(now - (SLOTS - 1 - i) * 5000);
     return {
-      time: t.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" }),
+      time: t.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" }),
       accepted: Math.floor(Math.random() * 3),
       revenue: Math.floor(Math.random() * 12 + 4),
     };
@@ -49,7 +49,7 @@ export const LiveAnalytics = () => {
       setData((prev) => [
         ...prev.slice(1),
         {
-          time: t.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" }),
+          time: t.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" }),
           accepted,
           revenue,
         },
@@ -90,29 +90,29 @@ export const LiveAnalytics = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Activity className="size-4 text-primary" />
-            <h2 className="text-base font-semibold tracking-tight">Live analytics — Offres acceptées</h2>
+            <h2 className="text-base font-semibold tracking-tight">Live analytics — Accepted offers</h2>
             <div className="flex items-center gap-1.5 ml-2">
               <span className={cn("size-2 rounded-full bg-success", pulse ? "animate-ping" : "animate-pulse")} />
               <span className="text-[10px] font-bold uppercase tracking-widest text-success">Live</span>
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Réagit en temps réel à chaque acceptation côté <span className="font-semibold text-foreground">app Mia</span>
+            Reacts in real-time to every acceptance from the <span className="font-semibold text-foreground">Mia app</span>
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-right">
           <div className="rounded-md bg-secondary/60 px-3 py-2">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Acceptées</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Accepted</div>
             <div className="flex items-center justify-end gap-1 text-lg font-bold tabular text-foreground">
               <Zap className="size-3.5 text-warning" />
               {totalAccepted}
             </div>
           </div>
           <div className="rounded-md bg-secondary/60 px-3 py-2">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Revenu live</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Live revenue</div>
             <div className="flex items-center justify-end gap-1 text-lg font-bold tabular text-success">
-              <TrendingUp className="size-3.5" />€{totalRevenue.toLocaleString("fr-FR")}
+              <TrendingUp className="size-3.5" />€{totalRevenue.toLocaleString("en-US")}
             </div>
           </div>
         </div>
@@ -153,15 +153,15 @@ export const LiveAnalytics = () => {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <span className="size-2 rounded-sm bg-success" />
-            <span>Acceptations</span>
+            <span>Acceptances</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="size-2 rounded-sm bg-primary" />
-            <span>Revenu (€)</span>
+            <span>Revenue (€)</span>
           </div>
         </div>
         <div className="tabular">
-          Dernier tick · <span className="font-semibold text-foreground">{lastBucket?.accepted ?? 0}</span> offres ·{" "}
+          Last tick · <span className="font-semibold text-foreground">{lastBucket?.accepted ?? 0}</span> offers ·{" "}
           <span className="font-semibold text-success">€{lastBucket?.revenue ?? 0}</span>
         </div>
       </div>

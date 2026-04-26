@@ -9,10 +9,10 @@ const weatherMeta: Record<
   Weather,
   { icon: React.ComponentType<{ className?: string }>; label: string; tone: string }
 > = {
-  rain: { icon: CloudRain, label: "Pluie", tone: "text-primary" },
-  sun: { icon: Sun, label: "Soleil", tone: "text-warning" },
-  snow: { icon: Snowflake, label: "Neige", tone: "text-primary" },
-  cloud: { icon: Cloud, label: "Nuageux", tone: "text-muted-foreground" },
+  rain: { icon: CloudRain, label: "Rain", tone: "text-primary" },
+  sun: { icon: Sun, label: "Sun", tone: "text-warning" },
+  snow: { icon: Snowflake, label: "Snow", tone: "text-primary" },
+  cloud: { icon: Cloud, label: "Cloudy", tone: "text-muted-foreground" },
 };
 
 export const MarketStatus = ({
@@ -30,7 +30,7 @@ export const MarketStatus = ({
     <Card className="p-5 shadow-sm-elegant border-border/70">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Statut actuel du marché</h3>
+          <h3 className="text-sm font-semibold text-foreground">Current market status</h3>
           <div className="flex items-center gap-1.5 mt-0.5">
             <MapPin className="size-3 text-muted-foreground" />
             <p className="text-xs text-muted-foreground">Stuttgart, DE · OpenWeatherMap</p>
@@ -59,7 +59,7 @@ export const MarketStatus = ({
         <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
           <AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
           <div className="text-xs text-destructive">
-            Impossible de récupérer la météo réelle. {error}
+            Unable to fetch real weather. {error}
           </div>
         </div>
       ) : (
@@ -70,7 +70,7 @@ export const MarketStatus = ({
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Conditions réelles
+                Real conditions
               </div>
               <div className="text-xl font-semibold text-foreground tracking-tight">
                 {meta.label}
@@ -83,19 +83,19 @@ export const MarketStatus = ({
               <div className="text-3xl font-bold text-foreground tabular leading-none">
                 {data ? `${data.temperature}°` : "—"}
               </div>
-              <div className="text-[10px] text-muted-foreground mt-1">Ressenti</div>
+              <div className="text-[10px] text-muted-foreground mt-1">Feels like</div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2 mt-3">
             <div className="p-2.5 rounded-lg bg-secondary/40 border border-transparent">
-              <div className="text-[10px] text-muted-foreground font-medium">Humidité</div>
+              <div className="text-[10px] text-muted-foreground font-medium">Humidity</div>
               <div className="text-sm font-semibold text-foreground tabular">
                 {data ? `${data.humidity}%` : "—"}
               </div>
             </div>
             <div className="p-2.5 rounded-lg bg-secondary/40 border border-transparent">
-              <div className="text-[10px] text-muted-foreground font-medium">Vent</div>
+              <div className="text-[10px] text-muted-foreground font-medium">Wind</div>
               <div className="text-sm font-semibold text-foreground tabular">
                 {data ? `${data.wind} km/h` : "—"}
               </div>
@@ -107,7 +107,7 @@ export const MarketStatus = ({
               onClick={() => onWeatherDetected(data.weather)}
               className="mt-3 w-full text-xs font-medium px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
             >
-              Appliquer cette météo à la règle
+              Apply this weather to the rule
             </button>
           )}
         </>

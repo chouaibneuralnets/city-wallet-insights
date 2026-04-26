@@ -38,7 +38,7 @@ export const InputSignals = () => {
   }, []);
 
   const trafficLabel =
-    trafficPct < 35 ? "Boutique calme" : trafficPct < 65 ? "Activité modérée" : "Forte affluence";
+    trafficPct < 35 ? "Shop quiet" : trafficPct < 65 ? "Moderate activity" : "Heavy traffic";
   const trafficColor =
     trafficPct < 35 ? "text-warning" : trafficPct < 65 ? "text-primary" : "text-success";
   const trafficBar =
@@ -51,7 +51,7 @@ export const InputSignals = () => {
       <div className="px-5 py-3 border-b border-border/60 flex items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
         <div className="flex items-center gap-2">
           <Activity className="size-4 text-primary" />
-          <h3 className="text-sm font-semibold tracking-tight">Signaux entrants — Capteurs IoT</h3>
+          <h3 className="text-sm font-semibold tracking-tight">Incoming Signals — IoT Sensors</h3>
         </div>
         <Badge variant="outline" className="gap-1.5 border-success/40 bg-success/10 text-success font-mono text-[10px]">
           <span className="size-1.5 rounded-full bg-success animate-pulse" />
@@ -64,7 +64,7 @@ export const InputSignals = () => {
         <div className="p-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Météo · Stuttgart
+              Weather · Stuttgart
             </span>
             <span className="font-mono text-[10px] text-muted-foreground">
               {weather?.isFallback ? "demo" : "live API"}
@@ -85,7 +85,7 @@ export const InputSignals = () => {
                     </div>
                     {weather?.isFallback && (
                       <span
-                        title="Clé API manquante ou indisponible — valeurs simulées"
+                        title="API key missing or unavailable — simulated values"
                         className="inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-widest text-warning"
                       >
                         <span className="size-1 rounded-full bg-warning animate-pulse" />
@@ -114,9 +114,9 @@ export const InputSignals = () => {
         <div className="p-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Densité trafic Payone
+              Payone traffic density
             </span>
-            <span className="font-mono text-[10px] text-muted-foreground">{salesCount} ventes / 10min</span>
+            <span className="font-mono text-[10px] text-muted-foreground">{salesCount} sales / 10min</span>
           </div>
           <div className="flex items-end justify-between mb-2">
             <div className={cn("text-3xl font-bold tabular leading-none", trafficColor)}>
@@ -129,7 +129,7 @@ export const InputSignals = () => {
                   className="gap-1 border-warning/40 bg-warning/10 text-warning text-[9px] font-bold uppercase tracking-widest animate-pulse"
                 >
                   <span className="size-1.5 rounded-full bg-warning" />
-                  Boutique calme
+                  Shop quiet
                 </Badge>
               )}
               <span className={cn("text-[11px] font-semibold", trafficColor)}>{trafficLabel}</span>
@@ -143,7 +143,7 @@ export const InputSignals = () => {
           </div>
           <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
             <span>0%</span>
-            <span>seuil offre IA · 35%</span>
+            <span>AI offer threshold · 35%</span>
             <span>100%</span>
           </div>
         </div>
@@ -152,7 +152,7 @@ export const InputSignals = () => {
         <div className="p-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Événement actuel — Stuttgart
+              Current event — Stuttgart
             </span>
             <span className="font-mono text-[10px] text-muted-foreground">geo-feed</span>
           </div>
@@ -184,12 +184,12 @@ export const InputSignals = () => {
                 </div>
                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono">
                   <CalendarDays className="size-3" />
-                  <MapPin className="size-3" /> Stuttgart-Mitte · agenda hebdomadaire
+                  <MapPin className="size-3" /> Stuttgart-Mitte · weekly agenda
                 </div>
               </div>
             );
           })() : (
-            <div className="text-xs text-muted-foreground">Aucun événement à proximité.</div>
+            <div className="text-xs text-muted-foreground">No nearby events.</div>
           )}
         </div>
       </div>

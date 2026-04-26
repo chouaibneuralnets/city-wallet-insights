@@ -21,14 +21,14 @@ type Tx = {
   base: number;
   paid: number;
   boost: boolean;
-  channel: "Payone" | "Apple Pay" | "Carte";
+  channel: "Payone" | "Apple Pay" | "Card";
   rule?: string;
 };
 
 const ICONS = [Coffee, Croissant, GlassWater, UtensilsCrossed];
-const PRODUCTS = ["Espresso", "Croissant amande", "Limonade maison", "Plat du jour", "Cappuccino", "Tarte tatin", "Brunch"];
+const PRODUCTS = ["Espresso", "Almond croissant", "House lemonade", "Dish of the day", "Cappuccino", "Tarte tatin", "Brunch"];
 const CUSTOMERS = ["Mia K.", "Lukas H.", "Sofia R.", "Anna B.", "Tom W.", "Léna D.", "Felix S.", "Clara M.", "Jonas P."];
-const CHANNELS: Tx["channel"][] = ["Payone", "Apple Pay", "Carte"];
+const CHANNELS: Tx["channel"][] = ["Payone", "Apple Pay", "Card"];
 
 const seed = (n: number): Tx[] => {
   const now = Date.now();
@@ -40,7 +40,7 @@ const seed = (n: number): Tx[] => {
     const t = new Date(now - i * (60_000 * (1 + Math.random() * 4)));
     return {
       id: `tx-${i}-${now}`,
-      time: t.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" }),
+      time: t.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" }),
       customer: CUSTOMERS[i % CUSTOMERS.length],
       product: PRODUCTS[i % PRODUCTS.length],
       productIcon: ICONS[i % ICONS.length],
@@ -48,7 +48,7 @@ const seed = (n: number): Tx[] => {
       paid,
       boost,
       channel: CHANNELS[i % CHANNELS.length],
-      rule: boost ? `Pluie · -${discount}%` : undefined,
+      rule: boost ? `Rain · -${discount}%` : undefined,
     };
   });
 };
@@ -78,12 +78,12 @@ export const TransactionsTable = () => {
         <div>
           <div className="flex items-center gap-2 mb-0.5">
             <Receipt className="size-4 text-primary" />
-            <h2 className="text-base font-semibold tracking-tight">Transactions Payone — Live</h2>
+            <h2 className="text-base font-semibold tracking-tight">Payone Transactions — Live</h2>
             <Badge variant="secondary" className="text-[10px] tabular">{txs.length}</Badge>
           </div>
           <p className="text-xs text-muted-foreground">
-            Volume total <span className="tabular font-semibold text-foreground">€{totalAll.toFixed(2)}</span> · dont{" "}
-            <span className="tabular font-semibold text-success">€{totalBoost.toFixed(2)}</span> via offres IA
+            Total volume <span className="tabular font-semibold text-foreground">€{totalAll.toFixed(2)}</span> · including{" "}
+            <span className="tabular font-semibold text-success">€{totalBoost.toFixed(2)}</span> via AI offers
           </p>
         </div>
         <div className="inline-flex items-center rounded-lg bg-secondary p-0.5">
@@ -96,7 +96,7 @@ export const TransactionsTable = () => {
                 filter === f ? "bg-card text-foreground shadow-sm-elegant" : "text-muted-foreground"
               )}
             >
-              {f === "all" ? "Toutes" : f === "boost" ? "Boosted IA" : "Standard"}
+              {f === "all" ? "All" : f === "boost" ? "AI Boosted" : "Standard"}
             </button>
           ))}
         </div>
@@ -105,13 +105,13 @@ export const TransactionsTable = () => {
       <Table>
         <TableHeader>
           <TableRow className="bg-secondary/40 hover:bg-secondary/40">
-            <TableHead className="w-[80px]">Heure</TableHead>
-            <TableHead>Client</TableHead>
-            <TableHead>Produit</TableHead>
-            <TableHead>Canal</TableHead>
+            <TableHead className="w-[80px]">Time</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Product</TableHead>
+            <TableHead>Channel</TableHead>
             <TableHead className="text-right">Base</TableHead>
-            <TableHead className="text-right">Payé</TableHead>
-            <TableHead className="w-[160px]">Origine</TableHead>
+            <TableHead className="text-right">Paid</TableHead>
+            <TableHead className="w-[160px]">Source</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -133,7 +133,7 @@ export const TransactionsTable = () => {
                   </span>
                   {t.channel === "Payone" && (
                     <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/30 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-success">
-                      <ShieldCheck className="size-2.5" /> Vérifié Payone
+                      <ShieldCheck className="size-2.5" /> Verified Payone
                     </div>
                   )}
                 </TableCell>
@@ -142,7 +142,7 @@ export const TransactionsTable = () => {
                 <TableCell>
                   {t.boost ? (
                     <Badge className="bg-primary/10 text-primary hover:bg-primary/15 border-0 gap-1 text-[10px] font-bold uppercase tracking-wider">
-                      <Sparkles className="size-3" /> Boosted IA
+                      <Sparkles className="size-3" /> AI Boosted
                     </Badge>
                   ) : (
                     <Badge variant="secondary" className="text-[10px] uppercase tracking-wider text-muted-foreground">

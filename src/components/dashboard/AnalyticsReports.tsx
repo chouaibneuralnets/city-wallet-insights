@@ -20,10 +20,10 @@ import {
 import { Thermometer, Users, TrendingUp } from "lucide-react";
 
 const WEATHER_PERF = [
-  { weather: "Pluie", offers: 142, accepted: 98, conv: 69 },
-  { weather: "Soleil", offers: 88, accepted: 41, conv: 47 },
-  { weather: "Nuageux", offers: 110, accepted: 61, conv: 55 },
-  { weather: "Neige", offers: 64, accepted: 49, conv: 77 },
+  { weather: "Rain", offers: 142, accepted: 98, conv: 69 },
+  { weather: "Sun", offers: 88, accepted: 41, conv: 47 },
+  { weather: "Cloudy", offers: 110, accepted: 61, conv: 55 },
+  { weather: "Snow", offers: 64, accepted: 49, conv: 77 },
 ];
 
 const TEMP_PERF = [
@@ -37,12 +37,12 @@ const TEMP_PERF = [
 ];
 
 const COHORTS = [
-  { trait: "Réactivité <2min", mia: 88, baseline: 42 },
-  { trait: "Acceptation push", mia: 71, baseline: 28 },
+  { trait: "Reactivity <2min", mia: 88, baseline: 42 },
+  { trait: "Push acceptance", mia: 71, baseline: 28 },
   { trait: "Repeat visit", mia: 64, baseline: 31 },
-  { trait: "Panier moyen", mia: 78, baseline: 50 },
-  { trait: "Géoloc <500m", mia: 92, baseline: 60 },
-  { trait: "Sensibilité météo", mia: 81, baseline: 22 },
+  { trait: "Avg basket", mia: 78, baseline: 50 },
+  { trait: "Geoloc <500m", mia: 92, baseline: 60 },
+  { trait: "Weather sensitivity", mia: 81, baseline: 22 },
 ];
 
 export const AnalyticsReports = () => {
@@ -53,9 +53,9 @@ export const AnalyticsReports = () => {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Thermometer className="size-4 text-primary" />
-              <h3 className="text-base font-semibold tracking-tight">Performance par condition météo</h3>
+              <h3 className="text-base font-semibold tracking-tight">Performance by weather condition</h3>
             </div>
-            <p className="text-xs text-muted-foreground">Taux de conversion des offres IA selon la météo réelle (30 derniers jours)</p>
+            <p className="text-xs text-muted-foreground">AI offer conversion rate by real weather (last 30 days)</p>
           </div>
         </div>
         <div className="h-64">
@@ -68,8 +68,8 @@ export const AnalyticsReports = () => {
                 contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
               />
               <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="offers" name="Offres envoyées" fill="hsl(var(--muted-foreground) / 0.4)" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="accepted" name="Acceptées" radius={[3, 3, 0, 0]}>
+              <Bar dataKey="offers" name="Offers sent" fill="hsl(var(--muted-foreground) / 0.4)" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="accepted" name="Accepted" radius={[3, 3, 0, 0]}>
                 {WEATHER_PERF.map((d, i) => (
                   <Cell key={i} fill={d.conv >= 65 ? "hsl(var(--success))" : "hsl(var(--primary))"} />
                 ))}
@@ -84,9 +84,9 @@ export const AnalyticsReports = () => {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <TrendingUp className="size-4 text-primary" />
-              <h3 className="text-base font-semibold tracking-tight">Conversion vs Température</h3>
+              <h3 className="text-base font-semibold tracking-tight">Conversion vs Temperature</h3>
             </div>
-            <p className="text-xs text-muted-foreground">Pic de réceptivité autour de 15°C (météo fraîche)</p>
+            <p className="text-xs text-muted-foreground">Receptiveness peak around 15°C (cool weather)</p>
           </div>
         </div>
         <div className="h-56">
@@ -123,9 +123,9 @@ export const AnalyticsReports = () => {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Users className="size-4 text-primary" />
-              <h3 className="text-base font-semibold tracking-tight">Comportement clients Mia vs Baseline</h3>
+              <h3 className="text-base font-semibold tracking-tight">Mia vs Baseline customer behavior</h3>
             </div>
-            <p className="text-xs text-muted-foreground">Profil radar : utilisateurs City-Wallet vs clients standards</p>
+            <p className="text-xs text-muted-foreground">Radar profile: City-Wallet users vs standard customers</p>
           </div>
         </div>
         <div className="h-56">

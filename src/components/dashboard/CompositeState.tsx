@@ -34,17 +34,17 @@ export const CompositeState = () => {
   const segmentHint = isWeekend ? "Loyals · Newcomers" : "Commuters";
 
   const timeLabel = isLateNight
-    ? "Heure de nuit"
+    ? "Night hour"
     : isOffPeak
-    ? "Heure creuse"
-    : "Heure de pointe";
+    ? "Off-peak hour"
+    : "Peak hour";
   const timeActive = isOffPeak || isLateNight;
 
   const signals: Signal[] = [
     {
       key: "weather",
-      label: isRain ? "Pluie détectée" : isCloud ? "Couvert" : weather?.weather === "snow" ? "Neige" : "Ciel dégagé",
-      detail: temperatureC !== null ? `${temperatureC}°C · Stuttgart` : "Capteur météo",
+      label: isRain ? "Rain detected" : isCloud ? "Overcast" : weather?.weather === "snow" ? "Snow" : "Clear sky",
+      detail: temperatureC !== null ? `${temperatureC}°C · Stuttgart` : "Weather sensor",
       icon: isRain ? CloudRain : isCloud ? Cloud : Sun,
       level: isRain || isCloud ? "active" : "passive",
     },
@@ -57,22 +57,22 @@ export const CompositeState = () => {
     },
     {
       key: "day",
-      label: `Jour : ${stuttgart.dayNameFr}`,
-      detail: `${isWeekend ? "Week-end" : "Semaine"} · cible ${segmentHint}`,
+      label: `Day: ${stuttgart.dayNameFr}`,
+      detail: `${isWeekend ? "Weekend" : "Weekday"} · target ${segmentHint}`,
       icon: CalendarDays,
       level: "active",
     },
     {
       key: "density",
-      label: isLowDensity ? "Densité Payone faible" : density < 65 ? "Densité Payone modérée" : "Densité Payone forte",
-      detail: `${density}% · seuil offre 35%`,
+      label: isLowDensity ? "Low Payone density" : density < 65 ? "Moderate Payone density" : "High Payone density",
+      detail: `${density}% · offer threshold 35%`,
       icon: Activity,
       level: isLowDensity ? "active" : "passive",
     },
     {
       key: "proximity",
-      label: `${proximityCount} client${proximityCount > 1 ? "s" : ""} à proximité`,
-      detail: "Rayon 200m · géofence",
+      label: `${proximityCount} customer${proximityCount > 1 ? "s" : ""} nearby`,
+      detail: "200m radius · geofence",
       icon: Users,
       level: proximityCount >= 2 ? "active" : "passive",
     },
@@ -80,12 +80,12 @@ export const CompositeState = () => {
 
   // Day is informational (always "active") — exclude it from the opportunity scoring.
   const activeCount = signals.filter((s) => s.level === "active" && s.key !== "day").length;
-  // Low density forces "Opportunité Haute" regardless of other signals
+  // Low density forces "Opportunity Haute" regardless of other signals
   const opportunityLevel = isLowDensity || activeCount >= 3
-    ? "haute"
+    ? "high"
     : activeCount === 2
-    ? "moyenne"
-    : "basse";
+    ? "medium"
+    : "low";
   const opportunityColor = isLowDensity || activeCount >= 3
     ? "success"
     : activeCount === 2
@@ -132,10 +132,10 @@ export const CompositeState = () => {
             <Brain className="size-3.5 text-primary" />
             <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-success animate-pulse" />
           </div>
-          <h2 className="text-sm font-semibold tracking-tight">Diagnostic du contexte actuel</h2>
+          <h2 className="text-sm font-semibold tracking-tight">Current context diagnostic</h2>
         </div>
         <Badge variant="outline" className="gap-1.5 font-mono text-[10px] border-border/60">
-          {activeCount}/{signals.filter((s) => s.key !== "day").length} signaux actifs
+          {activeCount}/{signals.filter((s) => s.key !== "day").length} active signals
         </Badge>
       </div>
 
@@ -191,16 +191,16 @@ export const CompositeState = () => {
               </span>
             </div>
             <div className={cn("text-3xl font-bold tracking-tight capitalize", c.text)}>
-              Opportunité {opportunityLevel}
+              Opportunity {opportunityLevel}
             </div>
             <p className="text-[12px] text-muted-foreground mt-2 leading-snug">
               {isLowDensity
-                ? `Densité ${density}% < 35% — offre auto-déclenchée vers Supabase.`
+                ? `Density ${density}% < 35% — offer auto-triggered to backend.`
                 : activeCount >= 3
-                ? "Tous les signaux convergent — déclenchement offre auto-recommandé."
+                ? "All signals converge — auto-triggered offer recommended."
                 : activeCount === 2
-                ? "2 conditions remplies — règle prête à se déclencher."
-                : "Veille active — en attente de signaux contextuels."}
+                ? "2 conditions met — rule ready to trigger."
+                : "Active monitoring — awaiting contextual signals."}
             </p>
           </div>
         </div>

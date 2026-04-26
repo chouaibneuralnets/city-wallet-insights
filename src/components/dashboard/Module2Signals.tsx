@@ -33,13 +33,13 @@ const weatherIcon = (w?: string) => {
 const weatherLabel = (w?: string) => {
   switch (w) {
     case "rain":
-      return "Pluie";
+      return "Rain";
     case "sun":
-      return "Ciel dégagé";
+      return "Clear sky";
     case "snow":
-      return "Neige";
+      return "Snow";
     case "cloud":
-      return "Nuageux";
+      return "Cloudy";
     default:
       return "—";
   }
@@ -102,8 +102,8 @@ export const Module2Signals = ({
       <div className="px-5 py-3 border-b border-border/60 flex items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
         <div className="flex items-center gap-2">
           <Activity className="size-4 text-primary" />
-          <h3 className="text-sm font-semibold tracking-tight">Signaux entrants — Capteurs IoT</h3>
-          <span className="text-[10px] font-mono text-muted-foreground">Module 01 → 02 · miroir live</span>
+          <h3 className="text-sm font-semibold tracking-tight">Incoming Signals — IoT Sensors</h3>
+          <span className="text-[10px] font-mono text-muted-foreground">Module 01 → 02 · live mirror</span>
         </div>
         <Badge
           variant="outline"
@@ -119,7 +119,7 @@ export const Module2Signals = ({
         <div className="p-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Météo · Stuttgart
+              Weather · Stuttgart
             </span>
             <span className="font-mono text-[10px] text-muted-foreground">
               {weather?.isFallback ? "demo" : "live API"}
@@ -158,10 +158,10 @@ export const Module2Signals = ({
         <div className="p-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Densité trafic Payone
+              Payone traffic density
             </span>
             <span className="font-mono text-[10px] text-muted-foreground">
-              {salesCount} ventes / 10min
+              {salesCount} sales / 10min
             </span>
           </div>
           <div className="flex items-end justify-between mb-2">
@@ -169,7 +169,7 @@ export const Module2Signals = ({
               {trafficPct}%
             </div>
             <span className={cn("text-[11px] font-semibold", trafficColor)}>
-              {trafficLow ? "Boutique calme" : trafficPct < 65 ? "Activité modérée" : "Forte affluence"}
+              {trafficLow ? "Shop quiet" : trafficPct < 65 ? "Moderate activity" : "Heavy traffic"}
             </span>
           </div>
           <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
@@ -180,16 +180,16 @@ export const Module2Signals = ({
           </div>
           <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
             <span>0%</span>
-            <span>seuil offre IA · 35%</span>
+            <span>AI offer threshold · 35%</span>
             <span>100%</span>
           </div>
         </div>
 
-        {/* Clients à proximité — wallet_pings (same as Module 01 map) */}
+        {/* Nearby customers — wallet_pings (same as Module 01 map) */}
         <div className="p-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Clients à proximité
+              Nearby customers
             </span>
             <span className="font-mono text-[10px] text-muted-foreground">geofence 200m</span>
           </div>
@@ -200,12 +200,12 @@ export const Module2Signals = ({
                 {proximityCount}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                wallets actifs autour du Café Müller
+                active wallets around Café Müller
               </div>
             </div>
           </div>
           <div className="mt-3 text-[11px] text-muted-foreground font-mono">
-            source : <span className="text-foreground">wallet_pings · realtime</span>
+            source: <span className="text-foreground">wallet_pings · realtime</span>
           </div>
         </div>
       </div>

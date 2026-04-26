@@ -35,14 +35,14 @@ const weatherIcon: Record<string, React.ComponentType<{ className?: string }>> =
 };
 
 const weatherLabel: Record<string, string> = {
-  rain: "Pluie",
-  sun: "Soleil",
-  snow: "Neige",
-  cloud: "Nuageux",
+  rain: "Rain",
+  sun: "Sun",
+  snow: "Snow",
+  cloud: "Cloudy",
 };
 
 const formatDate = (iso: string) =>
-  new Date(iso).toLocaleString("fr-FR", {
+  new Date(iso).toLocaleString("en-US", {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
@@ -70,7 +70,7 @@ export const OffersTable = () => {
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) {
-      toast.error("Impossible de charger les offres", { description: error.message });
+      toast.error("Unable to load offers", { description: error.message });
     } else {
       setOffers((data ?? []) as OfferRow[]);
     }
@@ -99,11 +99,11 @@ export const OffersTable = () => {
       .update({ active: value })
       .eq("id", row.id);
     if (error) {
-      toast.error("Mise à jour échouée", { description: error.message });
+      toast.error("Update failed", { description: error.message });
       load();
     } else {
       toast.success(
-        value ? "Offre activée sur le réseau" : "Offre désactivée",
+        value ? "Offer activated on network" : "Offer disabled",
         { description: `${weatherLabel[row.weather] ?? row.weather} → -${row.discount_percent}% sur ${row.product}` }
       );
     }
@@ -123,10 +123,10 @@ export const OffersTable = () => {
         <div>
           <div className="flex items-center gap-2 mb-0.5">
             <Tag className="size-4 text-primary" />
-            <h2 className="text-base font-semibold tracking-tight">Catalogue des offres</h2>
+            <h2 className="text-base font-semibold tracking-tight">Offers Catalog</h2>
             <Badge variant="secondary" className="text-[10px] tabular">{offers.length}</Badge>
           </div>
-          <p className="text-xs text-muted-foreground">Activez, désactivez ou supprimez les offres synchronisées avec l'app Mia.</p>
+          <p className="text-xs text-muted-foreground">Enable, disable or remove offers synced with the Mia app.</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="inline-flex items-center rounded-lg bg-secondary p-0.5">
@@ -139,12 +139,12 @@ export const OffersTable = () => {
                   filter === f ? "bg-card text-foreground shadow-sm-elegant" : "text-muted-foreground"
                 )}
               >
-                {f === "all" ? "Toutes" : f === "active" ? "Actives" : "Inactives"}
+                {f === "all" ? "All" : f === "active" ? "Active" : "Inactive"}
               </button>
             ))}
           </div>
           <Button variant="outline" size="sm" onClick={load} className="gap-1.5">
-            <RefreshCw className={cn("size-3.5", loading && "animate-spin")} /> Actualiser
+            <RefreshCw className={cn("size-3.5", loading && "animate-spin")} /> Refresh
           </Button>
         </div>
       </div>
@@ -152,26 +152,26 @@ export const OffersTable = () => {
       <Table>
         <TableHeader>
           <TableRow className="bg-secondary/40 hover:bg-secondary/40">
-            <TableHead className="w-[140px]">Statut</TableHead>
+            <TableHead className="w-[140px]">Status</TableHead>
             <TableHead>Condition</TableHead>
-            <TableHead>Produit</TableHead>
-            <TableHead className="text-right">Réduction</TableHead>
-            <TableHead>Trafic</TableHead>
-            <TableHead>Créée</TableHead>
-            <TableHead className="text-right w-[120px]">Actif</TableHead>
+            <TableHead>Product</TableHead>
+            <TableHead className="text-right">Discount</TableHead>
+            <TableHead>Traffic</TableHead>
+            <TableHead>Created</TableHead>
+            <TableHead className="text-right w-[120px]">Active</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {loading && offers.length === 0 ? (
             <TableRow>
               <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                <Loader2 className="size-5 animate-spin inline mr-2" /> Chargement...
+                <Loader2 className="size-5 animate-spin inline mr-2" /> Loading...
               </TableCell>
             </TableRow>
           ) : filtered.length === 0 ? (
             <TableRow>
               <TableCell colSpan={7} className="text-center py-12 text-muted-foreground text-sm">
-                Aucune offre dans cette catégorie.
+                No offers in this category.
               </TableCell>
             </TableRow>
           ) : (
@@ -198,7 +198,7 @@ export const OffersTable = () => {
                           status === "past" && "bg-muted-foreground"
                         )}
                       />
-                      {status === "active" ? "Active" : status === "scheduled" ? "Programmée" : "Inactive"}
+                      {status === "active" ? "Active" : status === "scheduled" ? "Scheduled" : "Inactive"}
                     </Badge>
                   </TableCell>
                   <TableCell>

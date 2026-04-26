@@ -6,19 +6,19 @@ import { cn } from "@/lib/utils";
 
 const variants = [
   {
-    tone: "Chaleureux",
-    title: "Un café au chaud, ça vous tente ?",
-    body: "Il pleut dehors et notre boutique vous attend ! Profitez de DISCOUNT% sur toute la carte chaude jusqu'à 18h. Une parenthèse douce avant de reprendre la route. ☕",
+    tone: "Friendly",
+    title: "Fancy a warm coffee?",
+    body: "It's raining outside and our shop is waiting for you! Enjoy DISCOUNT% off the entire hot menu until 6pm. A sweet little break before you head back out. ☕",
   },
   {
     tone: "Direct",
-    title: "DISCOUNT% offerts — aujourd'hui seulement",
-    body: "Météo capricieuse ? On compense. Présentez ce code en caisse pour bénéficier de DISCOUNT% sur votre commande. Valable jusqu'à fermeture.",
+    title: "DISCOUNT% off — today only",
+    body: "Bad weather? We've got you covered. Show this code at checkout to get DISCOUNT% off your order. Valid until closing.",
   },
   {
     tone: "Premium",
-    title: "Une attention pour vous",
-    body: "Parce que les beaux moments naissent souvent des journées grises, nous vous offrons DISCOUNT% sur notre sélection signature. À très vite.",
+    title: "A little something for you",
+    body: "Because the best moments often come from grey days, we're offering you DISCOUNT% off our signature selection. See you soon.",
   },
 ];
 
@@ -53,9 +53,9 @@ export const AiSimulator = ({ discount }: { discount: number }) => {
             <div className="size-6 rounded-md bg-gradient-primary flex items-center justify-center">
               <Sparkles className="size-3.5 text-primary-foreground" />
             </div>
-            <h2 className="text-lg font-semibold text-foreground tracking-tight">Simulateur IA</h2>
+            <h2 className="text-lg font-semibold text-foreground tracking-tight">AI Simulator</h2>
           </div>
-          <p className="text-sm text-muted-foreground">Aperçu généré selon votre règle</p>
+          <p className="text-sm text-muted-foreground">Preview generated from your rule</p>
         </div>
         <div className="flex gap-1">
           {variants.map((v, i) => (
@@ -81,7 +81,7 @@ export const AiSimulator = ({ discount }: { discount: number }) => {
           <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-10">
             <div className="flex items-center gap-2 text-sm text-primary font-medium">
               <RefreshCw className="size-4 animate-spin" />
-              Génération en cours…
+              Generating…
             </div>
           </div>
         )}
@@ -89,7 +89,7 @@ export const AiSimulator = ({ discount }: { discount: number }) => {
         <div className="flex items-center gap-2 mb-3">
           <div className="size-1.5 rounded-full bg-success animate-pulse" />
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Aperçu push notification
+            Push notification preview
           </span>
         </div>
 
@@ -98,10 +98,10 @@ export const AiSimulator = ({ discount }: { discount: number }) => {
 
         <div className="mt-4 pt-4 border-t border-border flex items-center gap-2 text-[11px] text-muted-foreground">
           <span className="px-2 py-0.5 rounded bg-background border border-border font-medium">
-            {filledBody.length} car.
+            {filledBody.length} chars
           </span>
           <span className="px-2 py-0.5 rounded bg-background border border-border font-medium">
-            FR · Inclusif
+            EN · Inclusive
           </span>
           <span className="ml-auto px-2 py-0.5 rounded bg-success/10 text-success font-semibold">
             Score 92/100
@@ -112,13 +112,13 @@ export const AiSimulator = ({ discount }: { discount: number }) => {
       <div className="flex gap-2 mt-4">
         <Button onClick={regenerate} variant="outline" className="flex-1 gap-2" disabled={generating}>
           <RefreshCw className={cn("size-4", generating && "animate-spin")} />
-          Régénérer
+          Regenerate
         </Button>
         <Button onClick={copy} variant="outline" size="icon">
           {copied ? <Check className="size-4 text-success" /> : <Copy className="size-4" />}
         </Button>
         <Button className="flex-1 gap-2 bg-gradient-primary hover:opacity-90 transition-opacity">
-          <Send className="size-4" /> Activer
+          <Send className="size-4" /> Activate
         </Button>
       </div>
     </Card>

@@ -2,10 +2,10 @@ import { CloudRain, Sun, Snowflake, Users, TrendingUp, MapPin } from "lucide-rea
 import { Card } from "@/components/ui/card";
 
 const conditions = [
-  { icon: CloudRain, label: "Météo", value: "Pluie légère", trend: "12°C", active: true },
-  { icon: Users, label: "Fréquentation", value: "Basse", trend: "-32% vs moy.", active: true },
-  { icon: TrendingUp, label: "Heure de pointe", value: "Hors créneau", trend: "14:30", active: false },
-  { icon: MapPin, label: "Zone", value: "Centre-ville", trend: "847 actifs", active: false },
+  { icon: CloudRain, label: "Weather", value: "Light rain", trend: "12°C", active: true },
+  { icon: Users, label: "Traffic", value: "Low", trend: "-32% vs avg.", active: true },
+  { icon: TrendingUp, label: "Peak hour", value: "Off-peak", trend: "14:30", active: false },
+  { icon: MapPin, label: "Zone", value: "Downtown", trend: "847 active", active: false },
 ];
 
 export const ContextPanel = () => {
@@ -13,8 +13,8 @@ export const ContextPanel = () => {
     <Card className="p-5 shadow-sm-elegant border-border/70">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Contexte temps réel</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Conditions actuellement détectées</p>
+          <h3 className="text-sm font-semibold text-foreground">Real-time context</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Currently detected conditions</p>
         </div>
         <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-success/10">
           <span className="size-1.5 rounded-full bg-success animate-pulse" />
@@ -47,8 +47,8 @@ export const ContextPanel = () => {
       </div>
 
       <div className="mt-4 p-3 rounded-lg bg-gradient-primary text-primary-foreground">
-        <div className="text-[10px] font-bold uppercase tracking-wider opacity-80">Recommandation</div>
-        <div className="text-sm font-semibold mt-0.5">2 conditions remplies — règle prête à se déclencher</div>
+        <div className="text-[10px] font-bold uppercase tracking-wider opacity-80">Recommendation</div>
+        <div className="text-sm font-semibold mt-0.5">2 conditions met — rule ready to trigger</div>
       </div>
     </Card>
   );

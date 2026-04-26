@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
  *   - Live: subscribed to INSERT events on `redemptions` via supabase.channel,
  *     so the gauge moves instantly when a new sale lands.
  *
- * Alert threshold: < 35% ⇒ "Boutique calme"
+ * Alert threshold: < 35% ⇒ "Shop quiet"
  */
 export const useTrafficDensity = () => {
   const [pct, setPct] = useState<number>(5);
@@ -73,7 +73,7 @@ export const useTrafficDensity = () => {
   }, []);
 
   const label =
-    pct < 35 ? "Boutique calme" : pct < 65 ? "Activité modérée" : "Forte affluence";
+    pct < 35 ? "Shop quiet" : pct < 65 ? "Moderate activity" : "Heavy traffic";
   const isQuiet = pct < 35;
 
   return { pct, count, label, loading, isQuiet };

@@ -16,16 +16,16 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const data = [
-  { day: "Lun", payone: 4200, contextuel: 1100, total: 5300 },
-  { day: "Mar", payone: 3800, contextuel: 1450, total: 5250 },
-  { day: "Mer", payone: 5100, contextuel: 1820, total: 6920 },
-  { day: "Jeu", payone: 4700, contextuel: 2100, total: 6800 },
-  { day: "Ven", payone: 6800, contextuel: 2950, total: 9750 },
-  { day: "Sam", payone: 8200, contextuel: 3400, total: 11600 },
-  { day: "Dim", payone: 5400, contextuel: 2200, total: 7600 },
+  { day: "Mon", payone: 4200, contextuel: 1100, total: 5300 },
+  { day: "Tue", payone: 3800, contextuel: 1450, total: 5250 },
+  { day: "Wed", payone: 5100, contextuel: 1820, total: 6920 },
+  { day: "Thu", payone: 4700, contextuel: 2100, total: 6800 },
+  { day: "Fri", payone: 6800, contextuel: 2950, total: 9750 },
+  { day: "Sat", payone: 8200, contextuel: 3400, total: 11600 },
+  { day: "Sun", payone: 5400, contextuel: 2200, total: 7600 },
 ];
 
-const ranges = ["7j", "30j", "90j"] as const;
+const ranges = ["7d", "30d", "90d"] as const;
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
@@ -37,7 +37,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           <div key={p.dataKey} className="flex items-center gap-2 text-sm">
             <span className="size-2 rounded-sm" style={{ background: p.color }} />
             <span className="text-muted-foreground capitalize">{p.dataKey}</span>
-            <span className="ml-auto font-semibold tabular text-foreground">€{p.value.toLocaleString("fr-FR")}</span>
+            <span className="ml-auto font-semibold tabular text-foreground">€{p.value.toLocaleString("en-US")}</span>
           </div>
         ))}
       </div>
@@ -46,7 +46,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export const TransactionChart = () => {
-  const [range, setRange] = useState<(typeof ranges)[number]>("7j");
+  const [range, setRange] = useState<(typeof ranges)[number]>("7d");
   const [view, setView] = useState<"area" | "bar">("area");
 
   const total = data.reduce((s, d) => s + d.total, 0);
@@ -56,11 +56,11 @@ export const TransactionChart = () => {
     <Card className="p-6 shadow-sm-elegant border-border/70">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-foreground tracking-tight mb-1">Volume de transactions Payone</h2>
+          <h2 className="text-lg font-semibold text-foreground tracking-tight mb-1">Payone transaction volume</h2>
           <div className="flex items-baseline gap-3">
-            <span className="text-3xl font-bold text-foreground tabular">€{total.toLocaleString("fr-FR")}</span>
+            <span className="text-3xl font-bold text-foreground tabular">€{total.toLocaleString("en-US")}</span>
             <span className="text-sm text-success font-semibold">+18.2%</span>
-            <span className="text-xs text-muted-foreground">vs période précédente</span>
+            <span className="text-xs text-muted-foreground">vs previous period</span>
           </div>
           <div className="mt-2 flex items-center gap-4 text-xs">
             <div className="flex items-center gap-1.5">
@@ -70,7 +70,7 @@ export const TransactionChart = () => {
             <div className="flex items-center gap-1.5">
               <span className="size-2 rounded-sm" style={{ background: "hsl(var(--chart-3))" }} />
               <span className="text-muted-foreground">
-                Offres contextuelles · <span className="font-semibold text-foreground">€{contextual.toLocaleString("fr-FR")}</span>
+                Contextual offers · <span className="font-semibold text-foreground">€{contextual.toLocaleString("en-US")}</span>
               </span>
             </div>
           </div>
@@ -87,7 +87,7 @@ export const TransactionChart = () => {
                   view === v ? "bg-card text-foreground shadow-sm-elegant" : "text-muted-foreground"
                 )}
               >
-                {v === "area" ? "Aire" : "Barres"}
+                {v === "area" ? "Area" : "Bars"}
               </button>
             ))}
           </div>

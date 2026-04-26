@@ -14,39 +14,39 @@ type LogEntry = {
 };
 
 const fmtTime = (d = new Date()) =>
-  d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" });
+  d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" });
 
 const WEATHER_LABEL: Record<string, { label: string; icon: React.ReactNode }> = {
-  rain: { label: "Pluie détectée", icon: <CloudRain className="size-3.5" /> },
-  sun: { label: "Soleil détecté", icon: <Sun className="size-3.5" /> },
-  cloud: { label: "Nuages détectés", icon: <Cloud className="size-3.5" /> },
-  snow: { label: "Neige détectée", icon: <Snowflake className="size-3.5" /> },
+  rain: { label: "Rain detected", icon: <CloudRain className="size-3.5" /> },
+  sun: { label: "Sun detected", icon: <Sun className="size-3.5" /> },
+  cloud: { label: "Clouds detected", icon: <Cloud className="size-3.5" /> },
+  snow: { label: "Snow detected", icon: <Snowflake className="size-3.5" /> },
 };
 
 const SEED: Omit<LogEntry, "id" | "time">[] = [
   {
     level: "trigger",
-    message: "Pluie détectée sur Stuttgart Zentrum — déclenchement règle météo",
+    message: "Rain detected over Stuttgart Zentrum — weather rule triggered",
     icon: <CloudRain className="size-3.5" />,
   },
   {
     level: "info",
-    message: "Offre générée pour 1 utilisateur proche (Café Müller, -20%)",
+    message: "Offer generated for 1 nearby user (Café Müller, -20%)",
     icon: <Users className="size-3.5" />,
   },
   {
     level: "success",
-    message: "Acceptation utilisateur · paiement Payone €4.20",
+    message: "User accepted · Payone payment €4.20",
     icon: <Zap className="size-3.5" />,
   },
   {
     level: "info",
-    message: "Scan zone géo — 12 portefeuilles actifs dans 200m",
+    message: "Geo zone scan — 12 active wallets within 200m",
     icon: <Radio className="size-3.5" />,
   },
   {
     level: "trigger",
-    message: "Heure creuse 14h32 — boost +5% appliqué automatiquement",
+    message: "Off-peak hour 14:32 — +5% boost applied automatically",
     icon: <Bot className="size-3.5" />,
   },
 ];
@@ -61,11 +61,11 @@ const seedLogs = (): LogEntry[] => {
 };
 
 const RANDOM_INFO: Omit<LogEntry, "id" | "time">[] = [
-  { level: "info", message: "Scan zone géo — 8 portefeuilles actifs dans 200m", icon: <Radio className="size-3.5" /> },
-  { level: "success", message: "Acceptation utilisateur · paiement Payone €3.80", icon: <Zap className="size-3.5" /> },
-  { level: "info", message: "Modèle ML re-calibré (latence 42ms)", icon: <Bot className="size-3.5" /> },
-  { level: "info", message: "Offre générée pour 3 utilisateurs proches", icon: <Users className="size-3.5" /> },
-  { level: "success", message: "Conversion confirmée · ticket moyen +18%", icon: <Zap className="size-3.5" /> },
+  { level: "info", message: "Geo zone scan — 8 active wallets within 200m", icon: <Radio className="size-3.5" /> },
+  { level: "success", message: "User accepted · Payone payment €3.80", icon: <Zap className="size-3.5" /> },
+  { level: "info", message: "ML model recalibrated (latency 42ms)", icon: <Bot className="size-3.5" /> },
+  { level: "info", message: "Offer generated for 3 nearby users", icon: <Users className="size-3.5" /> },
+  { level: "success", message: "Conversion confirmed · avg ticket +18%", icon: <Zap className="size-3.5" /> },
 ];
 
 export const AiActivityLog = () => {
@@ -91,18 +91,18 @@ export const AiActivityLog = () => {
         { event: "INSERT", schema: "public", table: "offers_config" },
         (payload: any) => {
           const w = payload.new?.weather as string;
-          const product = payload.new?.product ?? "Café";
+          const product = payload.new?.product ?? "Coffee";
           const discount = payload.new?.discount_percent ?? 20;
           const meta = WEATHER_LABEL[w] ?? { label: `Condition ${w}`, icon: <Cloud className="size-3.5" /> };
           push({
             level: "trigger",
-            message: `${meta.label} — règle publiée : ${product} -${discount}%`,
+            message: `${meta.label} — rule published: ${product} -${discount}%`,
             icon: meta.icon,
           });
           setTimeout(() => {
             push({
               level: "info",
-              message: `Offre diffusée à ${Math.floor(Math.random() * 12 + 3)} utilisateurs proches`,
+              message: `Offer broadcast to ${Math.floor(Math.random() * 12 + 3)} nearby users`,
               icon: <Users className="size-3.5" />,
             });
           }, 1200);
@@ -114,7 +114,7 @@ export const AiActivityLog = () => {
         (payload: any) => {
           push({
             level: "info",
-            message: `Règle mise à jour automatiquement (${payload.new?.product ?? "offre"})`,
+            message: `Rule updated automatically (${payload.new?.product ?? "offer"})`,
             icon: <Bot className="size-3.5" />,
           });
         }
@@ -142,7 +142,7 @@ export const AiActivityLog = () => {
             <Bot className="size-4 text-primary" />
             <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-success animate-pulse" />
           </div>
-          <h2 className="text-base font-semibold tracking-tight">Journal IA — Activité autonome</h2>
+          <h2 className="text-base font-semibold tracking-tight">AI Log — Autonomous Activity</h2>
         </div>
         <div className="flex items-center gap-1.5 rounded-full bg-success/10 px-2 py-0.5">
           <span className="size-1.5 rounded-full bg-success animate-pulse" />
@@ -197,7 +197,7 @@ export const AiActivityLog = () => {
       </div>
 
       <div className="px-5 py-2.5 border-t border-border/60 bg-card text-[10px] text-muted-foreground flex items-center justify-between font-mono">
-        <span>● {logs.length} événements · stream postgres_changes</span>
+        <span>● {logs.length} events · postgres_changes stream</span>
         <span className="tabular">offers_config · public</span>
       </div>
     </Card>

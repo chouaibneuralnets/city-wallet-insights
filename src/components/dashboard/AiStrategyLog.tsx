@@ -33,7 +33,7 @@ type LogEntry = {
 };
 
 const fmtTime = (d = new Date()) =>
-  d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" });
+  d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Berlin" });
 
 const levelMeta: Record<LogLevel, { tag: string; cls: string }> = {
   scan: { tag: "SCAN", cls: "text-primary bg-primary/10" },
@@ -51,11 +51,11 @@ type Props = {
   ruleSatisfied: boolean;
   /** Live density in % (0-100). */
   trafficPct: number;
-  /** Live weather label, e.g. "Ciel dégagé". */
+  /** Live weather label, e.g. "Clear sky". */
   weatherLabel: string;
   /** Last AI-generated message text (kept in sync with iPhone preview). */
   message: string;
-  /** Currently selected product (Café, Croissant…). */
+  /** Currently selected product (Coffee, Croissant…). */
   product: string;
   /** Active discount (0-50). */
   discount: number;
@@ -94,8 +94,8 @@ export const AiStrategyLog = ({
 
   // Seed a few "boot" lines on first mount
   useEffect(() => {
-    push({ level: "scan", message: "Initialisation de l'AI Strategy Engine…", icon: <Bot className="size-3.5" /> });
-    push({ level: "scan", message: "Connexion stream postgres_changes (offers_config)", icon: <Terminal className="size-3.5" /> });
+    push({ level: "scan", message: "Initializing AI Strategy Engine…", icon: <Bot className="size-3.5" /> });
+    push({ level: "scan", message: "Connecting postgres_changes stream (offers_config)", icon: <Terminal className="size-3.5" /> });
   }, []);
 
   // Heartbeat: log the AI "thinking" steps every 6s based on live signals
@@ -103,17 +103,17 @@ export const AiStrategyLog = ({
     const id = setInterval(() => {
       push({
         level: "scan",
-        message: `Scan zone géo — capteurs IoT actifs · ${trafficPct}% densité`,
+        message: `Geo zone scan — IoT sensors active · ${trafficPct}% density`,
         icon: <Radar className="size-3.5" />,
       });
       push({
         level: "detect",
-        message: `Détection densité Payone : ${trafficPct}% (seuil 35%)`,
+        message: `Payone density detection: ${trafficPct}% (threshold 35%)`,
         icon: <Gauge className="size-3.5" />,
       });
       push({
         level: "compute",
-        message: `Composite State = [${weatherLabel}] × [Densité ${trafficPct}%] × [${product}]`,
+        message: `Composite State = [${weatherLabel}] × [Density ${trafficPct}%] × [${product}]`,
         icon: <Brain className="size-3.5" />,
       });
     }, 6500);
@@ -125,24 +125,24 @@ export const AiStrategyLog = ({
     if (ruleSatisfied && !lastSatisfiedRef.current) {
       push({
         level: "detect",
-        message: `Conditions remplies — règle déclenchée automatiquement`,
+        message: `Conditions met — rule triggered automatically`,
         icon: <CheckCircle2 className="size-3.5" />,
       });
     } else if (!ruleSatisfied && lastSatisfiedRef.current) {
       push({
         level: "idle",
-        message: `Conditions perdues — passage en veille`,
+        message: `Conditions lost — going idle`,
         icon: <AlertCircle className="size-3.5" />,
       });
     }
     lastSatisfiedRef.current = ruleSatisfied;
   }, [ruleSatisfied]);
 
-  // NOTE: Auto-deploy a été retiré.
-  // Règle métier : 1 offre activée = 1 seul message envoyé à Mia.
-  // L'envoi se fait uniquement quand l'utilisateur active une offre
-  // (transition OFF → ON) ou clique manuellement sur "Déployer".
-  // Le pilote auto ne fait plus que journaliser l'état — pas d'INSERT.
+  // NOTE: Auto-deploy has been removed.
+  // Business rule: 1 active offer = only 1 message sent to Mia.
+  // Sending only happens when the user activates an offer
+  // (OFF → ON transition) or manually clicks "Deploy".
+  // Autopilot now only logs the state — no INSERT.
   useEffect(() => {
     if (!autopilot || !ruleSatisfied || !message || !ruleActive) return;
     const now = Date.now();
@@ -150,7 +150,7 @@ export const AiStrategyLog = ({
     lastAutoPushRef.current = now;
     push({
       level: "scan",
-      message: `Pilote auto · conditions OK · offre déjà déployée — pas de renvoi (1 offre = 1 message)`,
+      message: `Autopilot · conditions OK · offer already deployed — no resend (1 offer = 1 message)`,
       icon: <ShieldAlert className="size-3.5" />,
     });
   }, [autopilot, ruleSatisfied, message, product, discount, trafficPct, ruleActive]);
@@ -161,11 +161,11 @@ export const AiStrategyLog = ({
     if (!ruleSatisfied) return;
     push({
       level: "manual",
-      message: `Offre suggérée par l'IA — En attente de validation manuelle`,
+      message: `Offer suggested by AI — Awaiting manual approval`,
       icon: <Hand className="size-3.5" />,
     });
-    toast("Offre suggérée par l'IA", {
-      description: "En attente de validation manuelle (Pilote auto OFF).",
+    toast("Offer suggested by AI", {
+      description: "Awaiting manual approval (Autopilot OFF).",
       icon: <Hand className="size-4 text-warning" />,
     });
   }, [autopilot, ruleSatisfied]);
@@ -177,7 +177,7 @@ export const AiStrategyLog = ({
     if (!ruleActive) {
       push({
         level: "refused",
-        message: `Règle désactivée — tous les envois vers Supabase sont bloqués`,
+        message: `Rule disabled — all sends to backend are blocked`,
         icon: <ShieldAlert className="size-3.5" />,
       });
       // Reset throttle so next activation can fire immediately.
@@ -186,7 +186,7 @@ export const AiStrategyLog = ({
     } else {
       push({
         level: "detect",
-        message: `Règle activée — verrou réinitialisé, prêt à envoyer`,
+        message: `Rule enabled — lock reset, ready to send`,
         icon: <CheckCircle2 className="size-3.5" />,
       });
     }
@@ -204,7 +204,7 @@ export const AiStrategyLog = ({
           const text = (payload.new?.generated_text ?? payload.new?.message ?? "") as string;
           push({
             level: "send",
-            message: `Offre envoyée vers Supabase · ${payload.new?.product ?? "Café"} -${payload.new?.discount_percent ?? 20}% · "${text.slice(0, 50)}${text.length > 50 ? "…" : ""}"`,
+            message: `Offer sent to backend · ${payload.new?.product ?? "Coffee"} -${payload.new?.discount_percent ?? 20}% · "${text.slice(0, 50)}${text.length > 50 ? "…" : ""}"`,
             icon: <Zap className="size-3.5" />,
           });
         },
@@ -215,11 +215,11 @@ export const AiStrategyLog = ({
         { event: "INSERT", schema: "public", table: "redemptions" },
         (payload: any) => {
           if (payload.new?.status !== "refused") return;
-          const product = payload.new?.product ?? "Café";
+          const product = payload.new?.product ?? "Coffee";
           const discount = payload.new?.discount_percent ?? 20;
           push({
             level: "refused",
-            message: `Offre refusée par le client · ${product} -${discount}% (Mia a appuyé sur "Ignorer")`,
+            message: `Offer refused by customer · ${product} -${discount}% (Mia tapped "Ignore")`,
             icon: <XCircle className="size-3.5" />,
           });
         },
@@ -230,11 +230,11 @@ export const AiStrategyLog = ({
         (payload: any) => {
           if (payload.new?.status !== "refused") return;
           if (payload.old?.status === "refused") return;
-          const product = payload.new?.product ?? "Café";
+          const product = payload.new?.product ?? "Coffee";
           const discount = payload.new?.discount_percent ?? 20;
           push({
             level: "refused",
-            message: `Offre refusée par le client · ${product} -${discount}% (statut mis à jour : refused)`,
+            message: `Offer refused by customer · ${product} -${discount}% (status updated: refused)`,
             icon: <XCircle className="size-3.5" />,
           });
         },
@@ -258,7 +258,7 @@ export const AiStrategyLog = ({
         <div className="flex items-center gap-2 min-w-0">
           <Terminal className="size-4 text-success" />
           <h3 className="text-sm font-semibold tracking-tight truncate">
-            AI Strategy Log — Console temps réel
+            AI Strategy Log — Real-time Console
           </h3>
           <span className="font-mono text-[10px] text-background/60 hidden sm:inline">
             module-02 · strategist.ts
@@ -273,7 +273,7 @@ export const AiStrategyLog = ({
               )}
             />
             <span className="text-[11px] font-semibold uppercase tracking-wider">
-              Pilote automatique IA
+              AI Autopilot
             </span>
             <Switch checked={autopilot} onCheckedChange={setAutopilot} />
             <Badge
@@ -348,12 +348,12 @@ export const AiStrategyLog = ({
 
       <div className="px-5 py-2.5 border-t border-border/60 bg-card text-[10px] text-muted-foreground flex items-center justify-between font-mono gap-3">
         <span className="truncate">
-          ● {logs.length} événements · stream postgres_changes · {ruleSatisfied ? "rule=match" : "rule=idle"}
+          ● {logs.length} events · postgres_changes stream · {ruleSatisfied ? "rule=match" : "rule=idle"}
         </span>
         <div className="flex items-center gap-2 shrink-0">
           {!autopilot && (
             <span className="inline-flex items-center gap-1 text-warning">
-              <Pause className="size-3" /> validation manuelle requise
+              <Pause className="size-3" /> manual approval required
             </span>
           )}
           <Button

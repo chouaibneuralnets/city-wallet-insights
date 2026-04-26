@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
  * Inserts a row in `redemptions` so the Dashboard KPIs update in real-time.
  */
 export const MiaSimulator = () => {
-  const [product, setProduct] = useState("Café");
+  const [product, setProduct] = useState("Coffee");
   const [amount, setAmount] = useState(3.5);
   const [loading, setLoading] = useState(false);
 
@@ -61,23 +61,23 @@ export const MiaSimulator = () => {
       }
 
       if (status === "refused") {
-        toast(`Mia a ignoré l'offre "${product}"`, {
+        toast(`Mia ignored the offer "${product}"`, {
           icon: <XCircle className="size-4 text-destructive" />,
-          description: "Statut mis à jour : refused",
+          description: "Status updated: refused",
         });
       } else {
         toast.success(
           status === "accepted"
-            ? `Mia a payé ${product} (+${amount.toFixed(2)} €)`
-            : `Offre "${product}" envoyée à Mia`,
+            ? `Mia paid ${product} (+${amount.toFixed(2)} €)`
+            : `Offer "${product}" sent to Mia`,
           {
             icon: <CheckCircle2 className="size-4 text-success" />,
           },
         );
       }
     } catch (e) {
-      toast.error("Erreur de simulation", {
-        description: e instanceof Error ? e.message : "Inconnue",
+      toast.error("Simulation error", {
+        description: e instanceof Error ? e.message : "Unknown",
       });
     } finally {
       setLoading(false);
@@ -91,9 +91,9 @@ export const MiaSimulator = () => {
           <Smartphone className="size-4" />
         </div>
         <div>
-          <h3 className="text-sm font-semibold tracking-tight">Simulateur — App Mia</h3>
+          <h3 className="text-sm font-semibold tracking-tight">Simulator — Mia App</h3>
           <p className="text-xs text-muted-foreground">
-            Simule un paiement client pour voir les KPI réagir en temps réel.
+            Simulates a customer payment to see KPIs react in real-time.
           </p>
         </div>
       </div>
@@ -101,7 +101,7 @@ export const MiaSimulator = () => {
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div>
           <Label htmlFor="mia-product" className="text-xs">
-            Produit
+            Product
           </Label>
           <Input
             id="mia-product"
@@ -112,7 +112,7 @@ export const MiaSimulator = () => {
         </div>
         <div>
           <Label htmlFor="mia-amount" className="text-xs">
-            Montant (€)
+            Amount (€)
           </Label>
           <Input
             id="mia-amount"

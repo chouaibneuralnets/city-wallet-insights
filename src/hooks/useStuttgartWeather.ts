@@ -16,7 +16,7 @@ export type WeatherData = {
 const FALLBACK: WeatherData = {
   city: "Stuttgart",
   weather: "rain",
-  description: "Pluie légère",
+  description: "Light rain",
   temperature: 8,
   humidity: 82,
   wind: 3.2,
